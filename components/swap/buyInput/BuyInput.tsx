@@ -1,34 +1,29 @@
-import React, { useState, useContext, useEffect } from "react"
-
-import input_styles from "../Input.module.css"
-import TokenSelector from "../tokenSelector/TokenSelector"
+import React, { useState, useContext } from "react"
 import { ethers } from "ethers"
 
+import input_styles from "../Input.module.css"
+
+import TokenSelector from "../tokenSelector/TokenSelector"
 import { SwapContext } from "../../../contexts/SwapContext"
 import { ZZTokenInfo } from "../../../contexts/ExchangeContext"
 import { prettyBalance, truncateDecimals } from "../../../utils/utils"
+import { ValidationState } from "../Swap"
 
 interface Props {
   buyTokenInfo: ZZTokenInfo | null
-  balance: ethers.BigNumber | null
-  allowance: ethers.BigNumber | null
+  validationStateBuy: ValidationState
   openModal: () => void
+  setValidationStateBuy: (state: ValidationState) => void
 }
 
-enum ValidationState {
-  OK,
-  IsNaN,
-  IsNegative,
-  InsufficientBalance,
-  ExceedsAllowance,
-  InternalError
-}
-
-
-export default function BuyInput({ buyTokenInfo, balance, allowance, openModal }: Props) {
+export default function BuyInput({ 
+  buyTokenInfo,
+  validationStateBuy,
+  openModal,
+  setValidationStateBuy
+}: Props) {
   const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
-  const [validationState, setValidationState] = useState<ValidationState>(ValidationState.OK)
 
   const { buyAmount, setBuyAmount } = useContext(SwapContext)
 
@@ -42,13 +37,6 @@ export default function BuyInput({ buyTokenInfo, balance, allowance, openModal }
     if (!buyTokenInfo) {
       return ValidationState.InternalError
     }
-    const amountBN = ethers.utils.parseUnits(amount, buyTokenInfo.decimals)
-    if (balance !== null && amountBN.gt(balance)) {
-      return ValidationState.InsufficientBalance
-    }
-    if (allowance !== null && amountBN.gt(allowance)) {
-      return ValidationState.ExceedsAllowance
-    }
     return ValidationState.OK
   }
 
@@ -57,12 +45,12 @@ export default function BuyInput({ buyTokenInfo, balance, allowance, openModal }
     newAmount = truncateDecimals(newAmount, 10)
     setInput(newAmount)
     if (newAmount === "" || newAmount === "0.0") {
-      setValidationState(ValidationState.OK)
+      setValidationStateBuy(ValidationState.OK)
       setBuyAmount(0)
     }
 
     const validation = getValidatioState(newAmount)
-    setValidationState(validation)
+    setValidationStateBuy(validation)
     setBuyAmount(Number(newAmount))
   }
 
@@ -72,7 +60,7 @@ export default function BuyInput({ buyTokenInfo, balance, allowance, openModal }
     <div className={input_styles.container}>
       <TokenSelector selectedTokenSymbol={buyTokenSymbol} openModal={openModal} />
       <input
-        className={validationState === ValidationState.OK ? input_styles.input : input_styles.input_with_error}
+        className={validationStateBuy === ValidationState.OK ? input_styles.input : input_styles.input_with_error}
         onInput={p => safeSetBuyAmount(p.currentTarget.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}

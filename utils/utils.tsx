@@ -26,15 +26,6 @@ export function prettyBalance(balance: number | string, decimals: number = 6) {
     if (truncattedAmount === "") {
       return "0"
     }
-    if (decimalPart.length < decimals) {
-      // console.log("decimalPart too small")
-      return balanceCommas(
-        truncattedAmount +
-        Array(decimals - decimalPart.length)
-          .fill(0)
-          .join("")
-      )
-    }
     return balanceCommas(truncattedAmount)
   } else {
     return balanceCommas(truncattedAmount + (decimals > 0 ? "." : "") + Array(decimals).fill(0).join(""))

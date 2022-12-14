@@ -1,11 +1,12 @@
 import { useState, useContext, useEffect } from "react"
 
+import styles from "./Swap.module.css"
 import SellInput from "./sellInput/SellInput"
 import BuyInput from "./buyInput/BuyInput"
-
-import styles from "./Swap.module.css"
 import Modal from "./modal/Modal"
 import TransactionSettings from "./transactionSettings/TransactionSettings"
+import SwapButton from "./swapButton/SwapButton"
+
 
 import { ExchangeContext } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
@@ -13,14 +14,23 @@ import { SwapContext } from "../../contexts/SwapContext"
 import { prettyBalance, prettyBalanceUSD } from "../../utils/utils"
 import { constants, ethers } from "ethers"
 
+export enum ValidationState {
+  OK,
+  IsNaN,
+  IsNegative,
+  InsufficientBalance,
+  ExceedsAllowance,
+  InternalError
+}
+
 function Swap() {
   const [modal, setModal] = useState<"buy" | "sell" | null>(null)
-  const [sellAmount, setSellAmount] = useState<number>(1)
-  const [buyAmount, setBuySize] = useState<number>(1)
+  const [validationStateBuy, setValidationStateBuy] = useState<ValidationState>(ValidationState.OK)
+  const [validationStateSell, setValidationStateSell] = useState<ValidationState>(ValidationState.OK)
 
   const { network } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { estimatedGasFee, swapPrice } = useContext(SwapContext)
+  const { sellAmount, buyAmount, estimatedGasFee, swapPrice } = useContext(SwapContext)
 
   function switchTokens() {
     if (buyTokenInfo) setSellToken(buyTokenInfo.address)
@@ -60,7 +70,9 @@ function Swap() {
               sellTokenInfo={sellTokenInfo}
               balance={sellTokenAddress && balances[sellTokenAddress] ? balances[sellTokenAddress].value : ethers.constants.Zero}
               allowance={sellTokenAddress ? allowances[sellTokenAddress] : ethers.constants.Zero}
-              openModal={() => setModal("sell")} 
+              validationStateSell={validationStateSell}
+              openModal={() => setModal("sell")}
+              setValidationStateSell={setValidationStateSell}
             />
           </div>
           <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
@@ -97,9 +109,9 @@ function Swap() {
           <div className={styles.to_input_container}>
             <BuyInput
               buyTokenInfo={buyTokenInfo}
-              balance={buyTokenAddress && balances[buyTokenAddress] ? balances[buyTokenAddress].value : ethers.constants.Zero}
-              allowance={buyTokenAddress ? allowances[buyTokenAddress] : ethers.constants.Zero}
+              validationStateBuy={validationStateBuy}
               openModal={() => setModal("buy")}
+              setValidationStateBuy={setValidationStateBuy}
             />
           </div>
           <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)}`}</div>
@@ -116,7 +128,10 @@ function Swap() {
         nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
         nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
       />
-      <button>Swap</button>
+      <SwapButton
+        validationStateBuy={validationStateBuy}
+        validationStateSell={validationStateSell}
+      />
       <Modal
         isOpen={modal !== null}
         selectedModal={modal}

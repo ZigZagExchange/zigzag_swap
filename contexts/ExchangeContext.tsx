@@ -3,7 +3,6 @@ import { ethers } from "ethers"
 
 import erc20Abi from '../data/abis/erc20.json'
 
-import { prettyBalance } from "../utils/utils"
 import { WalletContext } from "./WalletContext"
 
 interface Props {
@@ -150,7 +149,6 @@ function ExchangeProvider({ children }: Props) {
   }, [tokenInfos])
 
   async function fetchMarketsInfo() {
-    console.log(network)
     if (!network) return
 
     const response = await fetch(`${network.backendUrl}/v1/info`)

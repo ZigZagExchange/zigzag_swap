@@ -1,33 +1,27 @@
-import React, { useState, useContext, useEffect } from "react"
+import React, { useState, useContext } from "react"
+
+import { ethers } from "ethers"
 
 import input_styles from "../Input.module.css"
 import TokenSelector from "../tokenSelector/TokenSelector"
-import { ethers } from "ethers"
-
 import { SwapContext } from "../../../contexts/SwapContext"
 import { ZZTokenInfo } from "../../../contexts/ExchangeContext"
 import { prettyBalance, truncateDecimals } from "../../../utils/utils"
+
+import { ValidationState } from "../Swap"
 
 interface Props {
   sellTokenInfo: ZZTokenInfo | null
   balance: ethers.BigNumber | null
   allowance: ethers.BigNumber | null
+  validationStateSell: ValidationState
   openModal: () => void
+  setValidationStateSell: (state: ValidationState) => void
 }
 
-enum ValidationState {
-  OK,
-  IsNaN,
-  IsNegative,
-  InsufficientBalance,
-  ExceedsAllowance,
-  InternalError
-}
-
-export default function SellInput({ sellTokenInfo, balance, allowance, openModal }: Props) {
+export default function SellInput({ sellTokenInfo, balance, allowance, validationStateSell, openModal, setValidationStateSell }: Props) {
   const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
-  const [validationState, setValidationState] = useState<ValidationState>(ValidationState.OK)
 
   const { sellAmount, setSellAmount } = useContext(SwapContext)
 
@@ -55,13 +49,13 @@ export default function SellInput({ sellTokenInfo, balance, allowance, openModal
     newAmount = newAmount.replace(',', '.')
     newAmount = truncateDecimals(newAmount, 10)
     setInput(newAmount)
-    if (newAmount === "" || newAmount === "0.0") {
-      setValidationState(ValidationState.OK)
+    if (!newAmount || newAmount === "" || newAmount === "0.0") {
+      setValidationStateSell(ValidationState.OK)
       setSellAmount(0)
     }
 
     const validation = getValidatioState(newAmount)
-    setValidationState(validation)
+    setValidationStateSell(validation)
     setSellAmount(Number(newAmount))    
   }
 
@@ -71,7 +65,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, openModal
     <div className={input_styles.container}>
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
       <input 
-        className={validationState === ValidationState.OK ? input_styles.input : input_styles.input_with_error }
+        className={validationStateSell === ValidationState.OK ? input_styles.input : input_styles.input_with_error }
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}

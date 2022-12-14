@@ -19,7 +19,7 @@
 
 .icon {
   fill: var(--gray_lighter);
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .icon:hover {
@@ -31,7 +31,7 @@
   white-space: nowrap;
   max-width: 0;
   overflow: hidden;
-  transition: all 0.2s ease-out;
+  transition: all 0.3s ease-in-out;
   padding-top: 2px;
 }
 

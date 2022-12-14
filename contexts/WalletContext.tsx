@@ -8,6 +8,7 @@ import walletConnectModule from "@web3-onboard/walletconnect/dist"
 import coinbaseWalletModule from "@web3-onboard/coinbase"
 import ledgerModule from "@web3-onboard/ledger"
 import mewWallet from "@web3-onboard/mew-wallet"
+import tallyHoWalletModule from "@web3-onboard/tallyho"
 
 import { NETWORKS, isValidNetwork, NetworkType } from "../data/networks"
 
@@ -46,7 +47,8 @@ const wallets = [
   walletConnectModule(),
   coinbaseWalletModule({ darkMode: true }),
   ledgerModule(),
-  mewWallet()
+  mewWallet(),
+  tallyHoWalletModule()
 ]
 
 const chains = Object.keys(NETWORKS).map((key: string) => {

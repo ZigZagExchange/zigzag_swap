@@ -26,27 +26,50 @@ export type SwapContextType = {
   quoteOrder: ZZOrder | null
   swapPrice: number
   estimatedGasFee: number
+  sellAmount: number
+  buyAmount: number
 
-  setSellSize: ((amount: ethers.BigNumber) => void)
+  setSellAmount: ((amount: number) => void)
+  setBuyAmount: ((amount: number) => void)
 }
 
 export const SwapContext = createContext<SwapContextType>({
   quoteOrder: null,
   swapPrice: 0,
   estimatedGasFee: 0,
+  sellAmount: 0,
+  buyAmount: 0,
 
-
-  setSellSize: ((amount: ethers.BigNumber) => {})
+  setSellAmount: ((amount: number) => { }),
+  setBuyAmount: ((amount: number) => { })
 })
 
 function SwapProvider({ children }: Props) {
-  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
-  const [swapPrice, setSwapPrice] = useState<number>(0)
-  const [sellSize, setSellSize] = useState<ethers.BigNumber>(ethers.constants.Zero)
+  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>({order: {
+    user: "0x0",
+    buyToken: "1",
+    sellToken: "5",
+    buyAmount: "5000000000000",
+    sellAmount: "1",
+    expirationTimeSeconds: "1",
+  },
+  signature: "0x0"})
+  const [swapPrice, setSwapPrice] = useState<number>(1)
+  const [sellAmount, setSellAmount] = useState<number>(0)
+  const [buyAmount, setBuyAmount] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0)
 
   const { network, ethersProvider } = useContext(WalletContext)
   const { buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
+
+  useEffect(() => {
+    if (!quoteOrder || !buyTokenInfo || !sellTokenInfo) return
+
+    // here buy and sell token infos are inverted
+    const quoteSellAmount = Number(ethers.utils.formatUnits(quoteOrder.order.sellAmount, buyTokenInfo.decimals))
+    const quoteBuyAmount = Number(ethers.utils.formatUnits(quoteOrder.order.buyAmount, sellTokenInfo.decimals))
+    setSwapPrice(quoteSellAmount / quoteBuyAmount)
+  }, [quoteOrder])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -65,7 +88,7 @@ function SwapProvider({ children }: Props) {
         estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(
           Object.values(quoteOrder.order),
           quoteOrder.signature,
-          sellSize.toString(),
+          sellAmount.toString(),
           false
         )
       } catch (err: any) {
@@ -81,14 +104,43 @@ function SwapProvider({ children }: Props) {
     return () => clearInterval(interval)
   }, [quoteOrder, network, ethersProvider, exchangeAddress])
 
+  function setBuyAndSellSize(buyAmout: number | null, sellAmount: number | null) {
+    if (!swapPrice) return
+    
+    if (sellAmount) {
+      const newBuyAmount = sellAmount * swapPrice
+      setBuyAmount(newBuyAmount)
+      setSellAmount(sellAmount)
+    } else if (buyAmout) {
+      const newSellAmount = buyAmout / swapPrice
+      setBuyAmount(buyAmout)
+      setSellAmount(newSellAmount)
+    }
+  }
+
+  useEffect(() => {
+    setBuyAndSellSize(null, sellAmount)
+  }, [quoteOrder])
+
+  const _setSellAmount = (newSellAmount: number) => {
+    setBuyAndSellSize(null, newSellAmount)
+  }
+
+  const _setBuyAmount = (newBuyAmount: number) => {
+    setBuyAndSellSize(newBuyAmount, null)
+  }
+
   return (
     <SwapContext.Provider
       value={{
         quoteOrder: quoteOrder,
         swapPrice: swapPrice,
         estimatedGasFee: estimatedGasFee,
+        sellAmount: sellAmount,
+        buyAmount: buyAmount,
 
-        setSellSize: setSellSize
+        setSellAmount: _setSellAmount,
+        setBuyAmount: _setBuyAmount
       }}
     >
       {children}

@@ -7,6 +7,16 @@
   border-radius: 4px;
 }
 
+.input_with_error {
+  background-color: transparent;
+  color: rgba(189, 6, 6, 0.788);
+  outline: none;
+  border: none !important;
+  text-align: right;
+  padding: 10px;
+  font-size: 20px;
+}
+
 .input {
   background-color: transparent;
   color: white;
@@ -17,7 +27,8 @@
   font-size: 20px;
 }
 
-.input::placeholder {
+.input::placeholder,
+.input_with_error::placeholder {
   color: white;
   opacity: 0.5;
 }

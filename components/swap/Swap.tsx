@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from "react"
 
-import FromInput from "./fromInput/FromInput"
-import ToInput from "./toInput/ToInput"
+import SellInput from "./sellInput/SellInput"
+import BuyInput from "./buyInput/BuyInput"
 
 import styles from "./Swap.module.css"
 import Modal from "./modal/Modal"
@@ -11,15 +11,15 @@ import { ExchangeContext } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
 import { prettyBalance, prettyBalanceUSD } from "../../utils/utils"
-import { constants } from "ethers"
+import { constants, ethers } from "ethers"
 
 function Swap() {
   const [modal, setModal] = useState<"buy" | "sell" | null>(null)
-  const [sellSize, setSellSize] = useState<number>(1)
-  const [buySize, setBuySize] = useState<number>(1)
+  const [sellAmount, setSellAmount] = useState<number>(1)
+  const [buyAmount, setBuySize] = useState<number>(1)
 
   const { network } = useContext(WalletContext)
-  const { balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
+  const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { estimatedGasFee, swapPrice } = useContext(SwapContext)
 
   function switchTokens() {
@@ -29,7 +29,7 @@ function Swap() {
 
   const getBalanceReadable = (address: string | null) => {
     if (address && balances[address]) {
-      return balances[address].valueReadable
+      return prettyBalance(balances[address].valueReadable)
     } else {
       return "0.0"
     }
@@ -56,9 +56,14 @@ function Swap() {
             </div>
           </div>
           <div className={styles.from_input_container}>
-            <FromInput sellTokenSymbol={sellTokenSymbol} openModal={() => setModal("sell")} />
+            <SellInput
+              sellTokenInfo={sellTokenInfo}
+              balance={sellTokenAddress && balances[sellTokenAddress] ? balances[sellTokenAddress].value : ethers.constants.Zero}
+              allowance={sellTokenAddress ? allowances[sellTokenAddress] : ethers.constants.Zero}
+              openModal={() => setModal("sell")} 
+            />
           </div>
-          <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellSize * sellTokenUsdPrice)}`}</div>
+          <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
         </div>
         <div className={styles.arrow_container}>
           <hr className={styles.hr} />
@@ -90,9 +95,14 @@ function Swap() {
             </div>
           </div>
           <div className={styles.to_input_container}>
-            <ToInput buyTokenSymbol={buyTokenSymbol} openModal={() => setModal("buy")} />
+            <BuyInput
+              buyTokenInfo={buyTokenInfo}
+              balance={buyTokenAddress && balances[buyTokenAddress] ? balances[buyTokenAddress].value : ethers.constants.Zero}
+              allowance={buyTokenAddress ? allowances[buyTokenAddress] : ethers.constants.Zero}
+              openModal={() => setModal("buy")}
+            />
           </div>
-          <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buySize * buyTokenUsdPrice)}`}</div>
+          <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)}`}</div>
         </div>
       </div>
       <TransactionSettings 

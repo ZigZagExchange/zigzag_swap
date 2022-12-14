@@ -2,6 +2,7 @@ import { useRef, useContext } from "react"
 import styles from "./Modal.module.css"
 import TokenListEntry from "./tokenListEntry/TokenListEntry"
 
+import { prettyBalance, prettyBalanceUSD } from "../../../utils/utils"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
 import { ethers } from "ethers"
 
@@ -49,8 +50,8 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
       <TokenListEntry
         symbol={tokenInfo.symbol}
         selected={tokenAddress === selectedToken}
-        balance={balances[tokenAddress] ? balances[tokenAddress].valueReadable : "0.0"}
-        usdValue={balances[tokenAddress] ? balances[tokenAddress].valueUSD : "0.0"}
+        balance={balances[tokenAddress] ? prettyBalance(balances[tokenAddress].valueReadable) : "0.0"}
+        usdValue={balances[tokenAddress] ? prettyBalanceUSD(balances[tokenAddress].valueUSD) : "0.0"}
         onClick={() => onTokenClick(tokenAddress)} />
     ))
   }

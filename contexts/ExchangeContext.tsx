@@ -49,8 +49,8 @@ export type ZZTokenInfo = {
 export type TokenBalanceObject = {
   [key: string]: {
     value: ethers.BigNumber
-    valueReadable: string
-    valueUSD: string  
+    valueReadable: number
+    valueUSD: number  
   }
 }
 
@@ -153,7 +153,7 @@ function ExchangeProvider({ children }: Props) {
     console.log(network)
     if (!network) return
 
-    const response = await fetch(`${network.backendUrl}/v1/markets`)
+    const response = await fetch(`${network.backendUrl}/v1/info`)
     if (response.status !== 200) {
       console.error("Failed to fetch market info.")
       return
@@ -187,7 +187,7 @@ function ExchangeProvider({ children }: Props) {
 
   async function updateTokenPricesUSD() {
     if (!network) return
-    
+
     const getPriceUSD = async (symbol: string) => {
       const response = await fetch(`https://api.coincap.io/v2/assets?search=${symbol}`)
       if (response.status !== 200) {
@@ -232,16 +232,16 @@ function ExchangeProvider({ children }: Props) {
       if (!value || value === ethers.constants.Zero || decimals === 0 || !decimals) {
         return {
           value,
-          valueReadable: "0.0",
-          valueUSD: "0.0"  
+          valueReadable: 0,
+          valueUSD: 0 
         }
       }
       
       const formattedBalance = ethers.utils.formatUnits(value, decimals)
       return {
         value,
-        valueReadable: prettyBalance(Number(formattedBalance)),
-        valueUSD: "0.0"
+        valueReadable: Number(formattedBalance),
+        valueUSD: 0
       }
     }
 

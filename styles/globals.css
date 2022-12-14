@@ -19,9 +19,6 @@
 } */
 
 :root {
-  --win_color: lime;
-  --lose_color: #a9b2c4;
-
   /* @web3-onboard */
   --onboard-primary-700: #323873;
   --onboard-gray-700: #1a1d26;
@@ -37,6 +34,11 @@
   --onboard-connect-header-color: #a9b2c4;
   --onboard-main-scroll-container-background: #1a1d26;
   --onboard-wallet-button-background: #1a1d26;
+  --onboard-wallet-button-background-hover: var(--turquoise_darker);
+  --onboard-wallet-button-border-color: var(--turquoise);
+  --onboard-wallet-app-icon-border-color: var(--turquoise);
+  --onboard-close-button-background: var(--turquoise_dark);
+  --onboard-close-button-color: #000000;
   --onboard-wallet-button-color: #a9b2c4;
   --onboard-wallet-button-box-shadow: #1a1d26;
 

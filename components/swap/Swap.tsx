@@ -10,13 +10,16 @@ import TransactionSettings from "./transactionSettings/TransactionSettings"
 import { ExchangeContext } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
-import { prettyBalance } from "../../utils/utils"
+import { prettyBalance, prettyBalanceUSD } from "../../utils/utils"
+import { constants } from "ethers"
 
 function Swap() {
   const [modal, setModal] = useState<"buy" | "sell" | null>(null)
+  const [sellSize, setSellSize] = useState<number>(1)
+  const [buySize, setBuySize] = useState<number>(1)
 
   const { network } = useContext(WalletContext)
-  const { balances, buyTokenInfo, sellTokenInfo, setBuyToken, setSellToken } = useContext(ExchangeContext)
+  const { balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { estimatedGasFee, swapPrice } = useContext(SwapContext)
 
   function switchTokens() {
@@ -24,22 +27,22 @@ function Swap() {
     if (sellTokenInfo) setBuyToken(sellTokenInfo.address)    
   }
 
-  const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
+  const getBalanceReadable = (address: string | null) => {
+    if (address && balances[address]) {
+      return balances[address].valueReadable
+    } else {
+      return "0.0"
+    }
+  }
+
   const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
+  const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
 
-  let buyBalanceReadable = "0.0"
-  let buyBalanceUSDReadable = "0.0"
-  if (buyTokenInfo?.address && balances && balances[buyTokenInfo.address]) {
-    buyBalanceReadable = balances[buyTokenInfo.address].valueReadable
-    buyBalanceUSDReadable = balances[buyTokenInfo.address].valueUSD
-  }
+  const buyTokenAddress = buyTokenInfo?.address ? buyTokenInfo?.address : null
+  const sellTokenAddress = sellTokenInfo?.address ? sellTokenInfo?.address : null
 
-  let sellBalanceReadable = "0.0"
-  let sellBalanceUSDReadable = "0.0"
-  if (sellTokenInfo?.address && balances && balances[sellTokenInfo.address]) {
-    sellBalanceReadable = balances[sellTokenInfo.address].valueReadable
-    sellBalanceUSDReadable = balances[sellTokenInfo.address].valueUSD
-  }
+  const buyTokenUsdPrice = buyTokenAddress && tokenPricesUSD[buyTokenAddress] ? tokenPricesUSD[buyTokenAddress] : 0
+  const sellTokenUsdPrice = sellTokenAddress && tokenPricesUSD[sellTokenAddress] ? tokenPricesUSD[sellTokenAddress] : 0
 
   return (
     <div className={styles.container}>
@@ -49,13 +52,13 @@ function Swap() {
           <div className={styles.from_header}>
             <div className={styles.from_title}>From</div>
             <div className={styles.from_balance}>
-              Balance: {sellBalanceReadable} {sellTokenSymbol}
+              Balance: {getBalanceReadable(sellTokenAddress)} {sellTokenSymbol}
             </div>
           </div>
           <div className={styles.from_input_container}>
             <FromInput sellTokenSymbol={sellTokenSymbol} openModal={() => setModal("sell")} />
           </div>
-          <div className={styles.estimated_value}>{`~$${sellBalanceUSDReadable}`}</div>
+          <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellSize * sellTokenUsdPrice)}`}</div>
         </div>
         <div className={styles.arrow_container}>
           <hr className={styles.hr} />
@@ -83,22 +86,25 @@ function Swap() {
           <div className={styles.to_header}>
             <div className={styles.to_title}>To</div>
             <div className={styles.to_balance}>
-              Balance: {buyBalanceReadable} {buyTokenSymbol}
+              Balance: {getBalanceReadable(buyTokenAddress)} {buyTokenSymbol}
             </div>
           </div>
           <div className={styles.to_input_container}>
             <ToInput buyTokenSymbol={buyTokenSymbol} openModal={() => setModal("buy")} />
           </div>
-          <div className={styles.estimated_value}>{`~$${buyBalanceUSDReadable}`}</div>
+          <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buySize * buyTokenUsdPrice)}`}</div>
         </div>
       </div>
       <TransactionSettings 
         buySymbol={buyTokenSymbol}
         sellSymbol={sellTokenSymbol}
         priceBuy={`$${prettyBalance(swapPrice, 4)}`}
-        priceSell={`$${swapPrice && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice, 4) : prettyBalance(0, 4) }`}
+        priceSell={`$${swapPrice && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice, 4) : prettyBalance(0, 4)}`}
+        priceBuyUsd={buyTokenUsdPrice}
+        priceSellUsd={sellTokenUsdPrice}
         estimatedGasFee={estimatedGasFee}
-        nativeCurrencySymbol={network.nativeCurrency.symbol}
+        nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
+        nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
       />
       <button>Swap</button>
       <Modal

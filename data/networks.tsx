@@ -86,10 +86,6 @@ export const NETWORKS: NetworkObject = {
   }
 }
 
-export const defaultNetwork = () => {
-  return NETWORKS[42161]
-}
-
 export function isValidNetwork(networkId: number) {
   const validNetworks = Object.keys(NETWORKS)
   return validNetworks.includes(`${networkId}`)

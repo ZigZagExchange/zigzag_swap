@@ -58,6 +58,10 @@ export type TokenAllowanceObject = {
   [key: string]: ethers.BigNumber
 }
 
+export type TokenPriceObject = {
+  [key: string]: number
+}
+
 export type ExchangeContextType = {
   buyTokenInfo: ZZTokenInfo | null
   sellTokenInfo: ZZTokenInfo | null
@@ -69,6 +73,7 @@ export type ExchangeContextType = {
   domainInfo: EIP712DomainInfo | null
   typeInfo: EIP712TypeInfo | null
   tokenInfos: ZZTokenInfo[]
+  tokenPricesUSD: TokenPriceObject
 
   updateBalances: ((tokens: string[]) => void)
   updateAllowances: ((tokens: string[]) => void)
@@ -92,6 +97,7 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   domainInfo: null,
   typeInfo: null,
   tokenInfos: [],
+  tokenPricesUSD: {},
 
   updateBalances: async (tokens: string[] | null) => {},
   updateAllowances: async (tokens: string[] | null) => {},
@@ -116,6 +122,7 @@ function ExchangeProvider({ children }: Props) {
   const [typeInfo, setTypeInfo] = useState<EIP712TypeInfo | null>(null)
   const [balances, setBalances] = useState<TokenBalanceObject>({})
   const [allowances, setAllowances] = useState<TokenAllowanceObject>({})
+  const [tokenPricesUSD, setTokenPricesUSD] = useState<TokenPriceObject>({})
 
   const { address, network, ethersProvider } = useContext(WalletContext)
 
@@ -132,6 +139,15 @@ function ExchangeProvider({ children }: Props) {
     _updateAllowance()
     _updateBalances()
   }, [marketInfos, address, network])
+
+  useEffect(() => {
+    updateTokenPricesUSD()
+
+    const updateTokenPricesUSDInterval = setInterval(() => {
+      updateTokenPricesUSD()
+    }, 60 * 1000);
+    return () => clearInterval(updateTokenPricesUSDInterval)
+  }, [tokenInfos])
 
   async function fetchMarketsInfo() {
     console.log(network)
@@ -167,6 +183,35 @@ function ExchangeProvider({ children }: Props) {
     setTakerFee(result.exchange.takerVolumeFee)
     setDomainInfo(result.exchange.domain)
     setTypeInfo(result.exchange.types)
+  }
+
+  async function updateTokenPricesUSD() {
+    if (!network) return
+    
+    const getPriceUSD = async (symbol: string) => {
+      const response = await fetch(`https://api.coincap.io/v2/assets?search=${symbol}`)
+      if (response.status !== 200) {
+        console.error(`Failed to fetch token price for ${symbol}.`)
+        return
+      }
+
+      const result: any = await response.json()
+      const priceUSD = result.data?.[0]?.priceUsd ? result.data[0].priceUsd : 0
+
+      if (!priceUSD) {
+        console.warn(`Price for ${symbol} is zero`)
+      }
+      return priceUSD
+    }
+    // reuse old token price infos in case the API is not reachable for short periods
+    const updatedTokenPricesUSD = tokenPricesUSD
+    // allwas get native currency
+    updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.nativeCurrency.symbol)
+    tokenInfos.forEach(async (token: ZZTokenInfo) => {
+      updatedTokenPricesUSD[token.address] = await getPriceUSD(token.symbol)
+    })
+
+    setTokenPricesUSD(updatedTokenPricesUSD)
   }
 
   const _updateBalances = async (reqTokens: string[] = getTokens()) => {
@@ -294,6 +339,7 @@ function ExchangeProvider({ children }: Props) {
         domainInfo: domainInfo,
         typeInfo: typeInfo,
         tokenInfos: tokenInfos,
+        tokenPricesUSD: tokenPricesUSD,
 
         updateBalances: _updateBalances,
         updateAllowances: _updateAllowance,

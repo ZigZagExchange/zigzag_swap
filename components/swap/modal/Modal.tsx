@@ -25,20 +25,18 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
       if (
+        balances[tokenAddress] &&
         (balances[tokenAddress].value !== ethers.constants.Zero) && 
         (tokenAddress !== buyTokenInfo?.address)
       ) tokens.push(tokenAddress)
     }
   } else if (selectedModal === "buy") {
     const markets = getMarkets()
-    console.log("markets", markets)
-    console.log("selectedToken", selectedToken)
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split('-')
       if (selectedToken === tokenA && sellTokenInfo?.address !== tokenB) tokens.push(tokenB)
       if (selectedToken === tokenB && sellTokenInfo?.address !== tokenA) tokens.push(tokenA)
     }
-    console.log("tokens", tokens)
   }
 
   const tokenList: any = []

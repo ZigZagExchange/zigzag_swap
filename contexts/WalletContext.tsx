@@ -2,14 +2,14 @@ import React, { createContext, useEffect, useState } from "react"
 
 import { ethers } from "ethers"
 
-import Onboard from '../node_modules/@web3-onboard/core/dist'
+import Onboard, { WalletState } from '../node_modules/@web3-onboard/core/dist'
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect/dist"
 import coinbaseWalletModule from "@web3-onboard/coinbase"
 import ledgerModule from "@web3-onboard/ledger"
 import mewWallet from "@web3-onboard/mew-wallet"
 
-import { NETWORKS, isValidNetwork, NetworkType, defaultNetwork } from "../data/networks"
+import { NETWORKS, isValidNetwork, NetworkType } from "../data/networks"
 
 interface Props {
   children: React.ReactNode
@@ -20,7 +20,7 @@ export type WalletContextType = {
   signer: ethers.Signer | null
   address: string | null
   ethersProvider: ethers.providers.Web3Provider | null
-  network: NetworkType
+  network: NetworkType | null
   isLoading: boolean
 
   connect: (() => void)
@@ -33,11 +33,11 @@ export const WalletContext = createContext<WalletContextType>({
   signer: null,
   address: null,
   ethersProvider: null,
-  network: defaultNetwork(),
+  network: null,
   isLoading: false,
 
-  connect: () => { },
-  disconnect: () => { },
+  connect: (() => {}),
+  disconnect: (() => {}),
   switchNetwork: async (network: number) => { return false },
 })
 
@@ -86,21 +86,34 @@ function WalletProvider({ children }: Props) {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
   const [signer, setSigner] = useState<ethers.Signer | null>(null)
   const [address, setAddress] = useState<string | null>(null)
-  const [network, setNetwork] = useState<NetworkType>(defaultNetwork())
+  const [network, setNetwork] = useState<NetworkType | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const walletsSub = onboard.state.select('wallets')
   walletsSub.subscribe(wallets => {
     // this is used to store the last connected wallet
     const connectedWallets = wallets.map(({ label }) => label)
+    if (!connectedWallets) return
     window.localStorage.setItem(
       'connectedWallets',
       JSON.stringify(connectedWallets)
     )
+
+    console.log("wallets", wallets)
+    const primaryAddress = wallets[0]?.accounts?.[0]?.address
+    const primaryChain = parseInt(wallets[0]?.chains?.[0].id, 16)
+    if (
+      (primaryAddress && primaryAddress.toLowerCase() !== address) ||
+      (primaryChain && network && primaryChain !== network.networkId)
+    ) {
+      updateWallet(wallets[0])
+    }
   })
 
   useEffect(() => {
     const previouslyConnectedWalletsString = window.localStorage.getItem('connectedWallets')
+    if (!previouslyConnectedWalletsString) return
+
     // JSON.parse()[0] => previously primary wallet
     const lable = previouslyConnectedWalletsString
       ? JSON.parse(previouslyConnectedWalletsString)[0]
@@ -120,24 +133,26 @@ function WalletProvider({ children }: Props) {
         wallets = await onboard.connectWallet()
       }
       if (!wallets) throw new Error('No connected wallet found')
-
-      const { accounts, chains, provider } = wallets[0]
-      setAddress(accounts[0].address)
-      console.log(accounts[0])
-      if (accounts[0].ens?.name) setUsername(accounts[0].ens?.name)
-
-      const network = parseInt(chains[0].id, 16)
-      setNetwork(NETWORKS[network])
-      const ethersProvider = new ethers.providers.Web3Provider(provider, "any")
-      if (ethersProvider) setProvider(ethersProvider)
-
-      const signer = ethersProvider?.getSigner()
-      if (signer) setSigner(signer)
-
+      updateWallet(wallets[0])
       setIsLoading(false)
     } catch (error: any) {
       console.error(error)
     }
+  }
+
+  const updateWallet = (wallet: WalletState) => {
+    const { accounts, chains, provider } = wallet
+    setAddress(accounts[0].address.toLowerCase())
+    console.log(accounts[0])
+    if (accounts[0].ens?.name) setUsername(accounts[0].ens?.name)
+
+    const network = parseInt(chains[0].id, 16)
+    setNetwork(NETWORKS[network])
+    const ethersProvider = new ethers.providers.Web3Provider(provider, "any")
+    if (ethersProvider) setProvider(ethersProvider)
+
+    const signer = ethersProvider?.getSigner()
+    if (signer) setSigner(signer)
   }
 
   const _switchNetwork = async (_networkId: number): Promise<boolean> => {
@@ -155,7 +170,7 @@ function WalletProvider({ children }: Props) {
     if (!primaryWallet) return
     await onboard.disconnectWallet({ label: primaryWallet.label })
     setAddress(null)
-    setNetwork(defaultNetwork())
+    setNetwork(null)
     setProvider(null)
   }
 

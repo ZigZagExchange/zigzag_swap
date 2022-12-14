@@ -74,7 +74,7 @@ export const NETWORKS: NetworkObject = {
     networkId: 42161,
     explorerUrl: "https://arbiscan.io/",
     rpcUrl: "https://arb1.arbitrum.io/rpc",
-    backendUrl: "http://api.arbitrum.zigzag.exchange",
+    backendUrl: "https://api.arbitrum.zigzag.exchange",
     icon: ARBITRUM_ICON,
     nativeCurrency: {
       name: "ETH",

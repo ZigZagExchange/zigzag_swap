@@ -1,0 +1,49 @@
+.container {
+  position: absolute;
+  background-color: var(--container_background_color);
+  backdrop-filter: blur(20px);
+  right: 0;
+  /* width: 350px; */
+  width: 240px;
+  border: 1px var(--container_border_color) solid;
+  /* border-right: none;
+  border-top: none; */
+  animation: fadein 0.1s ease-out forwards;
+
+  z-index: 1000000000000000;
+  /* border-bottom-left-radius: 4px; */
+  overflow: hidden;
+  outline: none;
+  padding: 10px;
+  margin-right: 10px;
+  border-bottom-left-radius: 4px;
+  border-radius: 4px;
+}
+
+.container {
+  /* width: 100px; */
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.container button {
+  width: 100%;
+  /* font-size: small; */
+  text-align: left;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.container button svg {
+  font-size: 20px;
+  fill: var(--accent);
+  margin-right: 10px;
+}
+
+.container button:disabled svg {
+  fill: var(--gray_lighter);
+}
+
+.container button:not(:disabled):hover svg {
+  fill: white;
+}

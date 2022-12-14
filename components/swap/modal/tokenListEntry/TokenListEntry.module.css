@@ -1,0 +1,48 @@
+.container {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--glass_background);
+  box-shadow: 0 0 5px var(--glass_shadow);
+  padding: 5px 10px;
+  border-radius: 4px;
+
+  transition: background ease-out 0.1s;
+}
+
+.container:hover {
+  /* backdrop-filter: brightness(10%); */
+  background-color: var(--turquoise);
+  cursor: pointer;
+}
+
+.selected {
+  background-color: lime;
+  color: black;
+}
+
+.icon_symbol_container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 20px;
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+  background: white;
+  border-radius: 50%;
+}
+
+.value_container > * {
+  text-align: right;
+}
+
+.balance {
+}
+
+.usd_value {
+  opacity: 0.5;
+}

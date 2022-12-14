@@ -1,0 +1,23 @@
+.container {
+  background-color: var(--glass_background);
+  /* border: 1px solid var(--glass_background); */
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 4px;
+}
+
+.input {
+  background-color: transparent;
+  color: white;
+  outline: none;
+  border: none !important;
+  text-align: right;
+  padding: 10px;
+  font-size: 20px;
+}
+
+.input::placeholder {
+  color: white;
+  opacity: 0.5;
+}

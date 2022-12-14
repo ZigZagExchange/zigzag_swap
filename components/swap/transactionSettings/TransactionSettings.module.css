@@ -1,0 +1,35 @@
+.container {
+  padding: 1rem;
+
+  border: 1px solid var(--glass_background);
+  background-color: var(--glass_background);
+  backdrop-filter: blur(30px);
+  box-shadow: 0 0 10px var(--glass_shadow);
+  border-radius: 4px;
+}
+
+.title {
+  opacity: 0.5;
+}
+
+.hr {
+  border-color: var(--glass_background);
+  border-width: 1px;
+  opacity: 0.25;
+}
+
+.slippage_tolerance,
+.buy_price_info,
+.sell_price_info,
+.gas_fee {
+  display: flex;
+  justify-content: space-between;
+}
+
+.slippage_tolerance:nth-child(1),
+.buy_price_info:nth-child(1),
+.sell_price_info:nth-child(1),
+.gas_fee:nth-child(1) {
+  opacity: 0.5;
+  color: red;
+}

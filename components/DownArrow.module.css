@@ -1,0 +1,17 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 5px;
+  margin-top: -3px;
+}
+
+.arrow {
+  box-sizing: border-box;
+  height: 9px;
+  width: 9px;
+  border-style: solid;
+  border-width: 0px 2px 2px 0px;
+  transform: rotate(45deg);
+  transition: border-width 150ms ease-in-out;
+}

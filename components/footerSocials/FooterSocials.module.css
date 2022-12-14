@@ -1,0 +1,24 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 10px;
+  /* border-right: 1px solid var(--gray_dark); */
+  /* height: 50px; */
+  font-size: 20px;
+}
+
+.icon_container {
+  margin: 5px;
+  display: flex;
+}
+
+.icon {
+  fill: var(--gray_lighter);
+  transition: all 0.1s ease-out;
+}
+
+.icon:hover {
+  fill: var(--accent_lighter);
+  filter: drop-shadow(0 0 5px var(--accent));
+}

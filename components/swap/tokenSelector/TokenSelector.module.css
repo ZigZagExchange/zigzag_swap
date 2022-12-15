@@ -24,10 +24,22 @@
 .button {
   background-color: transparent;
   backdrop-filter: none;
+  border: none;
 
   display: flex;
   flex-direction: row;
+  align-items: center;
+  font-family: inherit;
+  color: white;
   gap: 0;
+  font-size: 15px;
+  transition: background ease-out 0.1s;
+  border-radius: 4px;
+}
+
+.button:hover {
+  background-color: var(--turquoise);
+  cursor: pointer;
 }
 
 .icon_container {

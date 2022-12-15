@@ -88,10 +88,10 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   )
 
   return (
-    <div className={input_styles.container}>
+    <div className={`${input_styles.container} ${validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
       <input
-        className={validationStateSell === ValidationState.OK ? input_styles.input : input_styles.input_with_error}
+        className={input_styles.input}
         // onInput={p => safeSetSellAmount(p.currentTarget.value)}
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}

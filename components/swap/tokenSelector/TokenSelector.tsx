@@ -9,7 +9,7 @@ interface Props {
 export default function TokenSelector({ selectedTokenSymbol, openModal }: Props) {
   const selected_token_icon = (
     <div className={styles.icon_container}>
-      <Image src={`/tokenIcons/${selectedTokenSymbol}.svg`} width="100%" height="100%" layout="intrinsic" />
+      <Image src={`/tokenIcons/${selectedTokenSymbol.toLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
     </div>
   )
   const down_arrow = (

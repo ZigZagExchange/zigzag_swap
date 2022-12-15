@@ -70,18 +70,18 @@ function SwapProvider({ children }: Props) {
       const { order } = orderBook[i]
 
       if (minTimeStamp < Number(order.expirationTimeSeconds)) continue
-      const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
-      if (quoteBuyAmount < sellAmount) continue
-
       const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
-      const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
+      if (quoteSellAmount < buyAmount) continue
+
+      const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
+      const thisPrice = (quoteBuyAmount * (1 - makerFee)) / (quoteSellAmount * (1 - takerFee))
       if (thisPrice > bestPrice) {
         bestPrice = thisPrice
         bestOrder = orderBook[i]
       }
     }
     return [bestOrder, bestPrice]
-  }, [orderBook, sellAmount, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
+  }, [orderBook, buyAmount, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -121,7 +121,7 @@ function SwapProvider({ children }: Props) {
             quoteOrder.order.expirationTimeSeconds
           ],
           quoteOrder.signature,
-          sellAmount.toString(),
+          buyAmount.toString(),
           false
         )
       } catch (err: any) {

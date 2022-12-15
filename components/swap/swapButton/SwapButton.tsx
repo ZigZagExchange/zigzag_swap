@@ -23,8 +23,8 @@ export default function SwapButton({
   const [enableApprove, setEnableApprove] = useState<boolean>(false)
   
   const { signer } = useContext(WalletContext)
-  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, domainInfo, typeInfo } = useContext(ExchangeContext)
-  const { sellAmount, quoteOrder } = useContext(SwapContext)
+  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress } = useContext(ExchangeContext)
+  const { swapPrice, sellAmount, quoteOrder } = useContext(SwapContext)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -88,8 +88,8 @@ export default function SwapButton({
       return
     }
 
-    if (!sellAmount || !sellTokenInfo) {
-      console.warn("sendSwap: missing sellAmount or sellTokenInfo")
+    if (!sellAmount || !sellTokenInfo || !buyTokenInfo) {
+      console.warn("sendSwap: missing sellAmount, sellTokenInfo or buyTokenInfo")
       return
     }
     const sellBalanceParsed = balances[sellTokenInfo.address]?.value
@@ -110,16 +110,21 @@ export default function SwapButton({
     }
 
     const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber();
-    if (delta > 100100) {
-      // 100.1 %
-      console.warn("sendSwap: Amount exceeds balance")
-      return
-    }
     if (delta > 99990) {
       // prevent dust issues
       // 99.9 %
       sellAmountParsed = sellBalanceParsed
     }
+
+    const modifyedSellAmountFormatted = ethers.utils.formatUnits(
+      sellAmountParsed,
+      sellTokenInfo.decimals
+    )
+    const modifyedBuyAmountFormatted = Number(modifyedSellAmountFormatted) * swapPrice
+    const modifyedBuyAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(
+      modifyedBuyAmountFormatted.toFixed(buyTokenInfo.decimals),
+      buyTokenInfo.decimals
+    )
 
     const tx = await exchangeContract.fillOrder(
       [
@@ -131,7 +136,7 @@ export default function SwapButton({
         quoteOrder.order.expirationTimeSeconds
       ],
       quoteOrder.signature,
-      sellAmountParsed.toString(),
+      modifyedBuyAmountParsed.toString(),
       false
     )
     console.log("sendSwap: approve submitted: ", tx)

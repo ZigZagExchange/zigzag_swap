@@ -50,7 +50,7 @@ function SwapProvider({ children }: Props) {
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0)
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
 
-  const { network, ethersProvider } = useContext(WalletContext)
+  const { network, signer } = useContext(WalletContext)
   const { buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
   const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
@@ -80,8 +80,6 @@ function SwapProvider({ children }: Props) {
         bestOrder = orderBook[i]
       }
     }
-
-    console.log("bestPrice", bestPrice)
     return [bestOrder, bestPrice]
   }, [orderBook, sellAmount, buyTokenInfo, sellTokenInfo])
 
@@ -91,8 +89,8 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: missing network")
         return
       }
-      if (!ethersProvider) {
-        console.warn("getGasFees: missing ethersProvider")
+      if (!signer) {
+        console.warn("getGasFees: missing signer")
         return
       }
       if (!exchangeAddress) {
@@ -104,17 +102,24 @@ function SwapProvider({ children }: Props) {
         return
       }
 
-      const feeData = await ethersProvider.getFeeData()
-      if (!feeData.maxFeePerGas || !feeData.maxPriorityFeePerGas) {
-        console.warn("getGasFees: missing maxFeePerGas or maxPriorityFeePerGas")
+      const feeData = await signer.getFeeData()
+      if (!feeData.lastBaseFeePerGas || !feeData.maxPriorityFeePerGas) {
+        console.warn("getGasFees: missing lastBaseFeePerGas or maxPriorityFeePerGas")
         return
       }
 
-      const exchangeContract = new ethers.Contract(exchangeAddress, exchangeAbi, ethersProvider)
+      const exchangeContract = new ethers.Contract(exchangeAddress, exchangeAbi, signer)
       let estimatedGasUsed = ethers.constants.Zero
       try {
         estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(
-          Object.values(quoteOrder.order),
+          [
+            quoteOrder.order.user,
+            quoteOrder.order.sellToken,
+            quoteOrder.order.buyToken,
+            quoteOrder.order.sellAmount,
+            quoteOrder.order.buyAmount,
+            quoteOrder.order.expirationTimeSeconds
+          ],
           quoteOrder.signature,
           sellAmount.toString(),
           false
@@ -122,7 +127,8 @@ function SwapProvider({ children }: Props) {
       } catch (err: any) {
         console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
       }
-      const estimatedFeeBigNumber = feeData.maxFeePerGas.add(feeData.maxPriorityFeePerGas).mul(estimatedGasUsed)
+
+      const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.add(feeData.maxPriorityFeePerGas).mul(estimatedGasUsed)
       const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
       setEstimatedGasFee(Number(estimatedFee))
     }
@@ -130,7 +136,7 @@ function SwapProvider({ children }: Props) {
 
     const interval = setInterval(getGasFees, 15000)
     return () => clearInterval(interval)
-  }, [network, ethersProvider, exchangeAddress, quoteOrder])
+  }, [network, signer, exchangeAddress, quoteOrder])
 
   useEffect(() => {
     setBuyAndSellSize(null, sellAmount)

@@ -47,8 +47,6 @@ export default function SwapButton({
       return "Error"
     }
 
-    console.log("validationStateSell", validationStateSell)
-    console.log("validationStateBuy", validationStateBuy)
     if (validationStateSell === ValidationState.InsufficientBalance) {
       setEnableApprove(false)
       setEnabled(false)
@@ -124,7 +122,14 @@ export default function SwapButton({
     }
 
     const tx = await exchangeContract.fillOrder(
-      Object.values(quoteOrder.order),
+      [
+        quoteOrder.order.user,
+        quoteOrder.order.sellToken,
+        quoteOrder.order.buyToken,
+        quoteOrder.order.sellAmount,
+        quoteOrder.order.buyAmount,
+        quoteOrder.order.expirationTimeSeconds
+      ],
       quoteOrder.signature,
       sellAmountParsed.toString(),
       false

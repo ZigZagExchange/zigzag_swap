@@ -67,11 +67,12 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
             key={address}
             symbol={tokenInfo.symbol}
             name={tokenInfo.name}
+            address={tokenInfo.address}
             selected={address === selectedToken}
             balance={balances[address] ? prettyBalance(balances[address].valueReadable) : "0.0"}
-            usdValue={balances[address] && tokenPricesUSD[address] 
-              ? prettyBalanceUSD(balances[address].valueReadable * tokenPricesUSD[address]) 
-              : "0.0"}
+            usdValue={
+              balances[address] && tokenPricesUSD[address] ? prettyBalanceUSD(balances[address].valueReadable * tokenPricesUSD[address]) : "0.0"
+            }
             onClick={() => onTokenClick(address)}
           />,
         ]

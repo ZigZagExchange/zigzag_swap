@@ -1,11 +1,5 @@
 export const CHECKMARK_SVG = (
-  <svg
-    height="1em"
-    style={{ paddingRight: "5px" }}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 64 64"
-    enableBackground="new 0 0 64 64"
-  >
+  <svg height="1em" style={{ paddingRight: "5px" }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enableBackground="new 0 0 64 64">
     <path
       d="M32,2C15.431,2,2,15.432,2,32c0,16.568,13.432,30,30,30c16.568,0,30-13.432,30-30C62,15.432,48.568,2,32,2z M25.025,50  l-0.02-0.02L24.988,50L11,35.6l7.029-7.164l6.977,7.184l21-21.619L53,21.199L25.025,50z"
       fill="#43a047"
@@ -14,45 +8,18 @@ export const CHECKMARK_SVG = (
 )
 
 export const UNCHECKMARK_SVG = (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    x="0px"
-    y="0px"
-    style={{ paddingRight: "5px" }}
-    height="1em"
-    viewBox="0 0 450 450"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" style={{ paddingRight: "5px" }} height="1em" viewBox="0 0 450 450">
     <circle fill="red" cx="225" cy="225" r="225" />
     <g>
-      <line
-        fill="#FFFFFF"
-        stroke="#FFFFFF"
-        strokeWidth="70"
-        x1="106.742"
-        y1="110.083"
-        x2="343.258"
-        y2="346.599"
-      />
-      <line
-        fill="#FFFFFF"
-        stroke="#FFFFFF"
-        strokeWidth="70"
-        x1="106.742"
-        y1="346.599"
-        x2="343.258"
-        y2="110.084"
-      />
+      <line fill="#FFFFFF" stroke="#FFFFFF" strokeWidth="70" x1="106.742" y1="110.083" x2="343.258" y2="346.599" />
+      <line fill="#FFFFFF" stroke="#FFFFFF" strokeWidth="70" x1="106.742" y1="346.599" x2="343.258" y2="110.084" />
     </g>
   </svg>
 )
 
 export const REDIRECT_SVG = (
   <svg height="1em" viewBox="0 0 18 18">
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M2 2V16H16V9H18V16C18 17.1 17.1 18 16 18H2C0.89 18 0 17.1 0 16V2C0 0.9 0.89 0 2 0H9V2H2Z"
-    ></path>
+    <path fillRule="evenodd" clipRule="evenodd" d="M2 2V16H16V9H18V16C18 17.1 17.1 18 16 18H2C0.89 18 0 17.1 0 16V2C0 0.9 0.89 0 2 0H9V2H2Z"></path>
     <path d="M11 0V2H14.59L4.76 11.83L6.17 13.24L16 3.41V7H18V0H11Z"></path>
   </svg>
 )
@@ -105,5 +72,13 @@ export const LOGOUT_ICON = (
    l6.387,6.389c0.375,0.375,0.885,0.586,1.414,0.586c0.531,0,1.039-0.211,1.414-0.586l26.922-26.92
    c0.375-0.375,0.586-0.885,0.586-1.414C96.943,47.941,96.73,47.433,96.355,47.058z"
     />
+  </svg>
+)
+
+export const INFO_ICON = (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="15 15 130 130">
+    <path d="m80 15c-35.88 0-65 29.12-65 65s29.12 65 65 65 65-29.12 65-65-29.12-65-65-65zm0 10c30.36 0 55 24.64 55 55s-24.64 55-55 55-55-24.64-55-55 24.64-55 55-55z" />
+    <path d="m57.373 18.231a9.3834 9.1153 0 1 1 -18.767 0 9.3834 9.1153 0 1 1 18.767 0z" transform="matrix(1.1989 0 0 1.2342 21.214 28.75)" />
+    <path d="m90.665 110.96c-0.069 2.73 1.211 3.5 4.327 3.82l5.008 0.1v5.12h-39.073v-5.12l5.503-0.1c3.291-0.1 4.082-1.38 4.327-3.82v-30.813c0.035-4.879-6.296-4.113-10.757-3.968v-5.074l30.665-1.105" />
   </svg>
 )

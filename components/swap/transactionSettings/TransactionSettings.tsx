@@ -13,7 +13,7 @@ interface Props {
   nativeCurrencySymbol: string
 }
 
-function TransactionSettings({ 
+function TransactionSettings({
   buySymbol,
   sellSymbol,
   priceBuy,
@@ -22,7 +22,7 @@ function TransactionSettings({
   priceSellUsd,
   estimatedGasFee,
   nativeCurrencyUsd,
-  nativeCurrencySymbol 
+  nativeCurrencySymbol,
 }: Props) {
   const buyPriceEstimate = priceBuyUsd ? prettyBalanceUSD(priceBuyUsd) : "0.0"
   const sellPriceEstimate = priceSellUsd ? prettyBalanceUSD(priceSellUsd) : "0.0"
@@ -44,7 +44,7 @@ function TransactionSettings({
 
       <div className={styles.gas_fee}>
         <div>Gas Fee</div>
-        <div>{`${prettyBalance(estimatedGasFee, 4)} ${nativeCurrencySymbol}  ~${estimatedGasFeeUsd}`}</div>
+        <div>{`${prettyBalance(estimatedGasFee, 4)} ${nativeCurrencySymbol}  ~$${estimatedGasFeeUsd}`}</div>
       </div>
     </div>
   )

@@ -16,12 +16,7 @@ interface Props {
   setValidationStateBuy: (state: ValidationState) => void
 }
 
-export default function BuyInput({ 
-  buyTokenInfo,
-  validationStateBuy,
-  openModal,
-  setValidationStateBuy
-}: Props) {
+export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, setValidationStateBuy }: Props) {
   const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
 
@@ -41,7 +36,7 @@ export default function BuyInput({
   }
 
   function safeSetBuyAmount(newAmount: string) {
-    newAmount = newAmount.replace(',', '.')
+    newAmount = newAmount.replace(",", ".")
     newAmount = truncateDecimals(newAmount, 10)
     setInput(newAmount)
     if (newAmount === "" || newAmount === "0.0") {
@@ -56,6 +51,7 @@ export default function BuyInput({
 
   if (!isFocused && buyAmount !== Number(input)) setInput(prettyBalance(buyAmount))
   const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
+
   return (
     <div className={input_styles.container}>
       <TokenSelector selectedTokenSymbol={buyTokenSymbol} openModal={openModal} />

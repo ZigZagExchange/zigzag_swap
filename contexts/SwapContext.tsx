@@ -45,8 +45,6 @@ export const SwapContext = createContext<SwapContextType>({
 })
 
 function SwapProvider({ children }: Props) {
-  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
-  const [swapPrice, setSwapPrice] = useState<number>(1)
   const [sellAmount, setSellAmount] = useState<number>(0)
   const [buyAmount, setBuyAmount] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0)
@@ -55,14 +53,14 @@ function SwapProvider({ children }: Props) {
   const { network, ethersProvider } = useContext(WalletContext)
   const { buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
-  const bestQuote = useMemo(() => {
+  const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
     if (!buyTokenInfo) {
       console.warn("buyTokenInfo is null")
-      return
+      return [null, 0]
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
-      return
+      return [null, 0]
     }
 
     const minTimeStamp: number = Date.now() / 1000 + 10
@@ -83,8 +81,8 @@ function SwapProvider({ children }: Props) {
       }
     }
 
-    setSwapPrice(bestPrice)
-    return bestOrder
+    console.log("bestPrice", bestPrice)
+    return [bestOrder, bestPrice]
   }, [orderBook, sellAmount, buyTokenInfo, sellTokenInfo])
 
   useEffect(() => {

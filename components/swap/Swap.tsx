@@ -120,7 +120,7 @@ function Swap() {
       <TransactionSettings 
         buySymbol={buyTokenSymbol}
         sellSymbol={sellTokenSymbol}
-        priceBuy={`$${Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
+        priceBuy={`$${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
         priceSell={`$${prettyBalance(swapPrice) }`}
         priceBuyUsd={buyTokenUsdPrice}
         priceSellUsd={sellTokenUsdPrice}

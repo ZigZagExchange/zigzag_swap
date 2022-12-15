@@ -33,8 +33,8 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     const markets = getMarkets()
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
-      if (selectedToken === tokenA && sellTokenInfo?.address !== tokenB) tokens.push(tokenB)
-      if (selectedToken === tokenB && sellTokenInfo?.address !== tokenA) tokens.push(tokenA)
+      if (selectedToken === tokenB && sellTokenInfo?.address !== tokenA && !tokens.includes(tokenA)) tokens.push(tokenA)
+      if (selectedToken === tokenA && sellTokenInfo?.address !== tokenB && !tokens.includes(tokenB)) tokens.push(tokenB)
     }
   }
 

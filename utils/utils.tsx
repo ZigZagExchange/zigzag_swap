@@ -15,16 +15,47 @@ export function balanceCommas(balance: string) {
     )
   }
   integer = parts.reduce((c, p) => (p === "-" ? p + c : p + "," + c))
-  const result = decimal === undefined ? integer : integer + "." + Number(decimal).toString()
+  const result = decimal === undefined ? integer : integer + "." + decimal
   return result
 }
 
-export function prettyBalance(balance: number | string, decimals: number = 6) {
+const getDecimals = (amount: number | string) => {
+  amount = Number (amount)
+  if (amount > 99999) {
+    return 0
+  } else if (amount > 9999) {
+    return 1
+  } else if (amount > 999) {
+    return 2
+  } else if (amount > 99) {
+    return 3
+  } else if (amount > 9) {
+    return 4
+  } else if (amount > 1) {
+    return 5
+  } else {
+    return 6
+  }
+}
+
+export function prettyBalance(balance: number | string, decimals: number = getDecimals(balance)) {
   const truncattedAmount = String(parseFloat(Number(balance).toFixed(decimals)))
+  if (truncattedAmount === "0") {
+    return "0.0"
+  }
   if (truncattedAmount.includes(".")) {
     const decimalPart = truncattedAmount.split(".").slice(-1)[0]
     if (truncattedAmount === "") {
       return "0"
+    }
+    if (decimalPart.length < decimals) {
+      // console.log("decimal_part too small")
+      return balanceCommas(
+        decimalPart +
+        Array(decimals - decimalPart.length)
+          .fill(0)
+          .join("")
+      )
     }
     return balanceCommas(truncattedAmount)
   } else {

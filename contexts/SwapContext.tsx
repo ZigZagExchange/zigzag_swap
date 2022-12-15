@@ -1,4 +1,4 @@
-import React, { useContext, createContext, useEffect, useState } from "react"
+import React, { useContext, createContext, useEffect, useState, useMemo } from "react"
 import { ethers } from "ethers"
 
 import exchangeAbi from "../data/abis/exchange.json"
@@ -54,6 +54,38 @@ function SwapProvider({ children }: Props) {
 
   const { network, ethersProvider } = useContext(WalletContext)
   const { buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
+
+  const bestQuote = useMemo(() => {
+    if (!buyTokenInfo) {
+      console.warn("buyTokenInfo is null")
+      return
+    }
+    if (!sellTokenInfo) {
+      console.warn("sellTokenInfo is null")
+      return
+    }
+
+    const minTimeStamp: number = Date.now() / 1000 + 10
+    let bestOrder: ZZOrder | null = null
+    let bestPrice: number = 0
+    for (let i = 0; i < orderBook.length; i++) {
+      const { order } = orderBook[i]
+
+      if (minTimeStamp < Number(order.expirationTimeSeconds)) continue
+      const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
+      if (quoteBuyAmount < sellAmount) continue
+
+      const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
+      const thisPrice = (quoteSellAmount * 0.9995) / quoteBuyAmount
+      if (thisPrice > bestPrice) {
+        bestPrice = thisPrice
+        bestOrder = orderBook[i]
+      }
+    }
+
+    setSwapPrice(bestPrice)
+    return bestOrder
+  }, [orderBook, sellAmount, buyTokenInfo, sellTokenInfo])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -115,38 +147,6 @@ function SwapProvider({ children }: Props) {
     return () => clearInterval(refreshOrderBookInterval)
   }, [network, buyTokenInfo, sellTokenInfo])
 
-  useEffect(() => {
-    if (!buyTokenInfo) {
-      console.warn("buyTokenInfo is null")
-      return
-    }
-    if (!sellTokenInfo) {
-      console.warn("sellTokenInfo is null")
-      return
-    }
-
-    const minTimeStamp: number = Date.now() / 1000 + 10
-    let bestOrder: ZZOrder | null = null
-    let bestPrice: number = 0
-    for (let i = 0; i < orderBook.length; i++) {
-      const { order } = orderBook[i]
-
-      if (minTimeStamp < Number(order.expirationTimeSeconds)) continue
-      const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
-      if (quoteBuyAmount < sellAmount) continue
-
-      const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
-      const thisPrice = (quoteSellAmount * 0.9995) / quoteBuyAmount
-      if (thisPrice > bestPrice) {
-        bestPrice = thisPrice
-        bestOrder = orderBook[i]
-      }
-    }
-
-    setSwapPrice(bestPrice)
-    setQuoteOrder(bestOrder)
-  }, [orderBook, sellAmount])
-
   async function getOrderBook() {
     if (!network) {
       console.warn("getOrderBook: missing network")
@@ -169,9 +169,8 @@ function SwapProvider({ children }: Props) {
       return
     }
 
-    const orders: ZZOrder[] = await response.json()
-    console.log("orders", orders)
-    setOrderBook(orders)
+    const orders: { "orders" : ZZOrder[]} = await response.json()
+    setOrderBook(orders.orders)
   }
 
   function setBuyAndSellSize(buyAmout: number | null, sellAmount: number | null) {

@@ -120,8 +120,8 @@ function Swap() {
       <TransactionSettings 
         buySymbol={buyTokenSymbol}
         sellSymbol={sellTokenSymbol}
-        priceBuy={`$${prettyBalance(swapPrice, 4)}`}
-        priceSell={`$${swapPrice && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice, 4) : prettyBalance(0, 4)}`}
+        priceBuy={`$${swapPrice && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
+        priceSell={`$${prettyBalance(swapPrice) }`}
         priceBuyUsd={buyTokenUsdPrice}
         priceSellUsd={sellTokenUsdPrice}
         estimatedGasFee={estimatedGasFee}

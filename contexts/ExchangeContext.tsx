@@ -49,7 +49,6 @@ export type TokenBalanceObject = {
   [key: string]: {
     value: ethers.BigNumber
     valueReadable: number
-    valueUSD: number
   }
 }
 
@@ -233,16 +232,14 @@ function ExchangeProvider({ children }: Props) {
       if (!value || value === ethers.constants.Zero || decimals === 0 || !decimals) {
         return {
           value,
-          valueReadable: 0,
-          valueUSD: 0,
+          valueReadable: 0
         }
       }
 
       const formattedBalance = ethers.utils.formatUnits(value, decimals)
       return {
         value,
-        valueReadable: Number(formattedBalance),
-        valueUSD: 0,
+        valueReadable: Number(formattedBalance)
       }
     }
 

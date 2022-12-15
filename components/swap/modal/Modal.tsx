@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Props) {
-  const { balances, getTokens, getMarkets, getTokenInfo, buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
+  const { balances, getTokens, getMarkets, getTokenInfo, buyTokenInfo, sellTokenInfo, tokenPricesUSD } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
   const selectedToken = selectedModal === "buy" ? sellTokenInfo?.address : buyTokenInfo?.address
@@ -49,7 +49,6 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
   //       name={tokenInfo.name}
   //       selected={tokenAddress === selectedToken}
   //       balance={balances[tokenAddress] ? prettyBalance(balances[tokenAddress].valueReadable) : "0.0"}
-  //       usdValue={balances[tokenAddress] ? prettyBalanceUSD(balances[tokenAddress].valueUSD) : "0.0"}
   //       onClick={() => onTokenClick(tokenAddress)}
   //     />
   //   )
@@ -70,7 +69,9 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
             name={tokenInfo.name}
             selected={address === selectedToken}
             balance={balances[address] ? prettyBalance(balances[address].valueReadable) : "0.0"}
-            usdValue={balances[address] ? prettyBalanceUSD(balances[address].valueUSD) : "0.0"}
+            usdValue={balances[address] && tokenPricesUSD[address] 
+              ? prettyBalanceUSD(balances[address].valueReadable * tokenPricesUSD[address]) 
+              : "0.0"}
             onClick={() => onTokenClick(address)}
           />,
         ]

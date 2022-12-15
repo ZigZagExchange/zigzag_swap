@@ -153,7 +153,7 @@ export default function SwapButton({
       return
     }
 
-    const tx = await tokenContract.approve(exchangeAddress, ethers.constants.MaxUint256,)
+    const tx = await tokenContract.approve(exchangeAddress, ethers.constants.MaxUint256)
     console.log("sendApprove: approve submitted: ", tx)
     await tx.wait()
     console.log("sendApprove: tx processed")

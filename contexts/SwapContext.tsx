@@ -51,7 +51,7 @@ function SwapProvider({ children }: Props) {
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
 
   const { network, signer } = useContext(WalletContext)
-  const { buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
+  const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
   const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
     if (!buyTokenInfo) {
@@ -74,14 +74,14 @@ function SwapProvider({ children }: Props) {
       if (quoteBuyAmount < sellAmount) continue
 
       const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
-      const thisPrice = (quoteSellAmount * 0.9995) / quoteBuyAmount
+      const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
       if (thisPrice > bestPrice) {
         bestPrice = thisPrice
         bestOrder = orderBook[i]
       }
     }
     return [bestOrder, bestPrice]
-  }, [orderBook, sellAmount, buyTokenInfo, sellTokenInfo])
+  }, [orderBook, sellAmount, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -173,7 +173,7 @@ function SwapProvider({ children }: Props) {
       return
     }
 
-    const orders: { "orders" : ZZOrder[]} = await response.json()
+    const orders: { "orders": ZZOrder[] } = await response.json()
     setOrderBook(orders.orders)
   }
 

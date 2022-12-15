@@ -24,10 +24,6 @@
   opacity: 0;
 }
 
-.hidden > .modal {
-  scale: 0;
-}
-
 .modal {
   scale: 1;
   background-color: var(--glass_background);
@@ -37,6 +33,11 @@
   backdrop-filter: blur(20px);
   padding: 10px 20px;
   width: max(30vw, 300px);
+  transition: all 0.05s ease-out;
+}
+
+.hidden > .modal {
+  scale: 0.9;
 }
 
 .title {

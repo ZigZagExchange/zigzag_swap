@@ -24,4 +24,16 @@
 .button {
   background-color: transparent;
   backdrop-filter: none;
+
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+}
+
+.icon_container {
+  width: 2rem;
+  height: 2rem;
+  /* border-radius: 50%; */
+  background: "white";
+  margin-right: 0.5rem;
 }

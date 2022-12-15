@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useEffect, useState } from "react"
 import { ethers } from "ethers"
 
-import erc20Abi from '../data/abis/erc20.json'
+import erc20Abi from "../data/abis/erc20.json"
 
 import { WalletContext } from "./WalletContext"
 
@@ -23,12 +23,12 @@ type EIP712DomainInfo = {
 }
 
 type EIP712TypeInfo = {
-  Order: { name: string, type: string }[]
+  Order: { name: string; type: string }[]
 }
 
 type ZZInfoMsg = {
   markets: ZZMarketInfo[]
-  verifiedTokens: ZZTokenInfo[],
+  verifiedTokens: ZZTokenInfo[]
   exchange: {
     exchangeAddress: string
     makerVolumeFee: number
@@ -39,9 +39,9 @@ type ZZInfoMsg = {
 }
 
 export type ZZTokenInfo = {
-  address: string,
-  symbol: string,
-  decimals: number,
+  address: string
+  symbol: string
+  decimals: number
   name: string
 }
 
@@ -49,7 +49,7 @@ export type TokenBalanceObject = {
   [key: string]: {
     value: ethers.BigNumber
     valueReadable: number
-    valueUSD: number  
+    valueUSD: number
   }
 }
 
@@ -74,15 +74,15 @@ export type ExchangeContextType = {
   tokenInfos: ZZTokenInfo[]
   tokenPricesUSD: TokenPriceObject
 
-  updateBalances: ((tokens: string[]) => void)
-  updateAllowances: ((tokens: string[]) => void)
+  updateBalances: (tokens: string[]) => void
+  updateAllowances: (tokens: string[]) => void
 
-  getMarkets: (() => string[])
-  getTokens: (() => string[])
-  getTokenInfo: ((token: string) => ZZTokenInfo | null)
+  getMarkets: () => string[]
+  getTokens: () => string[]
+  getTokenInfo: (token: string) => ZZTokenInfo | null
 
-  setBuyToken: ((token: string) => void)
-  setSellToken: ((token: string) => void)  
+  setBuyToken: (token: string) => void
+  setSellToken: (token: string) => void
 }
 
 export const ExchangeContext = createContext<ExchangeContextType>({
@@ -100,13 +100,13 @@ export const ExchangeContext = createContext<ExchangeContextType>({
 
   updateBalances: async (tokens: string[] | null) => {},
   updateAllowances: async (tokens: string[] | null) => {},
-  
-  getMarkets: (() => []),
-  getTokens: (() => []),
-  getTokenInfo: ((token: string) => null),
 
-  setBuyToken: ((token: string) => {}),
-  setSellToken: ((token: string) => {})
+  getMarkets: () => [],
+  getTokens: () => [],
+  getTokenInfo: (token: string) => null,
+
+  setBuyToken: (token: string) => {},
+  setSellToken: (token: string) => {},
 })
 
 function ExchangeProvider({ children }: Props) {
@@ -130,7 +130,7 @@ function ExchangeProvider({ children }: Props) {
 
     const refreshMarketsInterval = setInterval(() => {
       fetchMarketsInfo()
-    }, 2.5 * 60 * 1000);
+    }, 2.5 * 60 * 1000)
     return () => clearInterval(refreshMarketsInterval)
   }, [network])
 
@@ -144,12 +144,15 @@ function ExchangeProvider({ children }: Props) {
 
     const updateTokenPricesUSDInterval = setInterval(() => {
       updateTokenPricesUSD()
-    }, 60 * 1000);
+    }, 60 * 1000)
     return () => clearInterval(updateTokenPricesUSDInterval)
   }, [tokenInfos])
 
   async function fetchMarketsInfo() {
-    if (!network) return
+    if (!network) {
+      console.warn("fetchMarketsInfo: network is null")
+      return
+    }
 
     const response = await fetch(`${network.backendUrl}/v1/info`)
     if (response.status !== 200) {
@@ -159,16 +162,16 @@ function ExchangeProvider({ children }: Props) {
 
     const result: ZZInfoMsg = await response.json()
 
-    const parsedMarketInfo = result.markets.filter(market => {
-      return market.verified
-    }).map(market => {
-      market.buyToken = market.buyToken.toLowerCase()
-      market.sellToken = market.sellToken.toLowerCase()
+    console.log("result", result)
+    const parsedMarketInfo = result.markets
+      .filter(market => market.verified)
+      .map(market => {
+        market.buyToken = market.buyToken.toLowerCase()
+        market.sellToken = market.sellToken.toLowerCase()
 
-      return market
-    })
+        return market
+      })
     setMarketInfos(parsedMarketInfo)
-
 
     const parsedTokenInfos = result.verifiedTokens.map(token => {
       token.address = token.address.toLowerCase()
@@ -213,7 +216,7 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const _updateBalances = async (reqTokens: string[] = getTokens()) => {
-    if (!network ||!reqTokens || !ethersProvider || !address) {
+    if (!network || !reqTokens || !ethersProvider || !address) {
       console.warn("_updateBalances: Missing ethers provider, address or network")
       setBalances({})
       return
@@ -224,26 +227,26 @@ function ExchangeProvider({ children }: Props) {
       console.warn("_updateBalances: Provider on wrong network")
       setBalances({})
       return
-    }    
+    }
 
     const getBalanceEntry = (value: ethers.BigNumber, decimals: number | undefined | null) => {
       if (!value || value === ethers.constants.Zero || decimals === 0 || !decimals) {
         return {
           value,
           valueReadable: 0,
-          valueUSD: 0 
+          valueUSD: 0,
         }
       }
-      
+
       const formattedBalance = ethers.utils.formatUnits(value, decimals)
       return {
         value,
         valueReadable: Number(formattedBalance),
-        valueUSD: 0
+        valueUSD: 0,
       }
     }
 
-    const newBalance: TokenBalanceObject = {}    
+    const newBalance: TokenBalanceObject = {}
     const promises = reqTokens.map(async (tokenAddress: string) => {
       let value: ethers.BigNumber = ethers.constants.Zero
       let decimals: number | undefined | null = null
@@ -303,7 +306,7 @@ function ExchangeProvider({ children }: Props) {
       const tokenInfo = tokenInfos[i]
       if (tokenInfo.address === tokenAddress) {
         return tokenInfo
-      }      
+      }
     }
     return null
   }
@@ -347,7 +350,7 @@ function ExchangeProvider({ children }: Props) {
         getTokenInfo: getTokenInfo,
 
         setBuyToken: setBuyToken,
-        setSellToken: setSellToken
+        setSellToken: setSellToken,
       }}
     >
       {children}

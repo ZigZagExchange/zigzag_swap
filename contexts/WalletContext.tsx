@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useState } from "react"
 
 import { ethers } from "ethers"
 
-import Onboard, { WalletState } from '../node_modules/@web3-onboard/core/dist'
+import Onboard, { WalletState } from "../node_modules/@web3-onboard/core/dist"
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect/dist"
 import coinbaseWalletModule from "@web3-onboard/coinbase"
@@ -24,9 +24,9 @@ export type WalletContextType = {
   network: NetworkType | null
   isLoading: boolean
 
-  connect: (() => void)
-  disconnect: (() => void)
-  switchNetwork: ((network: number) => Promise<boolean>)
+  connect: () => void
+  disconnect: () => void
+  switchNetwork: (network: number) => Promise<boolean>
 }
 
 export const WalletContext = createContext<WalletContextType>({
@@ -37,9 +37,11 @@ export const WalletContext = createContext<WalletContextType>({
   network: null,
   isLoading: false,
 
-  connect: (() => {}),
-  disconnect: (() => {}),
-  switchNetwork: async (network: number) => { return false },
+  connect: () => {},
+  disconnect: () => {},
+  switchNetwork: async (network: number) => {
+    return false
+  },
 })
 
 const wallets = [
@@ -48,16 +50,16 @@ const wallets = [
   coinbaseWalletModule({ darkMode: true }),
   ledgerModule(),
   mewWallet(),
-  tallyHoWalletModule()
+  tallyHoWalletModule(),
 ]
 
 const chains = Object.keys(NETWORKS).map((key: string) => {
   const network = NETWORKS[Number(key)]
   return {
-    id: '0x' + network.networkId.toString(16),
+    id: "0x" + network.networkId.toString(16),
     token: network.nativeCurrency.symbol,
     label: network.name,
-    rpcUrl: network.rpcUrl
+    rpcUrl: network.rpcUrl,
   }
 })
 
@@ -69,18 +71,16 @@ const onboard = Onboard({
     icon: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
     logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
     description: "ZigZag Swap swap interface",
-    recommendedInjectedWallets: [
-      { name: "MetaMask", url: "https://metamask.io" }
-    ]
+    recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }],
   },
   accountCenter: {
     desktop: {
-     enabled: false
+      enabled: false,
     },
     mobile: {
-      enabled: false
-    }
-  }
+      enabled: false,
+    },
+  },
 })
 
 function WalletProvider({ children }: Props) {
@@ -91,37 +91,29 @@ function WalletProvider({ children }: Props) {
   const [network, setNetwork] = useState<NetworkType | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const walletsSub = onboard.state.select('wallets')
+  const walletsSub = onboard.state.select("wallets")
   walletsSub.subscribe(wallets => {
     // this is used to store the last connected wallet
     const connectedWallets = wallets.map(({ label }) => label)
     if (!connectedWallets) return
-    window.localStorage.setItem(
-      'connectedWallets',
-      JSON.stringify(connectedWallets)
-    )
+    window.localStorage.setItem("connectedWallets", JSON.stringify(connectedWallets))
 
-    console.log("wallets", wallets)
+    // console.log("wallets", wallets)
     const primaryAddress = wallets[0]?.accounts?.[0]?.address
     const primaryChain = parseInt(wallets[0]?.chains?.[0].id, 16)
-    if (
-      (primaryAddress && primaryAddress.toLowerCase() !== address) ||
-      (primaryChain && network && primaryChain !== network.networkId)
-    ) {
+    if ((primaryAddress && primaryAddress.toLowerCase() !== address) || (primaryChain && network && primaryChain !== network.networkId)) {
       updateWallet(wallets[0])
     }
   })
 
   useEffect(() => {
-    const previouslyConnectedWalletsString = window.localStorage.getItem('connectedWallets')
+    const previouslyConnectedWalletsString = window.localStorage.getItem("connectedWallets")
     if (!previouslyConnectedWalletsString) return
 
     // JSON.parse()[0] => previously primary wallet
-    const lable = previouslyConnectedWalletsString
-      ? JSON.parse(previouslyConnectedWalletsString)[0]
-      : null
+    const lable = previouslyConnectedWalletsString ? JSON.parse(previouslyConnectedWalletsString)[0] : null
 
-    if (lable !== null && lable !== undefined) connectWallet(lable)      
+    if (lable !== null && lable !== undefined) connectWallet(lable)
   }, [])
 
   const connectWallet = async (lable?: string) => {
@@ -130,11 +122,11 @@ function WalletProvider({ children }: Props) {
       setIsLoading(true)
       let wallets
       if (lable !== null && lable !== undefined) {
-        wallets = await onboard.connectWallet({ autoSelect: { label: lable, disableModals: true }})
+        wallets = await onboard.connectWallet({ autoSelect: { label: lable, disableModals: true } })
       } else {
         wallets = await onboard.connectWallet()
       }
-      if (!wallets) throw new Error('No connected wallet found')
+      if (!wallets) throw new Error("No connected wallet found")
       updateWallet(wallets[0])
       setIsLoading(false)
     } catch (error: any) {
@@ -145,7 +137,7 @@ function WalletProvider({ children }: Props) {
   const updateWallet = (wallet: WalletState) => {
     const { accounts, chains, provider } = wallet
     setAddress(accounts[0].address.toLowerCase())
-    console.log(accounts[0])
+    // console.log(accounts[0])
     if (accounts[0].ens?.name) setUsername(accounts[0].ens?.name)
 
     const network = parseInt(chains[0].id, 16)
@@ -161,7 +153,7 @@ function WalletProvider({ children }: Props) {
     const [primaryWallet] = onboard.state.get().wallets
     if (!isValidNetwork(_networkId) || !primaryWallet) return false
 
-    const chainId = '0x' + _networkId.toString(16)
+    const chainId = "0x" + _networkId.toString(16)
     const success = await onboard.setChain({ chainId })
     if (success) setNetwork(NETWORKS[_networkId])
     return success

@@ -1,4 +1,4 @@
-import { useRef, useContext } from "react"
+import { useRef, useContext, useState, useMemo } from "react"
 import styles from "./Modal.module.css"
 import TokenListEntry from "./tokenListEntry/TokenListEntry"
 
@@ -15,6 +15,7 @@ interface Props {
 
 export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Props) {
   const { balances, getTokens, getMarkets, getTokenInfo, buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
+  const [query, setQuery] = useState<string>("")
 
   const selectedToken = selectedModal === "buy" ? sellTokenInfo?.address : buyTokenInfo?.address
 
@@ -25,47 +26,81 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     const possibleTokens = getTokens()
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
-      if (
-        balances[tokenAddress] &&
-        (balances[tokenAddress].value !== ethers.constants.Zero) && 
-        (tokenAddress !== buyTokenInfo?.address)
-      ) tokens.push(tokenAddress)
+      if (balances[tokenAddress] && balances[tokenAddress].value !== ethers.constants.Zero && tokenAddress !== buyTokenInfo?.address)
+        tokens.push(tokenAddress)
     }
   } else if (selectedModal === "buy") {
     const markets = getMarkets()
+    console.log(markets)
     for (let i = 0; i < markets.length; i++) {
-      const [tokenA, tokenB] = markets[i].split('-')
+      const [tokenA, tokenB] = markets[i].split("-")
       if (selectedToken === tokenA && sellTokenInfo?.address !== tokenB) tokens.push(tokenB)
       if (selectedToken === tokenB && sellTokenInfo?.address !== tokenA) tokens.push(tokenA)
     }
   }
 
-  const tokenList: any = []
-  for (let i = 0; i < tokens.length; i++) {
-    const tokenAddress = tokens[i]
-    const tokenInfo = getTokenInfo(tokenAddress)
-    if (!tokenInfo) continue
+  // const tokenList: any = []
+  // for (let i = 0; i < tokens.length; i++) {
+  //   const tokenAddress = tokens[i]
+  //   const tokenInfo = getTokenInfo(tokenAddress)
+  //   if (!tokenInfo) continue
+  //   tokenList.push(
+  //     <TokenListEntry
+  //       symbol={tokenInfo.symbol}
+  //       name={tokenInfo.name}
+  //       selected={tokenAddress === selectedToken}
+  //       balance={balances[tokenAddress] ? prettyBalance(balances[tokenAddress].valueReadable) : "0.0"}
+  //       usdValue={balances[tokenAddress] ? prettyBalanceUSD(balances[tokenAddress].valueUSD) : "0.0"}
+  //       onClick={() => onTokenClick(tokenAddress)}
+  //     />
+  //   )
+  // }
 
-    tokenList.push((
-      <TokenListEntry
-        symbol={tokenInfo.symbol}
-        selected={tokenAddress === selectedToken}
-        balance={balances[tokenAddress] ? prettyBalance(balances[tokenAddress].valueReadable) : "0.0"}
-        usdValue={balances[tokenAddress] ? prettyBalanceUSD(balances[tokenAddress].valueUSD) : "0.0"}
-        onClick={() => onTokenClick(tokenAddress)} />
-    ))
+  const tokenList: JSX.Element[] = useMemo(
+    () =>
+      tokens.reduce((currentList, address) => {
+        const tokenInfo = getTokenInfo(address)
+        if (tokenInfo === null) return currentList
+        if (!tokenInfo.symbol.toLocaleLowerCase().includes(query.toLowerCase()) && !tokenInfo.name.toLocaleLowerCase().includes(query.toLowerCase()))
+          return currentList
+        return [
+          ...currentList,
+          <TokenListEntry
+            key={address}
+            symbol={tokenInfo.symbol}
+            name={tokenInfo.name}
+            selected={address === selectedToken}
+            balance={balances[address] ? prettyBalance(balances[address].valueReadable) : "0.0"}
+            usdValue={balances[address] ? prettyBalanceUSD(balances[address].valueUSD) : "0.0"}
+            onClick={() => onTokenClick(address)}
+          />,
+        ]
+      }, [] as JSX.Element[]),
+    [tokens, query, balances, getTokenInfo]
+  )
+
+  function close_modal() {
+    setQuery("")
+    close()
   }
 
   return (
     <div
       className={`${styles.container} ${!isOpen ? styles.hidden : ""}`}
-      onClick={e => (e.target === container_ref.current ? close() : null)}
+      onClick={e => (e.target === container_ref.current ? close_modal() : null)}
       ref={container_ref}
     >
       <div className={styles.modal}>
-        <div className={styles.title}>Select a token to swap</div>
+        <div className={styles.title}>Select a token to swap {selectedModal === "sell" ? "from" : "to"} </div>
         <hr />
-        <input className={styles.search_input} type="text" placeholder="Search..." />
+        <input
+          className={styles.search_input}
+          type="text"
+          placeholder="Search..."
+          value={query}
+          onChange={p => setQuery(p.target.value)}
+          spellCheck="false"
+        />
         <div className={styles.token_list_container}>{tokenList}</div>
       </div>
     </div>

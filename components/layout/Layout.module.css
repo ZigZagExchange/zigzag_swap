@@ -132,7 +132,7 @@
   }
 }
 
-@media screen and (max-width: 1000px) {
+/* @media (width <= 1000px) {
   .content {
     padding: 20px 5px;
     padding-top: 86px;
@@ -141,7 +141,7 @@
     flex-direction: column;
     gap: 0;
   }
-}
+} */
 
 .nav_link {
   display: flex;

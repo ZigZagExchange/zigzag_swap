@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useEffect, useState } from "react"
 import { ethers } from "ethers"
 
-import exchangeAbi from '../data/abis/exchange.json'
+import exchangeAbi from "../data/abis/exchange.json"
 
 import { WalletContext } from "./WalletContext"
 import { ExchangeContext } from "./ExchangeContext"
@@ -29,8 +29,8 @@ export type SwapContextType = {
   sellAmount: number
   buyAmount: number
 
-  setSellAmount: ((amount: number) => void)
-  setBuyAmount: ((amount: number) => void)
+  setSellAmount: (amount: number) => void
+  setBuyAmount: (amount: number) => void
 }
 
 export const SwapContext = createContext<SwapContextType>({
@@ -40,8 +40,8 @@ export const SwapContext = createContext<SwapContextType>({
   sellAmount: 0,
   buyAmount: 0,
 
-  setSellAmount: ((amount: number) => { }),
-  setBuyAmount: ((amount: number) => { })
+  setSellAmount: (amount: number) => {},
+  setBuyAmount: (amount: number) => {},
 })
 
 function SwapProvider({ children }: Props) {
@@ -57,15 +57,29 @@ function SwapProvider({ children }: Props) {
 
   useEffect(() => {
     const getGasFees = async () => {
-      if (!network || !ethersProvider || !exchangeAddress || !quoteOrder) {
-        console.log("getGasFees: missing network, ethersProvider, exchangeAddress or quoteOrder")
+      if (!network) {
+        console.warn("getGasFees: missing network")
         return
       }
+      if (!ethersProvider) {
+        console.warn("getGasFees: missing ethersProvider")
+        return
+      }
+      if (!exchangeAddress) {
+        console.warn("getGasFees: missing exchangeAddress")
+        return
+      }
+      if (!quoteOrder) {
+        console.warn("getGasFees: missing quoteOrder")
+        return
+      }
+
       const feeData = await ethersProvider.getFeeData()
       if (!feeData.maxFeePerGas || !feeData.maxPriorityFeePerGas) {
-        console.log("getGasFees: missing maxFeePerGas or maxPriorityFeePerGas")
+        console.warn("getGasFees: missing maxFeePerGas or maxPriorityFeePerGas")
         return
       }
+
       const exchangeContract = new ethers.Contract(exchangeAddress, exchangeAbi, ethersProvider)
       let estimatedGasUsed = ethers.constants.Zero
       try {
@@ -86,7 +100,7 @@ function SwapProvider({ children }: Props) {
 
     const interval = setInterval(getGasFees, 15000)
     return () => clearInterval(interval)
-  }, [quoteOrder, network, ethersProvider, exchangeAddress])
+  }, [network, ethersProvider, exchangeAddress, quoteOrder])
 
   useEffect(() => {
     setBuyAndSellSize(null, sellAmount)
@@ -97,14 +111,21 @@ function SwapProvider({ children }: Props) {
 
     const refreshOrderBookInterval = setInterval(() => {
       getOrderBook()
-    }, 5 * 1000);
+    }, 5 * 1000)
     return () => clearInterval(refreshOrderBookInterval)
   }, [network, buyTokenInfo, sellTokenInfo])
 
   useEffect(() => {
-    if (!buyTokenInfo || !sellTokenInfo) return
+    if (!buyTokenInfo) {
+      console.warn("buyTokenInfo is null")
+      return
+    }
+    if (!sellTokenInfo) {
+      console.warn("sellTokenInfo is null")
+      return
+    }
 
-    const minTimeStamp: number = (Date.now() / 1000) + 10
+    const minTimeStamp: number = Date.now() / 1000 + 10
     let bestOrder: ZZOrder | null = null
     let bestPrice: number = 0
     for (let i = 0; i < orderBook.length; i++) {
@@ -127,12 +148,22 @@ function SwapProvider({ children }: Props) {
   }, [orderBook, sellAmount])
 
   async function getOrderBook() {
-    if (!network || !buyTokenInfo || !sellTokenInfo) {
-      console.warn("getOrderBook: missing network, buyTokenInfo or sellTokenInfo")
+    if (!network) {
+      console.warn("getOrderBook: missing network")
+      return
+    }
+    if (!buyTokenInfo) {
+      console.warn("getOrderBook: missing buyTokenInfo")
+      return
+    }
+    if (!sellTokenInfo) {
+      console.warn("getOrderBook: missing sellTokenInfo")
       return
     }
 
-    const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}&expires=1672157228`)
+    const response = await fetch(
+      `${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}&expires=1672157228`
+    )
     if (response.status !== 200) {
       console.error("Failed to fetch order book.")
       return
@@ -150,7 +181,7 @@ function SwapProvider({ children }: Props) {
       if (buyAmout) setSellAmount(0)
       return
     }
-    
+
     if (sellAmount) {
       const newBuyAmount = sellAmount * swapPrice
       setBuyAmount(newBuyAmount)
@@ -168,7 +199,7 @@ function SwapProvider({ children }: Props) {
     } else {
       setBuyAmount(0)
       setSellAmount(0)
-    }    
+    }
   }
 
   const _setBuyAmount = (newBuyAmount: number) => {
@@ -177,7 +208,7 @@ function SwapProvider({ children }: Props) {
     } else {
       setBuyAmount(0)
       setSellAmount(0)
-    }    
+    }
   }
 
   return (
@@ -190,7 +221,7 @@ function SwapProvider({ children }: Props) {
         buyAmount: buyAmount,
 
         setSellAmount: _setSellAmount,
-        setBuyAmount: _setBuyAmount
+        setBuyAmount: _setBuyAmount,
       }}
     >
       {children}

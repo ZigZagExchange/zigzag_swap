@@ -19,7 +19,7 @@ export function balanceCommas(balance: string) {
   return result
 }
 
-const getDecimals = (amount: number | string) => {
+const getDecimalsNeeded = (amount: number | string) => {
   amount = Number (amount)
   if (amount > 99999) {
     return 0
@@ -38,7 +38,7 @@ const getDecimals = (amount: number | string) => {
   }
 }
 
-export function prettyBalance(balance: number | string, decimals: number = getDecimals(balance)) {
+export function prettyBalance(balance: number | string, decimals: number = getDecimalsNeeded(balance)) {
   const truncattedAmount = String(parseFloat(Number(balance).toFixed(decimals)))
   if (truncattedAmount === "0") {
     return "0.0"

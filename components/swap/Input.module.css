@@ -5,6 +5,7 @@
   display: flex;
   justify-content: space-between;
   border-radius: 4px;
+  position: relative;
 }
 
 .input_with_error {
@@ -32,4 +33,26 @@
 .input_with_error::placeholder {
   color: white;
   opacity: 0.5;
+}
+
+.error_element {
+  position: absolute;
+  /* color: var(--glass_background); */
+  color: white;
+  width: 100%;
+  top: calc(100% + 2px);
+  background-color: var(--glass_background);
+  /* border: 1px solid var(--glass_background); */
+  backdrop-filter: blur(20px);
+  border-radius: 4px;
+  /* background: rgba(189, 6, 6); */
+  background-color: red;
+  box-shadow: 0 0 10px red;
+  z-index: 10;
+  padding: 5px;
+}
+
+.hidden_error_element {
+  opacity: 0;
+  pointer-events: none;
 }

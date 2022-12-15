@@ -127,6 +127,8 @@
 
   --glass_background: hsla(0, 0%, 0%, 0.3);
   --glass_shadow: rgba(0, 0, 0, 0.5);
+
+  --glass_red: hsla(0, 100%, 50%, 0.3);
 }
 
 html,

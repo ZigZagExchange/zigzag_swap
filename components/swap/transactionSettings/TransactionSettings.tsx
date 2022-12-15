@@ -43,7 +43,7 @@ function TransactionSettings({
       </div>
 
       <div className={styles.gas_fee}>
-        <div>Gas Fee</div>
+        <div>Gas fee</div>
         <div>{`${prettyBalance(estimatedGasFee, 4)} ${nativeCurrencySymbol}  ~$${estimatedGasFeeUsd}`}</div>
       </div>
     </div>

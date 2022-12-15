@@ -15,17 +15,17 @@ interface Props {
   balance: ethers.BigNumber | null
   allowance: ethers.BigNumber | null
   validationStateSell: ValidationState
-  openModal: () => void
   setValidationStateSell: (state: ValidationState) => void
+  openModal: () => void
 }
 
 export default function SellInput({ sellTokenInfo, balance, allowance, validationStateSell, openModal, setValidationStateSell }: Props) {
+  const { sellAmount, setSellAmount } = useContext(SwapContext)
+
   const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
 
-  const { sellAmount, setSellAmount } = useContext(SwapContext)
-
-  function getValidatioState(amount: string) {
+  function getValidationState(amount: string) {
     if (amount === "" || isNaN(Number(amount))) {
       return ValidationState.IsNaN
     }
@@ -46,31 +46,59 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   }
 
   function safeSetSellAmount(newAmount: string) {
-    newAmount = newAmount.replace(',', '.')
-    newAmount = truncateDecimals(newAmount, 10)
+    // newAmount = newAmount.replace(",", ".")
+    // newAmount = truncateDecimals(newAmount, 10)
     setInput(newAmount)
-    if (!newAmount || newAmount === "" || newAmount === "0.0") {
-      setValidationStateSell(ValidationState.OK)
-      setSellAmount(0)
-    }
+    // if (!newAmount || newAmount === "" || newAmount === "0.0") {
+    //   setValidationStateSell(ValidationState.OK)
+    //   setSellAmount(0)
+    // }
 
-    const validation = getValidatioState(newAmount)
+    const validation = newAmount === "" ? ValidationState.OK : getValidationState(newAmount)
     setValidationStateSell(validation)
-    setSellAmount(Number(newAmount))    
+
+    if (validation === ValidationState.OK) setSellAmount(Number(newAmount))
   }
 
-  if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))
+  // if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
+
+  let error_message
+  switch (validationStateSell) {
+    case ValidationState.ExceedsAllowance:
+      error_message = "ExceedsAllowance"
+      break
+    case ValidationState.InsufficientBalance:
+      error_message = "InsufficientBalance"
+      break
+    case ValidationState.InternalError:
+      error_message = "InternalError"
+      break
+    case ValidationState.IsNaN:
+      error_message = "IsNaN"
+      break
+    case ValidationState.IsNegative:
+      error_message = "IsNegative"
+      break
+    default:
+      break
+  }
+  const error_element = (
+    <div className={`${input_styles.error_element} ${error_message ? "" : input_styles.hidden_error_element}`}>{error_message}</div>
+  )
+
   return (
     <div className={input_styles.container}>
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
-      <input 
-        className={validationStateSell === ValidationState.OK ? input_styles.input : input_styles.input_with_error }
+      <input
+        className={validationStateSell === ValidationState.OK ? input_styles.input : input_styles.input_with_error}
+        // onInput={p => safeSetSellAmount(p.currentTarget.value)}
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        value={isFocused ? input : prettyBalance(sellAmount)}
-        type="string"
+        // onFocus={() => setIsFocused(true)}
+        // onBlur={() => setIsFocused(false)}
+        // value={isFocused ? input : prettyBalance(sellAmount)}
+        value={input}
+        type="number"
         placeholder={"0.00"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols
@@ -80,6 +108,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
           }
         }}
       />
+      {error_element}
     </div>
   )
 }

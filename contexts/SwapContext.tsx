@@ -31,6 +31,8 @@ export type SwapContextType = {
 
   setSellAmount: (amount: number) => void
   setBuyAmount: (amount: number) => void
+
+  switchTokens: () => void
 }
 
 export const SwapContext = createContext<SwapContextType>({
@@ -42,6 +44,8 @@ export const SwapContext = createContext<SwapContextType>({
 
   setSellAmount: (amount: number) => {},
   setBuyAmount: (amount: number) => {},
+
+  switchTokens: () => {},
 })
 
 function SwapProvider({ children }: Props) {
@@ -232,6 +236,11 @@ function SwapProvider({ children }: Props) {
     }
   }
 
+  const switchTokens = () => {
+    setSellAmount(buyAmount)
+    setBuyAmount(sellAmount)
+  }
+
   return (
     <SwapContext.Provider
       value={{
@@ -243,6 +252,8 @@ function SwapProvider({ children }: Props) {
 
         setSellAmount: _setSellAmount,
         setBuyAmount: _setBuyAmount,
+
+        switchTokens: switchTokens,
       }}
     >
       {children}

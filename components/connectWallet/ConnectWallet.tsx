@@ -47,7 +47,7 @@ function ConnectWallet() {
       <div className={styles.container} onMouseEnter={openProfile} onMouseLeave={closeProfile} onClick={isProfileOpen ? closeProfile : openProfile}>
         <div className={styles.profile_button}>
           <div className={styles.profile_image_container}>
-            <Jazzicon diameter={40} seed={jsNumberForAddress(userAddress)} />
+            <Jazzicon diameter={30} seed={jsNumberForAddress(userAddress)} />
           </div>
           <div className={styles.username_address_container}>
             {usernameOrAddress}

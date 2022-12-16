@@ -9,27 +9,41 @@
   /* border-top-left-radius: 25px;
   border-bottom-left-radius: 25px; */
 
+  margin-right: 10px;
+  margin-top: 10px;
   background: none;
   box-shadow: none;
   color: white;
+
+  backdrop-filter: blur(20px);
+  /* border: 1px solid red; */
+  border-radius: 12px;
 }
 
 .connect_button {
+  background-color: var(--turquoise_darker);
+
+  background: linear-gradient(-45deg, var(--zz_dark), var(--zz_light));
+  /* color: var(--turquoise_dark); */
+  color: rgb(207, 255, 250);
+
   overflow: hidden;
   width: inherit;
-  min-height: 45px;
-  height: 100%;
+  /* min-height: 45px; */
+  /* height: 100%; */
   animation: appear 1s ease-out;
 
   box-shadow: none;
   border: none;
 
   transition: all 0.2s ease-out;
-
-  margin-top: -10px;
+  font-weight: bold;
+  /* margin-top: -10px; */
   cursor: pointer;
-  border-radius: 4px;
-  margin-right: 10px;
+  border-radius: 14px;
+  padding: 0.5rem 1em;
+  font-size: 0.9rem;
+  /* margin-right: 10px; */
 }
 
 .connect_button:disabled {
@@ -37,7 +51,8 @@
 }
 
 .connect_button:not(:disabled):hover {
-  background-color: var(--turquoise);
+  /* background-color: var(--turquoise_darker);
+  color: var(--turquoise_dark); */
   filter: brightness(1.1);
 }
 
@@ -79,15 +94,11 @@
 }
 
 .profile_image_container {
-  width: 50px;
-  height: 50px;
   border-radius: 4px;
   overflow: hidden;
-  padding: 3px;
-  margin-right: 5px;
+  margin-right: 10px;
   margin-left: 5px;
-  width: 40px;
-  height: 40px;
+  height: 30px;
   padding: 0;
 }
 

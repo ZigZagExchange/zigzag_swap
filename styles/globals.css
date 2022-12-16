@@ -129,6 +129,9 @@
   --glass_shadow: rgba(0, 0, 0, 0.5);
 
   --glass_red: hsla(0, 100%, 50%, 0.3);
+
+  --zz_light: #02e7d7;
+  --zz_dark: #1997e0;
 }
 
 html,

@@ -5,6 +5,24 @@ import erc20Abi from "../data/abis/erc20.json"
 
 import { WalletContext } from "./WalletContext"
 
+const _defaultBuyToken = (): ZZTokenInfo => {
+  return {
+    address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+    symbol: "USDC",
+    decimals: 6,
+    name: "USD Coin"
+  }
+}
+
+const _defaultSellToken = (): ZZTokenInfo => {
+  return {
+    address: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+    symbol: "WETH",
+    decimals: 18,
+    name: "Wrapped Ether"
+  }
+}
+
 interface Props {
   children: React.ReactNode
 }
@@ -61,8 +79,8 @@ export type TokenPriceObject = {
 }
 
 export type ExchangeContextType = {
-  buyTokenInfo: ZZTokenInfo | null
-  sellTokenInfo: ZZTokenInfo | null
+  buyTokenInfo: ZZTokenInfo
+  sellTokenInfo: ZZTokenInfo
   exchangeAddress: string
   balances: TokenBalanceObject
   allowances: TokenAllowanceObject
@@ -85,8 +103,8 @@ export type ExchangeContextType = {
 }
 
 export const ExchangeContext = createContext<ExchangeContextType>({
-  buyTokenInfo: null,
-  sellTokenInfo: null,
+  buyTokenInfo: _defaultBuyToken(),
+  sellTokenInfo: _defaultSellToken(),
   exchangeAddress: "",
   balances: {},
   allowances: {},
@@ -98,14 +116,14 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   tokenPricesUSD: {},
   markets: [],
 
-  updateBalances: async (tokens: string[] | null) => {},
-  updateAllowances: async (tokens: string[] | null) => {},
+  updateBalances: async (tokens: string[] | null) => { },
+  updateAllowances: async (tokens: string[] | null) => { },
 
   getTokens: () => [],
   getTokenInfo: (token: string) => null,
 
-  setBuyToken: (token: string) => {},
-  setSellToken: (token: string) => {},
+  setBuyToken: (token: string) => { },
+  setSellToken: (token: string) => { },
 })
 
 function ExchangeProvider({ children }: Props) {
@@ -113,8 +131,8 @@ function ExchangeProvider({ children }: Props) {
   const [tokenInfos, setTokenInfos] = useState<ZZTokenInfo[]>([])
   const [makerFee, setMakerFee] = useState<number>(0)
   const [takerFee, setTakerFee] = useState<number>(0)
-  const [buyTokenInfo, setBuyTokenInfo] = useState<ZZTokenInfo | null>(null)
-  const [sellTokenInfo, setSellTokenInfo] = useState<ZZTokenInfo | null>(null)
+  const [buyTokenInfo, setBuyTokenInfo] = useState<ZZTokenInfo>(_defaultBuyToken())
+  const [sellTokenInfo, setSellTokenInfo] = useState<ZZTokenInfo>(_defaultSellToken())
   const [exchangeAddress, setExchangeAddress] = useState<string>("")
   const [domainInfo, setDomainInfo] = useState<EIP712DomainInfo | null>(null)
   const [typeInfo, setTypeInfo] = useState<EIP712TypeInfo | null>(null)
@@ -152,13 +170,20 @@ function ExchangeProvider({ children }: Props) {
       console.warn("fetchMarketsInfo: Missing network")
       return
     }
-    const response = await fetch(`${network.backendUrl}/v1/info`)
-    if (response.status !== 200) {
-      console.error("Failed to fetch market info.")
+
+    let result: ZZInfoMsg
+    try {
+      const response = await fetch(`${network.backendUrl}/v1/info`)
+      if (response.status !== 200) {
+        console.error("Failed to fetch market info.")
+        return
+      }
+
+      result = await response.json()
+    } catch (err: any) {
+      console.error(`Error fetching market info: ${err}`)
       return
     }
-
-    const result: ZZInfoMsg = await response.json()
 
     const parsedMarkets = result.markets.filter(m => m.verified).map(m => `${m.buyToken.toLowerCase()}-${m.sellToken.toLowerCase()}`)
     setMarkets(parsedMarkets)
@@ -182,13 +207,20 @@ function ExchangeProvider({ children }: Props) {
       return
     }
     const getPriceUSD = async (symbol: string) => {
-      const response = await fetch(`https://api.coincap.io/v2/assets?search=${symbol}`)
-      if (response.status !== 200) {
-        console.error(`Failed to fetch token price for ${symbol}.`)
+      let result: any
+      try {
+        const response = await fetch(`https://api.coincap.io/v2/assets?search=${symbol}`)
+        if (response.status !== 200) {
+          console.error(`Failed to fetch token price for ${symbol}.`)
+          return
+        }
+
+        result = await response.json()
+      } catch (err: any) {
+        console.error(`Error fetching token price: ${err}`)
         return
       }
 
-      const result: any = await response.json()
       const priceUSD = result.data?.[0]?.priceUsd ? result.data[0].priceUsd : 0
 
       if (!priceUSD) {
@@ -306,11 +338,21 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const setBuyToken = (tokenAddress: string) => {
-    setBuyTokenInfo(getTokenInfo(tokenAddress))
+    const newBuyTokenInfo = getTokenInfo(tokenAddress)
+    if (!newBuyTokenInfo) {
+      console.warn(`setBuyToken: no tokenInfo for ${tokenAddress}`)
+    } else {
+      setBuyTokenInfo(newBuyTokenInfo)
+    }    
   }
 
   const setSellToken = (tokenAddress: string) => {
-    setSellTokenInfo(getTokenInfo(tokenAddress))
+    const newSellTokenInfo = getTokenInfo(tokenAddress)
+    if (!newSellTokenInfo) {
+      console.warn(`setSellToken: no tokenInfo for ${tokenAddress}`)
+    } else {
+      setSellTokenInfo(newSellTokenInfo)
+    }    
   }
 
   return (

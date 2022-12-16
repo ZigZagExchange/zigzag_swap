@@ -182,13 +182,19 @@ function SwapProvider({ children }: Props) {
       return
     }
 
-    const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}`)
-    if (response.status !== 200) {
-      console.error("Failed to fetch order book.")
+    let orders: { orders: ZZOrder[] }
+    try {
+      const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}`)
+      if (response.status !== 200) {
+        console.error("Failed to fetch order book.")
+        return
+      }
+
+      orders = await response.json()
+    } catch (err: any) {
+      console.error(`Error fetching token price: ${err}`)
       return
     }
-
-    const orders: { orders: ZZOrder[] } = await response.json()
 
     const minTimeStamp: number = Date.now() / 1000 + 10
     const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))

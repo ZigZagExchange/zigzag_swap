@@ -1,19 +1,13 @@
 .container {
   height: 50px;
   position: relative;
-  /* border-left: solid 1px var(--container_border_color); */
   padding: 0 0px;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  /* background-color: var(--gold); */
-  border-top-left-radius: 25px;
-  border-bottom-left-radius: 25px;
 
-  /* background-image: linear-gradient(0deg, var(--gold) 0%, var(--gold_dark) 32%, var(--gold) 38%); */
-  box-shadow: 0 0 5px var(--gold), inset 0 0 10px var(--gold);
-
-  /*  */
+  /* border-top-left-radius: 25px;
+  border-bottom-left-radius: 25px; */
 
   background: none;
   box-shadow: none;
@@ -26,29 +20,16 @@
   min-height: 45px;
   height: 100%;
   animation: appear 1s ease-out;
-  border-radius: 0;
-  /* background-color: var(--accent); */
-  /* color: white; */
+
   box-shadow: none;
   border: none;
-  /* animation: pulse 0.75s ease-in-out infinite alternate; */
+
   transition: all 0.2s ease-out;
 
   margin-top: -10px;
-  color: black;
-  border-color: var(--turquoise);
   cursor: pointer;
-  border-top-left-radius: 25px;
-  border-bottom-left-radius: 25px;
-
-  /*  */
-
-  border-radius: 0;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
+  border-radius: 4px;
   margin-right: 10px;
-
-  background-image: linear-gradient(0deg, var(--turquoise) 0%, var(--turquoise_dark) 22%, var(--turquoise) 28%);
 }
 
 .connect_button:disabled {
@@ -56,33 +37,29 @@
 }
 
 .connect_button:not(:disabled):hover {
-  background-color: var(--accent_lighter) !important;
+  background-color: var(--turquoise);
   filter: brightness(1.1);
-
-  /*  */
 }
 
-@keyframes pulse {
+/* @keyframes pulse {
   from {
     background-color: var(--accent);
   }
   to {
     background-color: var(--accent_lighter);
   }
-}
+} */
 
-@keyframes appear {
+/* @keyframes appear {
   0% {
     opacity: 0;
   }
   100% {
     opacity: 1;
   }
-}
+} */
 
 .profile_button {
-  /* background-image: linear-gradient(2deg, var(--gold) 0%, var(--gold_dark) 23%, var(--gold) 31%); */
-
   display: flex;
   justify-content: space-evenly;
   align-items: center;
@@ -111,8 +88,6 @@
   margin-left: 5px;
   width: 40px;
   height: 40px;
-
-  /* border-radius: 50%; */
   padding: 0;
 }
 
@@ -124,15 +99,13 @@
 
   /* font-weight: bold; */
   user-select: none;
+  color: white;
 }
 .username {
   padding: 0 10px;
   border-radius: 4px;
   font-weight: bold;
-  color: black;
-
   color: white;
-  color: var(--purple);
 }
 .address {
   font-family: "Roboto Mono", monospace;
@@ -141,7 +114,7 @@
   font-size: 14px;
 
   color: white;
-  color: var(--purple);
+  /* color: var(--purple); */
 }
 .profile_anchor {
   position: relative;

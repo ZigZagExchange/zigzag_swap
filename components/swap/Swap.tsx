@@ -42,7 +42,7 @@ function Swap() {
     }
   }
 
-  const  getErrorMessage = (validationState: ValidationState) => {
+  const getErrorMessage = (validationState: ValidationState) => {
     if (!userAddress) return
 
     switch (validationState) {
@@ -80,7 +80,8 @@ function Swap() {
   let buyTokenEstimatedValue
   if (buyTokenUsdPrice !== undefined && buyAmount !== 0) {
     let percent
-    if (sellTokenUsdPrice !== undefined && sellAmount !== 0) percent = `(${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`
+    if (sellTokenUsdPrice !== undefined && sellAmount !== 0)
+      percent = `(${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`
 
     buyTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)} ${percent}`}</div>
   }
@@ -93,8 +94,9 @@ function Swap() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Swap</h1>
       <div className={styles.from_to_container}>
+        <h1 className={styles.title}>Swap</h1>
+
         <div className={styles.from_container}>
           <div className={styles.from_header}>
             <div className={styles.from_title}>{INFO_ICON} From</div>
@@ -157,7 +159,8 @@ function Swap() {
           </div>
         </div>
       </div>
-      {!!swapPrice && <TransactionSettings
+      {!!swapPrice && (
+        <TransactionSettings
           buySymbol={buyTokenSymbol}
           sellSymbol={sellTokenSymbol}
           priceBuy={`$${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
@@ -167,8 +170,8 @@ function Swap() {
           nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
           nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
         />
-      }
-      {!!swapPrice && <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} /> }      
+      )}
+      {!!swapPrice && <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} />}
       <Modal
         isOpen={modal !== null}
         selectedModal={modal}

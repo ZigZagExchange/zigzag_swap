@@ -1,7 +1,8 @@
 .container {
   width: max(450px, 30vw);
-  height: 50vh;
-  margin: auto;
+  align-self: center;
+  justify-content: center;
+  flex: 1;
 
   display: flex;
   flex-direction: column;
@@ -10,10 +11,14 @@
 
 .title {
   margin: 0;
+  text-align: center;
+  opacity: 0.5;
+  font-size: 1.5rem;
 }
 
 .from_to_container {
   padding: 1rem;
+  padding-top: 0.5rem;
 
   border: 1px solid var(--glass_background);
   background-color: var(--glass_background);

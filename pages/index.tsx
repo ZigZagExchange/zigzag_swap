@@ -1,11 +1,11 @@
 import type { NextPage } from "next"
 import Layout from "../components/layout/Layout"
-import Swap from "../components/swap/Swap"
+import HomeApp from "../components/home/Home"
 
 const Home: NextPage = () => {
   return (
     <Layout>
-      <Swap />
+      <HomeApp />
     </Layout>
   )
 }

@@ -3,8 +3,6 @@
   justify-content: center;
   align-items: center;
   padding: 0 10px;
-  /* border-right: 1px solid var(--gray_dark); */
-  /* height: 50px; */
   font-size: 20px;
 }
 
@@ -14,11 +12,13 @@
 }
 
 .icon {
-  fill: var(--gray_lighter);
+  fill: white;
+  opacity: 0.5;
   transition: all 0.1s ease-out;
 }
 
 .icon:hover {
+  opacity: 1;
   fill: var(--accent_lighter);
-  filter: drop-shadow(0 0 5px var(--accent));
+  filter: drop-shadow(0 0 5px var(--accent_darker));
 }

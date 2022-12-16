@@ -6,7 +6,9 @@ import Image from "next/image"
 
 import { WalletContext } from "../../contexts/WalletContext"
 
-import logo from "./logo.png";
+import logo from "../../public/img/zz.svg"
+// import logo from "./logo.png"
+
 import styles from "./Layout.module.css"
 import FooterSocials from "../footerSocials/FooterSocials"
 import ConnectWallet from "../connectWallet/ConnectWallet"
@@ -37,31 +39,32 @@ function Layout(props: Props) {
     if (userAddress) {
       setHeaderWarning(
         <div className={styles.header_warning_container}>
-          <strong>{"Please change the Network"}</strong>{" "}
-          <span>{"Please change the Network"}</span>
+          <strong>{"Please change the Network"}</strong> <span>{"Please change the Network"}</span>
         </div>
       )
     }
-
     setHeaderWarning(null)
-    
-  }, [ethersProvider, network])  
+  }, [ethersProvider, network])
 
   let headerLeft = (
-    <div className={styles.header_left}>
+    <nav className={styles.header_left}>
       <Link href="/">
-        <a
-          className={`${styles.nav_link} ${router.route === "/" ? styles.active_nav_link : ""}`}
-        >
+        <a className={`${styles.nav_link}`}>
           <span className={`${styles.icon}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <Image src={logo} alt="logo" height="48" />
+            <Image src={logo} alt="logo" width="30" />
           </span>
-          <span className={styles.popping_text}>{"Home"}</span>          
         </a>
       </Link>
-      <HeaderSocials />
-      <NetworkSelector />
-    </div>
+      <Link href="/swap">
+        <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/swap" ? styles.active_nav_link : ""}`}>Swap</a>
+      </Link>
+      <Link href="https://trade.zigzag.exchange/">
+        <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/trade" ? styles.active_nav_link : ""}`}>Orderbook</a>
+      </Link>
+      {/* Link */}
+      {/* <HeaderSocials /> */}
+      {/* <NetworkSelector /> */}
+    </nav>
   )
 
   return (

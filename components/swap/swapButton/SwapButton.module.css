@@ -3,10 +3,11 @@
   padding: 10px;
   border-radius: 4px;
   backdrop-filter: blur(20px);
-  background-color: var(--turquoise);
-  /* background-color: var(--glass_background); */
-  border: 1px solid var(--turquoise);
-  box-shadow: 0 0 10px var(--glass_shadow);
+  /* background-color: var(--turquoise); */
+  background-color: var(--glass_background);
+  /* border: 1px solid var(--turquoise); */
+  /* box-shadow: 0 0 10px var(--glass_shadow); */
+
   color: white;
   transition: all 0.1s ease-out;
   font-size: 1em;
@@ -14,8 +15,9 @@
 
 .container:not(:disabled):hover {
   cursor: pointer;
-  background-color: var(--turquoise_lighter);
-  border-color: var(--turquoise_lighter);
+  background-color: var(--turquoise);
+  border-color: var(--turquoise);
+  color: black;
 }
 
 .container:disabled {

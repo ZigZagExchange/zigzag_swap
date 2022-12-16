@@ -9,6 +9,7 @@ import coinbaseWalletModule from "@web3-onboard/coinbase"
 import ledgerModule from "@web3-onboard/ledger"
 import mewWallet from "@web3-onboard/mew-wallet"
 import tallyHoWalletModule from "@web3-onboard/tallyho"
+import logo from "../public/img/zz.svg"
 
 import { NETWORKS, isValidNetwork, NetworkType, NETWORK } from "../data/networks"
 
@@ -68,8 +69,8 @@ const onboard = Onboard({
   chains,
   appMetadata: {
     name: "ZigZag Swap",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+    icon: logo.src,
+    logo: logo.src,
     description: "ZigZag Swap swap interface",
     recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }],
   },
@@ -189,7 +190,6 @@ function WalletProvider({ children }: Props) {
 }
 
 export default WalletProvider
-
 
 function _getDefaultNetwork(): NetworkType {
   return NETWORKS[42161]

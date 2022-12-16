@@ -135,6 +135,7 @@ html,
 body {
   padding: 0;
   margin: 0;
+  height: 100%;
   font-family: "Poppins", sans-serif;
   color: var(--light);
 }
@@ -155,7 +156,8 @@ body {
   -ms-text-size-adjust: none;
   -moz-text-size-adjust: none; */
 
-  background-image: url(/background.jpg);
+  /* background-color: hsl(0, 0%, 4%); */
+  /* background-image: url(/background.jpg); */
   background-size: cover;
   /* background-blend-mode: multiply; */
   /* filter: blur(10px); */
@@ -164,6 +166,38 @@ body {
   /* background-position: 50%; */
 
   /* background: black; */
+
+  width: 100%;
+  height: 100vh;
+  /* display: flex; */
+  align-items: center;
+  justify-content: center;
+  background-size: 150% 150%;
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    white 5.9%,
+    /* var(--turquoise_lighter) 7%, */ /* var(--turquoise_light) 7.1%, */ /* var(--turquoise_dark) 5.1%, */ var(--turquoise_darker) 6%,
+    hsl(0, 0%, 5%) 50%
+  );
+  animation: AnimateBG 40s ease-in-out infinite;
+}
+
+@keyframes AnimateBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 75% 25%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  75% {
+    background-position: 25% 75%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 html {

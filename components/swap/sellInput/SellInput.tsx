@@ -99,7 +99,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
         // value={isFocused ? input : prettyBalance(sellAmount)}
         value={input}
         type="number"
-        placeholder={"0.00"}
+        placeholder={"0"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols
           const is_not_valid_key = ["+", "-", "e"].includes(e.key)

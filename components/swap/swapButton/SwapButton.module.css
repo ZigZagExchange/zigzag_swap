@@ -1,0 +1,18 @@
+.container {
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  backdrop-filter: blur(20px);
+  background-color: var(--turquoise_dark);
+  background-color: var(--glass_background);
+  border: 1px solid var(--turquoise_darker);
+  box-shadow: 0 0 10px var(--turquoise_darker);
+  color: white;
+  transition: all 0.1s ease-out;
+  font-size: 1em;
+}
+
+.container:hover {
+  cursor: pointer;
+  background-color: var(--turquoise);
+}

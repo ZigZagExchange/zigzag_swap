@@ -1,8 +1,8 @@
 import React, { useContext, useMemo, useState } from "react"
 import { ethers } from "ethers"
 
-import erc20Abi from '../../../data/abis/erc20.json'
-import exchangeAbi from '../../../data/abis/exchange.json'
+import erc20Abi from "../../../data/abis/erc20.json"
+import exchangeAbi from "../../../data/abis/exchange.json"
 
 import { WalletContext } from "../../../contexts/WalletContext"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
@@ -10,18 +10,17 @@ import { SwapContext } from "../../../contexts/SwapContext"
 
 import { ValidationState } from "../Swap"
 
+import styles from "./SwapButton.module.css"
+
 interface Props {
   validationStateBuy: ValidationState
   validationStateSell: ValidationState
 }
 
-export default function SwapButton({ 
-  validationStateBuy,
-  validationStateSell
-}: Props) {
+export default function SwapButton({ validationStateBuy, validationStateSell }: Props) {
   const [enabled, setEnabled] = useState<boolean>(false)
   const [enableApprove, setEnableApprove] = useState<boolean>(false)
-  
+
   const { signer } = useContext(WalletContext)
   const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress } = useContext(ExchangeContext)
   const { swapPrice, sellAmount, quoteOrder } = useContext(SwapContext)
@@ -29,9 +28,9 @@ export default function SwapButton({
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
       return new ethers.Contract(exchangeAddress, exchangeAbi, signer)
-    } 
+    }
     return null
-  }, [exchangeAddress, signer ])
+  }, [exchangeAddress, signer])
 
   const tokenContract: ethers.Contract | null = useMemo(() => {
     if (sellTokenInfo && signer) {
@@ -99,27 +98,21 @@ export default function SwapButton({
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(
-      sellAmount.toFixed(sellTokenInfo.decimals),
-      sellTokenInfo.decimals
-    )
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(quoteOrder.order.buyAmount)) {
       console.warn("sendSwap: sell amount exceeds quote buy amount")
       return
     }
 
-    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber();
+    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber()
     if (delta > 99990) {
       // prevent dust issues
       // 99.9 %
       sellAmountParsed = sellBalanceParsed
     }
 
-    const modifyedSellAmountFormatted = ethers.utils.formatUnits(
-      sellAmountParsed,
-      sellTokenInfo.decimals
-    )
+    const modifyedSellAmountFormatted = ethers.utils.formatUnits(sellAmountParsed, sellTokenInfo.decimals)
     const modifyedBuyAmountFormatted = Number(modifyedSellAmountFormatted) * swapPrice
     const modifyedBuyAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(
       modifyedBuyAmountFormatted.toFixed(buyTokenInfo.decimals),
@@ -133,7 +126,7 @@ export default function SwapButton({
         quoteOrder.order.buyToken,
         quoteOrder.order.sellAmount,
         quoteOrder.order.buyAmount,
-        quoteOrder.order.expirationTimeSeconds
+        quoteOrder.order.expirationTimeSeconds,
       ],
       quoteOrder.signature,
       modifyedBuyAmountParsed.toString(),
@@ -165,7 +158,7 @@ export default function SwapButton({
   }
 
   return (
-    <button onClick={enableApprove ? sendApprove : sendSwap }>
+    <button className={styles.container} onClick={enableApprove ? sendApprove : sendSwap}>
       {buttonText}
     </button>
   )

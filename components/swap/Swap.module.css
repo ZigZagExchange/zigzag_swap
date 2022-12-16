@@ -62,18 +62,21 @@
   left: 50%;
   transform: translateY(-50%) translateX(-50%);
   background-color: var(--glass_background);
+  /* border: 1px solid var(--turquoise_darker); */
+  /* background-color: var(--turquoise_dark); */
   border-radius: 50%;
   padding: 4px;
   /* background: radial-gradient(var(--turquoise_lighter), var(--turquoise_darker)); */
+  transition: 0.2s ease-in-out;
 }
 .arrow path {
   transition: 0.2s ease-in-out;
   transform-origin: 50%;
-  fill: var(--turquoise);
 }
 
 .arrow:hover {
   cursor: pointer;
+  background-color: var(--turquoise);
 }
 
 .arrow:hover path {

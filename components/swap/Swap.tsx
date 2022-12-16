@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react"
+import { useState, useContext } from "react"
 
 import styles from "./Swap.module.css"
 import SellInput from "./sellInput/SellInput"
@@ -12,7 +12,6 @@ import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
 import { hideAddress, prettyBalance, prettyBalanceUSD } from "../../utils/utils"
 import { constants, ethers } from "ethers"
-import Image from "next/image"
 import { INFO_ICON } from "../../public/commonIcons"
 
 export enum ValidationState {

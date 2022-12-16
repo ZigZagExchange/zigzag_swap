@@ -247,6 +247,10 @@ input {
   /* box-shadow: 0 0 2px var(--container_border_color), inset 0 0 3px var(--container_border_color); */
 }
 
+button {
+  font-family: inherit;
+}
+
 .button {
   background-color: var(--accent);
   font-weight: bold;

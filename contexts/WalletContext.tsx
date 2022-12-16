@@ -21,7 +21,7 @@ export type WalletContextType = {
   signer: ethers.Signer | null
   userAddress: string | null
   ethersProvider: ethers.providers.Web3Provider | null
-  network: NetworkType
+  network: NetworkType | null
   isLoading: boolean
 
   connect: () => void
@@ -88,7 +88,7 @@ function WalletProvider({ children }: Props) {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
   const [signer, setSigner] = useState<ethers.Signer | null>(null)
   const [userAddress, setUserAddress] = useState<string | null>(null)
-  const [network, setNetwork] = useState<NetworkType>(_getDefaultNetwork())
+  const [network, setNetwork] = useState<NetworkType | null>(_getDefaultNetwork())
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const walletsSub = onboard.state.select("wallets")

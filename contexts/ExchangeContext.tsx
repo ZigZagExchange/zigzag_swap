@@ -148,6 +148,10 @@ function ExchangeProvider({ children }: Props) {
   }, [tokenInfos])
 
   async function fetchMarketsInfo() {
+    if (!network) {
+      console.warn("fetchMarketsInfo: Missing network")
+      return
+    }
     const response = await fetch(`${network.backendUrl}/v1/info`)
     if (response.status !== 200) {
       console.error("Failed to fetch market info.")
@@ -173,6 +177,10 @@ function ExchangeProvider({ children }: Props) {
   }
 
   async function updateTokenPricesUSD() {
+    if (!network) {
+      console.warn("updateTokenPricesUSD: Missing network")
+      return
+    }
     const getPriceUSD = async (symbol: string) => {
       const response = await fetch(`https://api.coincap.io/v2/assets?search=${symbol}`)
       if (response.status !== 200) {
@@ -200,8 +208,8 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const _updateBalances = async (reqTokens: string[] = getTokens()) => {
-    if (!reqTokens || !ethersProvider || !userAddress) {
-      console.warn("_updateBalances: Missing ethers provider or userAddress")
+    if (!reqTokens || !ethersProvider || !userAddress || !network) {
+      console.warn("_updateBalances: Missing ethers provider, network or userAddress")
       setBalances({})
       return
     }
@@ -251,8 +259,8 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const _updateAllowance = async (reqTokens: string[] = getTokens()) => {
-    if (!reqTokens || !ethersProvider || !userAddress || !exchangeAddress) {
-      console.warn("_updateAllowance: Missing ethers provider, exchangeAddress or userAddress")
+    if (!reqTokens || !ethersProvider || !userAddress || !exchangeAddress || !network) {
+      console.warn("_updateAllowance: Missing ethers provider, exchangeAddress, networkor userAddress")
       setAllowances({})
       return
     }

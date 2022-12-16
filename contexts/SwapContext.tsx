@@ -95,6 +95,10 @@ function SwapProvider({ children }: Props) {
 
   useEffect(() => {
     const getGasFees = async () => {
+      if (!network) {
+        console.warn("getGasFees: Missing network")
+        return
+      }
       if (!signer) {
         console.warn("getGasFees: missing signer")
         return

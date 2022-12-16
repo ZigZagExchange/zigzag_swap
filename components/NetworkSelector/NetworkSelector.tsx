@@ -42,7 +42,7 @@ function NetworkSelector() {
         <span className={styles.selected_network_icon}>
           {network && (network.networkId === undefined || network.networkId !== null) ? NETWORKS[network.networkId].icon : <div className={styles.warning_ball} />}
         </span>{" "}
-        <div className={styles.selected_name_container}>{network.name}</div>
+        <div className={styles.selected_name_container}>{network?.name}</div>
         {networkList.length > 0 ? <DownArrow /> : ""}
       </div>
       <div

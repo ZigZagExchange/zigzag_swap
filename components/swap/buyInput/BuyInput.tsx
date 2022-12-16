@@ -42,8 +42,8 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
   }, [buyAmount])
 
   function safeSetBuyAmount(newAmount: string) {
-    // newAmount = newAmount.replace(",", ".")
-    // newAmount = truncateDecimals(newAmount, 10)
+    newAmount = newAmount.replace(",", ".")
+    newAmount = truncateDecimals(newAmount, 10)
     setInput(newAmount)
     // if (newAmount === "" || newAmount === "0.0") {
     //   setValidationStateBuy(ValidationState.OK)

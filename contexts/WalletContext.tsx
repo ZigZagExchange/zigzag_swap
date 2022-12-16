@@ -146,7 +146,7 @@ function WalletProvider({ children }: Props) {
     if (ethersProvider) setProvider(ethersProvider)
 
     const signer = ethersProvider?.getSigner()
-    if (signer) setSigner(signer)
+    setSigner(signer)
   }
 
   const _switchNetwork = async (_networkId: number): Promise<boolean> => {

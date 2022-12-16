@@ -1,4 +1,4 @@
-import { ReactNode, useState, useContext } from "react"
+import { ReactNode, useState, useContext, useEffect } from "react"
 
 import { useRouter } from "next/router"
 import Link from "next/link"
@@ -18,21 +18,28 @@ interface Props {
 }
 
 function Layout(props: Props) {
-  const { userAddress, network } = useContext(WalletContext)
+  const { network, ethersProvider } = useContext(WalletContext)
+  const [headerWarning, setHeaderWarning] = useState<JSX.Element | null>(null)
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
   const router = useRouter()
 
-  let header_warning
-  if (userAddress) {
-    header_warning = (
+  useEffect(() => {
+    if (ethersProvider && network) {
+      ethersProvider.getNetwork().then(proivderNetwork => {
+        if (proivderNetwork.chainId === network.networkId) {
+          setHeaderWarning(null)
+        }
+      })
+    }
+    setHeaderWarning(
       <div className={styles.header_warning_container}>
         <strong>{"Please change the Network"}</strong>{" "}
         <span>{"Please change the Network"}</span>
       </div>
     )
-  }
+  }, [ethersProvider, network])  
 
   let headerLeft = (
     <div className={styles.header_left}>
@@ -54,7 +61,7 @@ function Layout(props: Props) {
   return (
     <>
       <header className={`${styles.header} ${styles.mobile} ${isMenuOpen ? styles.menu_open : ""}`}>
-        {header_warning}
+        {headerWarning}
         {headerLeft}
         <div className={styles.header_right}>
           <ConnectWallet />

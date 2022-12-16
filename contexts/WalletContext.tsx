@@ -10,7 +10,7 @@ import ledgerModule from "@web3-onboard/ledger"
 import mewWallet from "@web3-onboard/mew-wallet"
 import tallyHoWalletModule from "@web3-onboard/tallyho"
 
-import { NETWORKS, isValidNetwork, NetworkType } from "../data/networks"
+import { NETWORKS, isValidNetwork, NetworkType, NETWORK } from "../data/networks"
 
 interface Props {
   children: React.ReactNode
@@ -21,7 +21,7 @@ export type WalletContextType = {
   signer: ethers.Signer | null
   address: string | null
   ethersProvider: ethers.providers.Web3Provider | null
-  network: NetworkType | null
+  network: NetworkType
   isLoading: boolean
 
   connect: () => void
@@ -34,7 +34,7 @@ export const WalletContext = createContext<WalletContextType>({
   signer: null,
   address: null,
   ethersProvider: null,
-  network: null,
+  network: _getDefaultNetwork(),
   isLoading: false,
 
   connect: () => {},
@@ -88,7 +88,7 @@ function WalletProvider({ children }: Props) {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
   const [signer, setSigner] = useState<ethers.Signer | null>(null)
   const [address, setAddress] = useState<string | null>(null)
-  const [network, setNetwork] = useState<NetworkType | null>(null)
+  const [network, setNetwork] = useState<NetworkType>(_getDefaultNetwork())
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const walletsSub = onboard.state.select("wallets")
@@ -164,7 +164,7 @@ function WalletProvider({ children }: Props) {
     if (!primaryWallet) return
     await onboard.disconnectWallet({ label: primaryWallet.label })
     setAddress(null)
-    setNetwork(null)
+    setNetwork(_getDefaultNetwork())
     setProvider(null)
   }
 
@@ -189,3 +189,8 @@ function WalletProvider({ children }: Props) {
 }
 
 export default WalletProvider
+
+
+function _getDefaultNetwork(): NetworkType {
+  return NETWORKS[42161]
+}

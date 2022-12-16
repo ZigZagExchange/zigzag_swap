@@ -4,6 +4,7 @@ import TokenListEntry from "./tokenListEntry/TokenListEntry"
 
 import { prettyBalance, prettyBalanceUSD } from "../../../utils/utils"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
+import { WalletContext } from "../../../contexts/WalletContext"
 import { ethers } from "ethers"
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Props) {
+  const { address } = useContext(WalletContext)
   const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
@@ -26,8 +28,10 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     const possibleTokens = getTokens()
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
-      if (balances[tokenAddress] && balances[tokenAddress].value !== ethers.constants.Zero && tokenAddress !== buyTokenInfo?.address)
-        tokens.push(tokenAddress)
+      if (tokenAddress === buyTokenInfo?.address) continue
+      if (address && balances[tokenAddress] && balances[tokenAddress].value !== ethers.constants.Zero) continue
+
+      tokens.push(tokenAddress)        
     }
   } else if (selectedModal === "buy") {
     for (let i = 0; i < markets.length; i++) {

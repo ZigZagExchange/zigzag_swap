@@ -6,10 +6,8 @@ import { WalletContext } from "../../contexts/WalletContext"
 import { networkSelectorOrder, NETWORKS } from "../../data/networks"
 
 function NetworkSelector() {
-  const { network, address, switchNetwork } = useContext(WalletContext)
+  const { network, switchNetwork } = useContext(WalletContext)
   const [showDropdown, setShowDropdown] = useState<boolean>(false)
-
-  if (address === null) return null
 
   const networkName = !network ? "choose_a_network" : network.name
 

@@ -51,7 +51,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
 
   function safeSetSellAmount(newAmount: string) {
     newAmount = newAmount.replace(",", ".")
-    newAmount = truncateDecimals(newAmount, 10)
+    newAmount = truncateDecimals(newAmount, sellTokenInfo ? sellTokenInfo.decimals : 18)
     setInput(newAmount)
     // if (!newAmount || newAmount === "" || newAmount === "0.0") {
     //   setValidationStateSell(ValidationState.OK)

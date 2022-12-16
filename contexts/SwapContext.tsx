@@ -42,10 +42,10 @@ export const SwapContext = createContext<SwapContextType>({
   sellAmount: 0,
   buyAmount: 0,
 
-  setSellAmount: (amount: number) => {},
-  setBuyAmount: (amount: number) => {},
+  setSellAmount: (amount: number) => { },
+  setBuyAmount: (amount: number) => { },
 
-  switchTokens: () => {},
+  switchTokens: () => { },
 })
 
 function SwapProvider({ children }: Props) {
@@ -95,8 +95,6 @@ function SwapProvider({ children }: Props) {
 
   useEffect(() => {
     const getGasFees = async () => {
-      setEstimatedGasFee(undefined)
-
       if (!network) {
         console.warn("getGasFees: missing network")
         return
@@ -123,15 +121,15 @@ function SwapProvider({ children }: Props) {
         return
       }
 
-      const feeData = await signer.getFeeData()
-      if (!feeData.lastBaseFeePerGas) {
-        console.warn("getGasFees: missing lastBaseFeePerGas")
-        return
-      }
-
       const buyAmountParsed = ethers.utils.parseUnits(buyAmount.toFixed(buyTokenInfo.decimals), buyTokenInfo.decimals)
       let estimatedGasUsed = ethers.constants.Zero
       try {
+        const feeData = await signer.getFeeData()
+        if (!feeData.lastBaseFeePerGas) {
+          console.warn("getGasFees: missing lastBaseFeePerGas")
+          return
+        }
+
         estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(
           [
             quoteOrder.order.user,
@@ -145,18 +143,16 @@ function SwapProvider({ children }: Props) {
           buyAmountParsed,
           false
         )
+
+        const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.mul(estimatedGasUsed)
+        const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
+        setEstimatedGasFee(Number(estimatedFee))
       } catch (err: any) {
         console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
+        setEstimatedGasFee(undefined)
       }
-
-      const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.mul(estimatedGasUsed)
-      const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
-      setEstimatedGasFee(Number(estimatedFee))
     }
     getGasFees()
-
-    const interval = setInterval(getGasFees, 15000)
-    return () => clearInterval(interval)
   }, [network, signer, exchangeAddress, quoteOrder])
 
   // useEffect(() => {

@@ -32,7 +32,7 @@ function Swap() {
 
   const { network } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { sellAmount, buyAmount, estimatedGasFee, swapPrice } = useContext(SwapContext)
+  const { sellAmount, buyAmount, swapPrice } = useContext(SwapContext)
 
   const getBalanceReadable = (address: string | null) => {
     if (address && balances[address]) {
@@ -145,7 +145,6 @@ function Swap() {
           priceSell={`$${prettyBalance(swapPrice)}`}
           priceBuyUsd={buyTokenUsdPrice}
           priceSellUsd={sellTokenUsdPrice}
-          estimatedGasFee={estimatedGasFee}
           nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
           nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
         />

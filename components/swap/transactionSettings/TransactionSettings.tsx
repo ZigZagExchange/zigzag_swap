@@ -1,5 +1,8 @@
+import { useContext } from "react"
+
 import { prettyBalance, prettyBalanceUSD } from "../../../utils/utils"
 import styles from "./TransactionSettings.module.css"
+import { SwapContext } from "../../../contexts/SwapContext"
 
 interface Props {
   buySymbol: string
@@ -8,7 +11,6 @@ interface Props {
   priceSell: string
   priceBuyUsd: number | undefined
   priceSellUsd: number | undefined
-  estimatedGasFee: number | undefined
   nativeCurrencyUsd: number
   nativeCurrencySymbol: string
 }
@@ -20,10 +22,11 @@ function TransactionSettings({
   priceSell,
   priceBuyUsd,
   priceSellUsd,
-  estimatedGasFee,
   nativeCurrencyUsd,
   nativeCurrencySymbol,
 }: Props) {
+  const { estimatedGasFee } = useContext(SwapContext)
+
   let buy_price_element
   if (priceBuyUsd !== undefined) {
     buy_price_element = (

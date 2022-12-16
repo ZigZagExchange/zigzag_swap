@@ -36,6 +36,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
   }
 
   useEffect(() => {
+    if (buyAmount === 0) return
     console.log("Setting buy input to " + String(buyAmount))
     setInput(String(buyAmount))
   }, [buyAmount])

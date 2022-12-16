@@ -24,6 +24,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   const [input, setInput] = useState<string>("")
 
   useEffect(() => {
+    if (sellAmount === 0) return
     console.log("Setting sell input to " + String(sellAmount))
     setInput(String(sellAmount))
   }, [sellAmount])

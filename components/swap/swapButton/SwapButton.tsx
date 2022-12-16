@@ -112,13 +112,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       sellAmountParsed = sellBalanceParsed
     }
 
-    const modifyedSellAmountFormatted = ethers.utils.formatUnits(sellAmountParsed, sellTokenInfo.decimals)
-    const modifyedBuyAmountFormatted = Number(modifyedSellAmountFormatted) * swapPrice
-    const modifyedBuyAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(
-      modifyedBuyAmountFormatted.toFixed(buyTokenInfo.decimals),
-      buyTokenInfo.decimals
-    )
-
+    const buyAmountParsed = sellAmountParsed.mul(quoteOrder.order.sellAmount).div(quoteOrder.order.buyAmount)
     const tx = await exchangeContract.fillOrder(
       [
         quoteOrder.order.user,
@@ -129,7 +123,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
         quoteOrder.order.expirationTimeSeconds,
       ],
       quoteOrder.signature,
-      modifyedBuyAmountParsed.toString(),
+      buyAmountParsed.toString(),
       false
     )
     console.log("sendSwap: approve submitted: ", tx)

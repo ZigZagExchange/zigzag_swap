@@ -74,7 +74,7 @@ function SwapProvider({ children }: Props) {
       if (quoteSellAmount < buyAmount) continue
 
       const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
-      const thisPrice = (quoteBuyAmount * (1 - makerFee)) / (quoteSellAmount * (1 - takerFee))
+      const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
       if (thisPrice > bestPrice) {
         bestPrice = thisPrice
         bestOrder = orderBook[i]

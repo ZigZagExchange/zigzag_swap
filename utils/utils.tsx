@@ -39,32 +39,15 @@ const getDecimalsNeeded = (amount: number | string) => {
 }
 
 export function prettyBalance(balance: number | string, decimals: number = getDecimalsNeeded(balance)) {
-  const truncattedAmount = String(parseFloat(Number(balance).toFixed(decimals)))
-  if (truncattedAmount === "0") {
-    return "0.0"
-  }
-  if (truncattedAmount.includes(".")) {
-    const decimalPart = truncattedAmount.split(".").slice(-1)[0]
-    if (truncattedAmount === "") {
-      return "0"
-    }
-    if (decimalPart.length < decimals) {
-      // console.log("decimal_part too small")
-      return balanceCommas(
-        decimalPart +
-        Array(decimals - decimalPart.length)
-          .fill(0)
-          .join("")
-      )
-    }
-    return balanceCommas(truncattedAmount)
-  } else {
-    return balanceCommas(truncattedAmount + (decimals > 0 ? "." : "") + Array(decimals).fill(0).join(""))
-  }
+  const truncattedAmount = truncateDecimals(balance.toString(), decimals, false)
+  if (truncattedAmount === "0") { return "0.0" }
+  return balanceCommas(truncattedAmount)
 }
 
-export function prettyBalanceUSD(balance: number) { 
-  return prettyBalance(balance, 2)
+export function prettyBalanceUSD(balance: number) {
+  const truncattedAmount = truncateDecimals(balance.toString(), 2, true)
+  if (truncattedAmount === "0") { return "0.0" }
+  return balanceCommas(truncattedAmount)
 }
 
 export function hideAddress(address: string, digits = 4) {
@@ -72,26 +55,26 @@ export function hideAddress(address: string, digits = 4) {
 }
 
 export function truncateDecimals(numberString: string, decimals: number, padDecimals: boolean = false) {
-  const separator = "."
-  let splitAtDecimal = numberString.replace(",", ".").split(separator)
-  if (splitAtDecimal.length === 2) {
-    const decimalPart = splitAtDecimal.at(-1)
-    if (decimalPart !== undefined && decimalPart.length > 0) {
-      if (decimalPart.length > decimals) {
-        numberString = numberString.slice(0, decimals - decimalPart.length)
-      }
-    }
-  }
-  if (padDecimals) {
-    splitAtDecimal = numberString.replace(",", ".").split(separator)
-    if (splitAtDecimal.length !== 2) {
-      numberString += "." + "0".repeat(decimals)
+  let splitAtDecimal = numberString.replace(",", ".").split(".")
+  if (splitAtDecimal.length == 1) {
+    if (padDecimals) {
+      return splitAtDecimal[0] + "." + "0".repeat(decimals)
     } else {
-      const decimalPart = splitAtDecimal.at(-1)
-      if (decimalPart !== undefined && decimalPart.length < decimals) {
-        numberString += "0".repeat(decimals - decimalPart.length)
-      }
+      return splitAtDecimal[0]
+    }
+  } 
+
+  let decimalPart = splitAtDecimal.at(-1)
+  if (decimalPart !== undefined && decimalPart.length > 0) {
+    if (decimalPart.length > decimals) {
+      decimalPart = decimalPart.slice(0, decimals - decimalPart.length)
+    }
+    if (padDecimals) {
+      return splitAtDecimal[0] + "." + decimalPart + "0".repeat(decimals - decimalPart.length)
+    } else {
+      return splitAtDecimal[0] + "." + decimalPart
     }
   }
-  return numberString
+
+  return "0.0"
 }

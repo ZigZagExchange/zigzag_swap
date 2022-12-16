@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
 
-  color: var(--gray_lighter);
+  /* color: var(--gray_lighter); */
   transition: all 0.1s ease-out;
   position: relative;
   z-index: 100;
@@ -15,6 +15,7 @@
 }
 
 .selected {
+  opacity: 0.5;
   height: 50px;
 
   display: flex;
@@ -29,6 +30,7 @@
 .selected:hover {
   color: var(--accent);
   cursor: pointer;
+  opacity: 1;
 }
 
 .dropdown_container {

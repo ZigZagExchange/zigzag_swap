@@ -23,19 +23,20 @@ function ConnectButtonDropdown(props: Props) {
     <div ref={container_ref} className={styles.container}>
       <>
         <a
-          href={(props.networkId && props.userAddress) ? `${NETWORKS[props.networkId].explorerUrl}address/${props.userAddress}` : undefined}
+          href={props.networkId && props.userAddress ? `${NETWORKS[props.networkId].explorerUrl}address/${props.userAddress}` : undefined}
           target="_blank"
           rel="noopener noreferrer"
         >
           <button>
-            {REDIRECT_SVG} {"view_in_explorer"}
+            {REDIRECT_SVG} <div className={styles.button_text}>{"View in Explorer"}</div>
           </button>
         </a>
-
-        <button onClick={props.disconnect}>
-          {LOGOUT_ICON} {"disconnect"}
-        </button>
-      </>      
+        <a>
+          <button onClick={props.disconnect}>
+            {LOGOUT_ICON} <div className={styles.button_text}>{"Disconnect"}</div>
+          </button>
+        </a>
+      </>
     </div>
   )
 }

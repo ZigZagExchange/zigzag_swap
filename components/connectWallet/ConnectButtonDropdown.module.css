@@ -1,11 +1,13 @@
 .container {
   position: absolute;
-  background-color: var(--container_background_color);
-  backdrop-filter: blur(20px);
+  /* background-color: var(--container_background_color); */
+  /* backdrop-filter: blur(20px); */
+
   right: 0;
   /* width: 350px; */
-  width: 240px;
-  border: 1px var(--container_border_color) solid;
+  /* width: 240px; */
+
+  /* border: 1px red solid; */
   /* border-right: none;
   border-top: none; */
   animation: fadein 0.1s ease-out forwards;
@@ -14,9 +16,9 @@
   /* border-bottom-left-radius: 4px; */
   overflow: hidden;
   outline: none;
-  padding: 10px;
-  margin-right: 10px;
-  border-bottom-left-radius: 4px;
+  padding-top: 5px;
+  /* padding: 10px; */
+  /* margin-right: 10px; */
   border-radius: 4px;
 }
 
@@ -24,19 +26,34 @@
   /* width: 100px; */
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  /* justify-content: flex-end; */
   gap: 5px;
 }
-.container button {
+.container > * {
   width: 100%;
-  /* font-size: small; */
+}
+
+.container button {
+  background: var(--glass_background);
+  color: white;
+  border: none;
+  padding: 0.5rem 1em;
+  border-radius: 14px;
+  /* width: 100%; */
+  font-size: inherit;
   text-align: left;
   display: flex;
   justify-content: flex-start;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .container button svg {
   font-size: 20px;
-  fill: var(--accent);
+  fill: white;
   margin-right: 10px;
 }
 
@@ -46,4 +63,13 @@
 
 .container button:not(:disabled):hover svg {
   fill: white;
+}
+
+.container button > * {
+  opacity: 0.5;
+  transition: opacity 0.1s ease-out;
+}
+
+.container button:hover > * {
+  opacity: 1;
 }

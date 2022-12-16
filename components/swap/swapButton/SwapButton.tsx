@@ -21,9 +21,9 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   const [enabled, setEnabled] = useState<boolean>(false)
   const [enableApprove, setEnableApprove] = useState<boolean>(false)
 
-  const { signer } = useContext(WalletContext)
+  const { signer, userAddress } = useContext(WalletContext)
   const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress } = useContext(ExchangeContext)
-  const { sellAmount, quoteOrder } = useContext(SwapContext)
+  const { buyAmount, sellAmount, quoteOrder } = useContext(SwapContext)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -40,6 +40,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   }, [sellTokenInfo, signer])
 
   const buttonText: string = useMemo(() => {
+    if (!userAddress) return "Swap"
+
     if (!buyTokenInfo || !sellTokenInfo) {
       setEnableApprove(false)
       setEnabled(false)
@@ -166,7 +168,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     <button
       className={styles.container}
       onClick={enableApprove ? sendApprove : sendSwap}
-      disabled={validationStateBuy !== ValidationState.OK || validationStateSell !== ValidationState.OK}
+      disabled={signer === null || validationStateBuy !== ValidationState.OK || validationStateSell !== ValidationState.OK}
     >
       {buttonText}
     </button>

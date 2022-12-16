@@ -30,7 +30,7 @@ function Swap() {
   const [validationStateBuy, setValidationStateBuy] = useState<ValidationState>(ValidationState.OK)
   const [validationStateSell, setValidationStateSell] = useState<ValidationState>(ValidationState.OK)
 
-  const { network } = useContext(WalletContext)
+  const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { sellAmount, buyAmount, swapPrice } = useContext(SwapContext)
 
@@ -39,6 +39,25 @@ function Swap() {
       return prettyBalance(balances[tokenAddress].valueReadable)
     } else {
       return "0.0"
+    }
+  }
+
+  const  getErrorMessage = (validationState: ValidationState) => {
+    if (!userAddress) return
+
+    switch (validationState) {
+      case ValidationState.ExceedsAllowance:
+        return "Amount exceeds allowance."
+      case ValidationState.InsufficientBalance:
+        return "Amount exceeds balance."
+      case ValidationState.InternalError:
+        return "Internal error."
+      case ValidationState.IsNaN:
+        return "Amount cannot be NaN."
+      case ValidationState.IsNegative:
+        return "Amount cannot be negative."
+      default:
+        return
     }
   }
 
@@ -53,15 +72,15 @@ function Swap() {
 
   // Estimated sell token value
   let sellTokenEstimatedValue
-  if (sellTokenUsdPrice !== undefined) {
+  if (sellTokenUsdPrice !== undefined && sellAmount !== 0) {
     sellTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
   }
 
   // Estimated buy token value
   let buyTokenEstimatedValue
-  if (buyTokenUsdPrice !== undefined) {
+  if (buyTokenUsdPrice !== undefined && buyAmount !== 0) {
     let percent
-    if (sellTokenUsdPrice !== undefined) percent = `(${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`
+    if (sellTokenUsdPrice !== undefined && sellAmount !== 0) percent = `(${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`
 
     buyTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)} ${percent}`}</div>
   }
@@ -80,7 +99,7 @@ function Swap() {
           <div className={styles.from_header}>
             <div className={styles.from_title}>{INFO_ICON} From</div>
             <div className={styles.from_balance}>
-              Balance: {getBalanceReadable(sellTokenAddress)} {sellTokenSymbol}
+              {getBalanceReadable(sellTokenAddress)} {sellTokenSymbol}
             </div>
           </div>
           <div className={styles.from_input_container}>
@@ -111,7 +130,7 @@ function Swap() {
           <div className={styles.to_header}>
             <div className={styles.to_title}>{INFO_ICON} To</div>
             <div className={styles.to_balance}>
-              Balance: {getBalanceReadable(buyTokenAddress)} {buyTokenSymbol}
+              {getBalanceReadable(buyTokenAddress)} {buyTokenSymbol}
             </div>
           </div>
           <div className={styles.to_input_container}>
@@ -194,21 +213,4 @@ L268.1,480.4c-6.1,6.1-14.4,9.6-23.1,9.6c-8.7,0-17-3.4-23.1-9.6L52.8,311.3z"
       </svg>
     </div>
   )
-}
-
-function getErrorMessage(validationState: ValidationState) {
-  switch (validationState) {
-    case ValidationState.ExceedsAllowance:
-      return "Amount exceeds allowance."
-    case ValidationState.InsufficientBalance:
-      return "Amount exceeds balance."
-    case ValidationState.InternalError:
-      return "Internal error."
-    case ValidationState.IsNaN:
-      return "Amount cannot be NaN."
-    case ValidationState.IsNegative:
-      return "Amount cannot be negative."
-    default:
-      return
-  }
 }

@@ -9,6 +9,7 @@ import { ZZTokenInfo } from "../../../contexts/ExchangeContext"
 import { prettyBalance, truncateDecimals } from "../../../utils/utils"
 
 import { ValidationState } from "../Swap"
+import { WalletContext } from "../../../contexts/WalletContext"
 
 interface Props {
   sellTokenInfo: ZZTokenInfo | null
@@ -21,6 +22,7 @@ interface Props {
 
 export default function SellInput({ sellTokenInfo, balance, allowance, validationStateSell, openModal, setValidationStateSell }: Props) {
   const { sellAmount, setSellAmount, setBuyAmount } = useContext(SwapContext)
+  const { userAddress } = useContext(WalletContext)
   const [input, setInput] = useState<string>("")
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     if (balance !== null && amountBN.gt(balance)) {
       return ValidationState.InsufficientBalance
     }
-    if (allowance !== null && amountBN.gt(allowance)) {
+    if (allowance !== null && allowance !== undefined && amountBN.gt(allowance)) {
       return ValidationState.ExceedsAllowance
     }
     return ValidationState.OK
@@ -69,7 +71,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
 
   return (
-    <div className={`${input_styles.container} ${validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
+    <div className={`${input_styles.container} ${userAddress && validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
       <input
         className={input_styles.input}

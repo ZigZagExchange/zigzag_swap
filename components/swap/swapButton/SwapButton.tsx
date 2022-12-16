@@ -87,9 +87,9 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    const remainingTime = Number(quoteOrder.order.expirationTimeSeconds) - Date.now() / 1000 
+    const remainingTime = Number(quoteOrder.order.expirationTimeSeconds) - Date.now() / 1000
     if (remainingTime < 0) {
-      console.warn("sendSwap: quote is expierd")
+      console.warn("sendSwap: quote is expired")
       return
     }
     if (remainingTime < 5) {
@@ -163,7 +163,11 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   }
 
   return (
-    <button className={styles.container} onClick={enableApprove ? sendApprove : sendSwap}>
+    <button
+      className={styles.container}
+      onClick={enableApprove ? sendApprove : sendSwap}
+      disabled={validationStateBuy !== ValidationState.OK || validationStateSell !== ValidationState.OK}
+    >
       {buttonText}
     </button>
   )

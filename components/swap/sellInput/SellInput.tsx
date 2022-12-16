@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react"
+import React, { useState, useContext, useEffect } from "react"
 
 import { ethers } from "ethers"
 
@@ -20,10 +20,13 @@ interface Props {
 }
 
 export default function SellInput({ sellTokenInfo, balance, allowance, validationStateSell, openModal, setValidationStateSell }: Props) {
-  const { sellAmount, setSellAmount } = useContext(SwapContext)
-
-  const [isFocused, setIsFocused] = useState<boolean>(false)
+  const { sellAmount, setSellAmount, setBuyAmount } = useContext(SwapContext)
   const [input, setInput] = useState<string>("")
+
+  useEffect(() => {
+    console.log("Setting sell input to " + String(sellAmount))
+    setInput(String(sellAmount))
+  }, [sellAmount])
 
   function getValidationState(amount: string) {
     if (amount === "" || isNaN(Number(amount))) {
@@ -57,7 +60,8 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     const validation = newAmount === "" ? ValidationState.OK : getValidationState(newAmount)
     setValidationStateSell(validation)
 
-    if (validation === ValidationState.OK) setSellAmount(Number(newAmount))
+    if (validation === ValidationState.OK || validation === ValidationState.ExceedsAllowance || validation === ValidationState.InsufficientBalance)
+      setSellAmount(Number(newAmount))
   }
 
   // if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))

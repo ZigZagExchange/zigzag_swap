@@ -25,7 +25,7 @@ export type ZZOrder = {
 export type SwapContextType = {
   quoteOrder: ZZOrder | null
   swapPrice: number
-  estimatedGasFee: number
+  estimatedGasFee: number | undefined
   sellAmount: number
   buyAmount: number
 
@@ -36,7 +36,7 @@ export type SwapContextType = {
 export const SwapContext = createContext<SwapContextType>({
   quoteOrder: null,
   swapPrice: 0,
-  estimatedGasFee: 0,
+  estimatedGasFee: undefined,
   sellAmount: 0,
   buyAmount: 0,
 
@@ -47,7 +47,7 @@ export const SwapContext = createContext<SwapContextType>({
 function SwapProvider({ children }: Props) {
   const [sellAmount, setSellAmount] = useState<number>(0)
   const [buyAmount, setBuyAmount] = useState<number>(0)
-  const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0)
+  const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
 
   const { network, signer } = useContext(WalletContext)
@@ -84,6 +84,8 @@ function SwapProvider({ children }: Props) {
 
   useEffect(() => {
     const getGasFees = async () => {
+      setEstimatedGasFee(undefined)
+
       if (!network) {
         console.warn("getGasFees: missing network")
         return
@@ -100,12 +102,10 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: missing quoteOrder")
         return
       }
-
       if (!buyTokenInfo) {
         console.warn("getGasFees: missing buyTokenInfo")
         return
       }
-
       const feeData = await signer.getFeeData()
       if (!feeData.lastBaseFeePerGas) {
         console.warn("getGasFees: missing lastBaseFeePerGas")
@@ -125,7 +125,7 @@ function SwapProvider({ children }: Props) {
             quoteOrder.order.buyToken,
             quoteOrder.order.sellAmount,
             quoteOrder.order.buyAmount,
-            quoteOrder.order.expirationTimeSeconds
+            quoteOrder.order.expirationTimeSeconds,
           ],
           quoteOrder.signature,
           buyAmountParsed,
@@ -145,9 +145,9 @@ function SwapProvider({ children }: Props) {
     return () => clearInterval(interval)
   }, [network, signer, exchangeAddress, quoteOrder])
 
-  useEffect(() => {
-    setBuyAndSellSize(null, sellAmount)
-  }, [quoteOrder])
+  // useEffect(() => {
+  //   setBuyAndSellSize(null, sellAmount)
+  // }, [quoteOrder])
 
   useEffect(() => {
     getOrderBook()
@@ -172,26 +172,24 @@ function SwapProvider({ children }: Props) {
       return
     }
 
-    const response = await fetch(
-      `${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}`
-    )
+    const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}`)
     if (response.status !== 200) {
       console.error("Failed to fetch order book.")
       return
     }
 
-    const orders: { "orders": ZZOrder[] } = await response.json()
+    const orders: { orders: ZZOrder[] } = await response.json()
 
     const minTimeStamp: number = Date.now() / 1000 + 10
-    const goodOrders = orders.orders.filter((o: ZZOrder) => (minTimeStamp < Number(o.order.expirationTimeSeconds)))
+    const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
     setOrderBook(goodOrders)
   }
 
-  function setBuyAndSellSize(buyAmout: number | null, sellAmount: number | null) {
+  function setBuyAndSellSize(buyAmount: number | null, sellAmount: number | null) {
     // no price -> reset other side
     if (!swapPrice) {
       if (sellAmount) setBuyAmount(0)
-      if (buyAmout) setSellAmount(0)
+      if (buyAmount) setSellAmount(0)
       return
     }
 
@@ -199,9 +197,9 @@ function SwapProvider({ children }: Props) {
       const newBuyAmount = sellAmount * swapPrice
       setBuyAmount(newBuyAmount)
       setSellAmount(sellAmount)
-    } else if (buyAmout) {
-      const newSellAmount = buyAmout / swapPrice
-      setBuyAmount(buyAmout)
+    } else if (buyAmount) {
+      const newSellAmount = buyAmount / swapPrice
+      setBuyAmount(buyAmount)
       setSellAmount(newSellAmount)
     }
   }

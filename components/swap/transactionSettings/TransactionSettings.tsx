@@ -6,9 +6,9 @@ interface Props {
   sellSymbol: string
   priceBuy: string
   priceSell: string
-  priceBuyUsd: number
-  priceSellUsd: number
-  estimatedGasFee: number
+  priceBuyUsd: number | undefined
+  priceSellUsd: number | undefined
+  estimatedGasFee: number | undefined
   nativeCurrencyUsd: number
   nativeCurrencySymbol: string
 }
@@ -24,28 +24,51 @@ function TransactionSettings({
   nativeCurrencyUsd,
   nativeCurrencySymbol,
 }: Props) {
-  const buyPriceEstimate = priceBuyUsd ? prettyBalanceUSD(priceBuyUsd) : "0.0"
-  const sellPriceEstimate = priceSellUsd ? prettyBalanceUSD(priceSellUsd) : "0.0"
-  const estimatedGasFeeUsd = Number.isFinite(estimatedGasFee) && nativeCurrencyUsd ? prettyBalanceUSD(estimatedGasFee * nativeCurrencyUsd) : "0.0"
+  let buy_price_element
+  if (priceBuyUsd !== undefined) {
+    buy_price_element = (
+      <div className={styles.buy_price_info}>
+        <div>{`${buySymbol} buy price`}</div>
+        <div>{`${priceBuy} ${sellSymbol}  ~$${prettyBalanceUSD(priceBuyUsd)}`}</div>
+      </div>
+    )
+  }
+
+  let sell_price_element
+  if (priceSellUsd !== undefined) {
+    sell_price_element = (
+      <div className={styles.sell_price_info}>
+        <div>{`${sellSymbol} sell price`}</div>
+        <div>{`${priceSell} ${buySymbol}  ~$${prettyBalanceUSD(priceSellUsd)}`}</div>
+      </div>
+    )
+  }
+
+  let gas_fee_element
+  if (estimatedGasFee !== undefined) {
+    const estimatedGasFeeUsd = Number.isFinite(estimatedGasFee) && nativeCurrencyUsd ? prettyBalanceUSD(estimatedGasFee * nativeCurrencyUsd) : "0.0"
+    gas_fee_element = (
+      <div className={styles.gas_fee}>
+        <div>Gas fee</div>
+        <div>{`${prettyBalance(estimatedGasFee, 8)} ${nativeCurrencySymbol}  ~$${estimatedGasFeeUsd}`}</div>
+      </div>
+    )
+  } else {
+    gas_fee_element = (
+      <div className={styles.gas_fee}>
+        <div>Gas fee</div>
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.title}>Transaction Settings</div>
       <hr className={styles.hr} />
-      <div className={styles.buy_price_info}>
-        <div>{`${buySymbol} buy price`}</div>
-        <div>{`${priceBuy} ${sellSymbol}  ~$${buyPriceEstimate}`}</div>
-      </div>
-
-      <div className={styles.sell_price_info}>
-        <div>{`${sellSymbol} sell price`}</div>
-        <div>{`${priceSell} ${buySymbol}  ~$${sellPriceEstimate}`}</div>
-      </div>
-
-      <div className={styles.gas_fee}>
-        <div>Gas fee</div>
-        <div>{`${prettyBalance(estimatedGasFee, 4)} ${nativeCurrencySymbol}  ~$${estimatedGasFeeUsd}`}</div>
-      </div>
+      {buy_price_element}
+      {sell_price_element}
+      {gas_fee_element}
     </div>
   )
 }

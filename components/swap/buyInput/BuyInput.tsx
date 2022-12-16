@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react"
+import React, { useState, useContext, useEffect } from "react"
 import { ethers } from "ethers"
 
 import input_styles from "../Input.module.css"
@@ -17,12 +17,12 @@ interface Props {
 }
 
 export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, setValidationStateBuy }: Props) {
-  const { buyAmount, setBuyAmount } = useContext(SwapContext)
+  const { buyAmount, setBuyAmount, setSellAmount } = useContext(SwapContext)
 
-  const [isFocused, setIsFocused] = useState<boolean>(false)
+  // const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
 
-  function getValidatioState(amount: string) {
+  function getValidationState(amount: string) {
     if (amount === "" || isNaN(Number(amount))) {
       return ValidationState.IsNaN
     }
@@ -35,6 +35,11 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
     return ValidationState.OK
   }
 
+  useEffect(() => {
+    console.log("Setting buy input to " + String(buyAmount))
+    setInput(String(buyAmount))
+  }, [buyAmount])
+
   function safeSetBuyAmount(newAmount: string) {
     // newAmount = newAmount.replace(",", ".")
     // newAmount = truncateDecimals(newAmount, 10)
@@ -44,7 +49,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
     //   setBuyAmount(0)
     // }
 
-    const validation = newAmount === "" ? ValidationState.OK : getValidatioState(newAmount)
+    const validation = newAmount === "" ? ValidationState.OK : getValidationState(newAmount)
     setValidationStateBuy(validation)
 
     if (validation === ValidationState.OK) setBuyAmount(Number(newAmount))

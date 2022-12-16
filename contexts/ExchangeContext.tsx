@@ -161,11 +161,8 @@ function ExchangeProvider({ children }: Props) {
 
     const result: ZZInfoMsg = await response.json()
 
-    console.log("result", result)
-    const parsedmarkets = result.markets
-      .filter(m => m.verified)
-      .map(m => `${m.buyToken.toLowerCase()}-${m.sellToken.toLowerCase() }`)
-    setMarkets(parsedmarkets)
+    const parsedMarkets = result.markets.filter(m => m.verified).map(m => `${m.buyToken.toLowerCase()}-${m.sellToken.toLowerCase()}`)
+    setMarkets(parsedMarkets)
 
     const parsedTokenInfos = result.verifiedTokens.map(token => {
       token.address = token.address.toLowerCase()
@@ -227,14 +224,14 @@ function ExchangeProvider({ children }: Props) {
       if (!value || value === ethers.constants.Zero || decimals === 0 || !decimals) {
         return {
           value,
-          valueReadable: 0
+          valueReadable: 0,
         }
       }
 
       const formattedBalance = ethers.utils.formatUnits(value, decimals)
       return {
         value,
-        valueReadable: Number(formattedBalance)
+        valueReadable: Number(formattedBalance),
       }
     }
 
@@ -333,7 +330,7 @@ function ExchangeProvider({ children }: Props) {
 
         updateBalances: _updateBalances,
         updateAllowances: _updateAllowance,
-        
+
         getTokens: getTokens,
         getTokenInfo: getTokenInfo,
 

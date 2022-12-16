@@ -24,6 +24,8 @@ export enum ValidationState {
 }
 
 function Swap() {
+  console.log("SWAP RENDER")
+
   const [modal, setModal] = useState<"buy" | "sell" | null>(null)
   const [validationStateBuy, setValidationStateBuy] = useState<ValidationState>(ValidationState.OK)
   const [validationStateSell, setValidationStateSell] = useState<ValidationState>(ValidationState.OK)
@@ -31,11 +33,6 @@ function Swap() {
   const { network } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { sellAmount, buyAmount, estimatedGasFee, swapPrice } = useContext(SwapContext)
-
-  function switchTokens() {
-    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
-    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
-  }
 
   const getBalanceReadable = (address: string | null) => {
     if (address && balances[address]) {
@@ -51,51 +48,28 @@ function Swap() {
   const buyTokenAddress = buyTokenInfo?.address ? buyTokenInfo?.address : null
   const sellTokenAddress = sellTokenInfo?.address ? sellTokenInfo?.address : null
 
-  const buyTokenUsdPrice = buyTokenAddress && tokenPricesUSD[buyTokenAddress] ? tokenPricesUSD[buyTokenAddress] : 0
-  const sellTokenUsdPrice = sellTokenAddress && tokenPricesUSD[sellTokenAddress] ? tokenPricesUSD[sellTokenAddress] : 0
+  const buyTokenUsdPrice = buyTokenAddress && tokenPricesUSD[buyTokenAddress] ? tokenPricesUSD[buyTokenAddress] : undefined
+  const sellTokenUsdPrice = sellTokenAddress && tokenPricesUSD[sellTokenAddress] ? tokenPricesUSD[sellTokenAddress] : undefined
 
-  let sellErrorMessage
-  switch (validationStateSell) {
-    case ValidationState.ExceedsAllowance:
-      sellErrorMessage = "Amount exceeds allowance."
-      break
-    case ValidationState.InsufficientBalance:
-      sellErrorMessage = "Amount exceeds balance."
-      break
-    case ValidationState.InternalError:
-      sellErrorMessage = "Internal error."
-      break
-    case ValidationState.IsNaN:
-      sellErrorMessage = "Amount cannot be NaN."
-      break
-    case ValidationState.IsNegative:
-      sellErrorMessage = "Amount cannot be negative."
-      break
-    default:
-      break
+  // Estimated sell token value
+  let sellTokenEstimatedValue
+  if (sellTokenUsdPrice !== undefined) {
+    sellTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
   }
+
+  // Estimated buy token value
+  let buyTokenEstimatedValue
+  if (buyTokenUsdPrice !== undefined) {
+    let percent
+    if (sellTokenUsdPrice !== undefined) percent = `(${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`
+
+    buyTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)} ${percent}`}</div>
+  }
+
+  // Error messages
+  const sellErrorMessage = getErrorMessage(validationStateSell)
   const sellErrorElement = <div className={`${styles.error_element} ${sellErrorMessage ? "" : styles.hidden_error_element}`}>{sellErrorMessage}</div>
-
-  let buyErrorMessage
-  switch (validationStateBuy) {
-    case ValidationState.ExceedsAllowance:
-      buyErrorMessage = "Amount exceeds allowance."
-      break
-    case ValidationState.InsufficientBalance:
-      buyErrorMessage = "Amount exceeds balance."
-      break
-    case ValidationState.InternalError:
-      buyErrorMessage = "Internal error."
-      break
-    case ValidationState.IsNaN:
-      buyErrorMessage = "Amount cannot be NaN."
-      break
-    case ValidationState.IsNegative:
-      buyErrorMessage = "Amount cannot be negative."
-      break
-    default:
-      break
-  }
+  const buyErrorMessage = getErrorMessage(validationStateBuy)
   const buyErrorElement = <div className={`${styles.error_element} ${buyErrorMessage ? "" : styles.hidden_error_element}`}>{buyErrorMessage}</div>
 
   return (
@@ -125,22 +99,13 @@ function Swap() {
             ) : (
               <div className={styles.address_value_container}>
                 <div>{sellTokenAddress}</div>
-                <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
+                {sellTokenEstimatedValue}
               </div>
             )}
           </div>
         </div>
 
-        <div className={styles.arrow_container}>
-          <hr className={styles.hr} />
-          <svg className={styles.arrow} viewBox="0 0 490 490" fill="currentColor" onClick={switchTokens}>
-            <path
-              d="M52.8,311.3c-12.8-12.8-12.8-33.4,0-46.2c6.4-6.4,14.7-9.6,23.1-9.6s16.7,3.2,23.1,9.6l113.4,113.4V32.7
-		c0-18,14.6-32.7,32.7-32.7c18,0,32.7,14.6,32.7,32.7v345.8L391,265.1c12.8-12.8,33.4-12.8,46.2,0c12.8,12.8,12.8,33.4,0,46.2
-		L268.1,480.4c-6.1,6.1-14.4,9.6-23.1,9.6c-8.7,0-17-3.4-23.1-9.6L52.8,311.3z"
-            />
-          </svg>
-        </div>
+        <Separator />
 
         <div className={styles.to_container}>
           <div className={styles.to_header}>
@@ -167,7 +132,7 @@ function Swap() {
             ) : (
               <div className={styles.address_value_container}>
                 <div>{buyTokenAddress}</div>
-                  <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)} (${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`}</div>
+                {buyTokenEstimatedValue}
               </div>
             )}
           </div>
@@ -206,3 +171,42 @@ function Swap() {
 }
 
 export default Swap
+
+function Separator() {
+  const { buyTokenInfo, sellTokenInfo, setBuyToken, setSellToken } = useContext(ExchangeContext)
+
+  function switchTokens() {
+    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
+    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
+  }
+
+  return (
+    <div className={styles.arrow_container}>
+      <hr className={styles.hr} />
+      <svg className={styles.arrow} viewBox="0 0 490 490" fill="currentColor" onClick={switchTokens}>
+        <path
+          d="M52.8,311.3c-12.8-12.8-12.8-33.4,0-46.2c6.4-6.4,14.7-9.6,23.1-9.6s16.7,3.2,23.1,9.6l113.4,113.4V32.7
+c0-18,14.6-32.7,32.7-32.7c18,0,32.7,14.6,32.7,32.7v345.8L391,265.1c12.8-12.8,33.4-12.8,46.2,0c12.8,12.8,12.8,33.4,0,46.2
+L268.1,480.4c-6.1,6.1-14.4,9.6-23.1,9.6c-8.7,0-17-3.4-23.1-9.6L52.8,311.3z"
+        />
+      </svg>
+    </div>
+  )
+}
+
+function getErrorMessage(validationState: ValidationState) {
+  switch (validationState) {
+    case ValidationState.ExceedsAllowance:
+      return "Amount exceeds allowance."
+    case ValidationState.InsufficientBalance:
+      return "Amount exceeds balance."
+    case ValidationState.InternalError:
+      return "Internal error."
+    case ValidationState.IsNaN:
+      return "Amount cannot be NaN."
+    case ValidationState.IsNegative:
+      return "Amount cannot be negative."
+    default:
+      return
+  }
+}

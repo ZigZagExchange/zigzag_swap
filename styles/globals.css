@@ -173,12 +173,7 @@ body {
   align-items: center;
   justify-content: center;
   background-size: 150% 150%;
-  background-image: radial-gradient(
-    circle at 50% 50%,
-    white 5.9%,
-    /* var(--turquoise_lighter) 7%, */ /* var(--turquoise_light) 7.1%, */ /* var(--turquoise_dark) 5.1%, */ var(--turquoise_darker) 6%,
-    hsl(0, 0%, 5%) 50%
-  );
+  background-image: radial-gradient(circle at 50% 50%, rgb(0, 183, 255) 1.9%, var(--turquoise_darker) 2%, rgb(0, 17, 24) 50%);
   animation: AnimateBG 40s ease-in-out infinite;
 }
 

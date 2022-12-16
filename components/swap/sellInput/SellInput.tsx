@@ -25,8 +25,8 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
 
   useEffect(() => {
     if (sellAmount === 0) return
-    console.log("Setting sell input to " + String(sellAmount))
-    setInput(String(sellAmount))
+    console.log("Setting sell input to " + prettyBalance(sellAmount))
+    setInput(prettyBalance(sellAmount))
   }, [sellAmount])
 
   function getValidationState(amount: string) {

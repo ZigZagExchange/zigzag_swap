@@ -169,6 +169,10 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo])
 
   async function getOrderBook() {
+    if (!network) {
+      console.warn("getOrderBook: Missing network")
+      return
+    }
     if (!buyTokenInfo) {
       console.warn("getOrderBook: missing buyTokenInfo")
       return

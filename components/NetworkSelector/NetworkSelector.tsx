@@ -9,8 +9,6 @@ function NetworkSelector() {
   const { network, switchNetwork } = useContext(WalletContext)
   const [showDropdown, setShowDropdown] = useState<boolean>(false)
 
-  const networkName = !network ? "choose_a_network" : network.name
-
   const networkList = []
   for (let i = 0; i < networkSelectorOrder.length; i++) {
     const key = networkSelectorOrder[i]
@@ -44,7 +42,7 @@ function NetworkSelector() {
         <span className={styles.selected_network_icon}>
           {network && (network.networkId === undefined || network.networkId !== null) ? NETWORKS[network.networkId].icon : <div className={styles.warning_ball} />}
         </span>{" "}
-        <div className={styles.selected_name_container}>{networkName}</div>
+        <div className={styles.selected_name_container}>{network.name}</div>
         {networkList.length > 0 ? <DownArrow /> : ""}
       </div>
       <div

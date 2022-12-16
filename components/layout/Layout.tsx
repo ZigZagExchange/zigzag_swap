@@ -25,7 +25,7 @@ function Layout(props: Props) {
   const router = useRouter()
 
   let header_warning
-  if (!network && userAddress) {
+  if (userAddress) {
     header_warning = (
       <div className={styles.header_warning_container}>
         <strong>{"Please change the Network"}</strong>{" "}

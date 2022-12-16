@@ -95,10 +95,6 @@ function SwapProvider({ children }: Props) {
 
   useEffect(() => {
     const getGasFees = async () => {
-      if (!network) {
-        console.warn("getGasFees: missing network")
-        return
-      }
       if (!signer) {
         console.warn("getGasFees: missing signer")
         return
@@ -169,10 +165,6 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo])
 
   async function getOrderBook() {
-    if (!network) {
-      console.warn("getOrderBook: missing network")
-      return
-    }
     if (!buyTokenInfo) {
       console.warn("getOrderBook: missing buyTokenInfo")
       return

@@ -167,7 +167,7 @@ function Swap() {
             ) : (
               <div className={styles.address_value_container}>
                 <div>{buyTokenAddress}</div>
-                <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)}`}</div>
+                  <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)} (${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`}</div>
               </div>
             )}
           </div>

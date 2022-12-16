@@ -72,11 +72,11 @@ export type ExchangeContextType = {
   typeInfo: EIP712TypeInfo | null
   tokenInfos: ZZTokenInfo[]
   tokenPricesUSD: TokenPriceObject
+  markets: string[]
 
   updateBalances: (tokens: string[]) => void
   updateAllowances: (tokens: string[]) => void
 
-  getMarkets: () => string[]
   getTokens: () => string[]
   getTokenInfo: (token: string) => ZZTokenInfo | null
 
@@ -96,11 +96,11 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   typeInfo: null,
   tokenInfos: [],
   tokenPricesUSD: {},
+  markets: [],
 
   updateBalances: async (tokens: string[] | null) => {},
   updateAllowances: async (tokens: string[] | null) => {},
 
-  getMarkets: () => [],
   getTokens: () => [],
   getTokenInfo: (token: string) => null,
 
@@ -109,7 +109,7 @@ export const ExchangeContext = createContext<ExchangeContextType>({
 })
 
 function ExchangeProvider({ children }: Props) {
-  const [marketInfos, setMarketInfos] = useState<ZZMarketInfo[]>([])
+  const [markets, setMarkets] = useState<string[]>([])
   const [tokenInfos, setTokenInfos] = useState<ZZTokenInfo[]>([])
   const [makerFee, setMakerFee] = useState<number>(0)
   const [takerFee, setTakerFee] = useState<number>(0)
@@ -136,7 +136,7 @@ function ExchangeProvider({ children }: Props) {
   useEffect(() => {
     _updateAllowance()
     _updateBalances()
-  }, [marketInfos, address, network])
+  }, [markets, address, network])
 
   useEffect(() => {
     updateTokenPricesUSD()
@@ -162,15 +162,10 @@ function ExchangeProvider({ children }: Props) {
     const result: ZZInfoMsg = await response.json()
 
     console.log("result", result)
-    const parsedMarketInfo = result.markets
-      .filter(market => market.verified)
-      .map(market => {
-        market.buyToken = market.buyToken.toLowerCase()
-        market.sellToken = market.sellToken.toLowerCase()
-
-        return market
-      })
-    setMarketInfos(parsedMarketInfo)
+    const parsedmarkets = result.markets
+      .filter(m => m.verified)
+      .map(m => `${m.buyToken.toLowerCase()}-${m.sellToken.toLowerCase() }`)
+    setMarkets(parsedmarkets)
 
     const parsedTokenInfos = result.verifiedTokens.map(token => {
       token.address = token.address.toLowerCase()
@@ -312,10 +307,6 @@ function ExchangeProvider({ children }: Props) {
     return tokenInfos.map(tokeninfo => tokeninfo.address)
   }
 
-  const getMarkets = () => {
-    return marketInfos.map(marketInfo => `${marketInfo.buyToken}-${marketInfo.sellToken}`)
-  }
-
   const setBuyToken = (tokenAddress: string) => {
     setBuyTokenInfo(getTokenInfo(tokenAddress))
   }
@@ -338,11 +329,11 @@ function ExchangeProvider({ children }: Props) {
         typeInfo: typeInfo,
         tokenInfos: tokenInfos,
         tokenPricesUSD: tokenPricesUSD,
+        markets: markets,
 
         updateBalances: _updateBalances,
         updateAllowances: _updateAllowance,
-
-        getMarkets: getMarkets,
+        
         getTokens: getTokens,
         getTokenInfo: getTokenInfo,
 

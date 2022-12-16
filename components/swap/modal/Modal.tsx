@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Props) {
-  const { balances, getTokens, getMarkets, getTokenInfo, buyTokenInfo, sellTokenInfo, tokenPricesUSD } = useContext(ExchangeContext)
+  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
   const selectedToken = selectedModal === "buy" ? sellTokenInfo?.address : buyTokenInfo?.address
@@ -30,7 +30,6 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
         tokens.push(tokenAddress)
     }
   } else if (selectedModal === "buy") {
-    const markets = getMarkets()
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
       if (selectedToken === tokenB && sellTokenInfo?.address !== tokenA && !tokens.includes(tokenA)) tokens.push(tokenA)

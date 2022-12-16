@@ -138,18 +138,19 @@ function Swap() {
           </div>
         </div>
       </div>
-      <TransactionSettings
-        buySymbol={buyTokenSymbol}
-        sellSymbol={sellTokenSymbol}
-        priceBuy={`$${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
-        priceSell={`$${prettyBalance(swapPrice)}`}
-        priceBuyUsd={buyTokenUsdPrice}
-        priceSellUsd={sellTokenUsdPrice}
-        estimatedGasFee={estimatedGasFee}
-        nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
-        nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
-      />
-      <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} />
+      {!!swapPrice && <TransactionSettings
+          buySymbol={buyTokenSymbol}
+          sellSymbol={sellTokenSymbol}
+          priceBuy={`$${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
+          priceSell={`$${prettyBalance(swapPrice)}`}
+          priceBuyUsd={buyTokenUsdPrice}
+          priceSellUsd={sellTokenUsdPrice}
+          estimatedGasFee={estimatedGasFee}
+          nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
+          nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
+        />
+      }
+      {!!swapPrice && <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} /> }      
       <Modal
         isOpen={modal !== null}
         selectedModal={modal}

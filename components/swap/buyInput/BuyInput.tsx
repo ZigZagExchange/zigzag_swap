@@ -17,10 +17,10 @@ interface Props {
 }
 
 export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, setValidationStateBuy }: Props) {
+  const { buyAmount, setBuyAmount } = useContext(SwapContext)
+
   const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
-
-  const { buyAmount, setBuyAmount } = useContext(SwapContext)
 
   function getValidatioState(amount: string) {
     if (amount === "" || isNaN(Number(amount))) {
@@ -36,33 +36,34 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
   }
 
   function safeSetBuyAmount(newAmount: string) {
-    newAmount = newAmount.replace(",", ".")
-    newAmount = truncateDecimals(newAmount, 10)
+    // newAmount = newAmount.replace(",", ".")
+    // newAmount = truncateDecimals(newAmount, 10)
     setInput(newAmount)
-    if (newAmount === "" || newAmount === "0.0") {
-      setValidationStateBuy(ValidationState.OK)
-      setBuyAmount(0)
-    }
+    // if (newAmount === "" || newAmount === "0.0") {
+    //   setValidationStateBuy(ValidationState.OK)
+    //   setBuyAmount(0)
+    // }
 
-    const validation = getValidatioState(newAmount)
+    const validation = newAmount === "" ? ValidationState.OK : getValidatioState(newAmount)
     setValidationStateBuy(validation)
-    setBuyAmount(Number(newAmount))
+
+    if (validation === ValidationState.OK) setBuyAmount(Number(newAmount))
   }
 
-  if (!isFocused && buyAmount !== Number(input)) setInput(prettyBalance(buyAmount))
+  // if (!isFocused && buyAmount !== Number(input)) setInput(prettyBalance(buyAmount))
   const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
 
   return (
-    <div className={input_styles.container}>
+    <div className={`${input_styles.container} ${validationStateBuy !== ValidationState.OK ? input_styles.error : ""}`}>
       <TokenSelector selectedTokenSymbol={buyTokenSymbol} openModal={openModal} />
       <input
-        className={validationStateBuy === ValidationState.OK ? input_styles.input : input_styles.input_with_error}
+        className={input_styles.input}
         onInput={p => safeSetBuyAmount(p.currentTarget.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        value={isFocused ? input : prettyBalance(buyAmount)}
-        type="string"
-        placeholder={"0.00"}
+        // onFocus={() => setIsFocused(true)}
+        // onBlur={() => setIsFocused(false)}
+        value={input}
+        type="number"
+        placeholder={"0"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols
           const is_not_valid_key = ["+", "-", "e"].includes(e.key)

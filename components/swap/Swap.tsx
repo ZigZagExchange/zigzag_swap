@@ -54,6 +54,50 @@ function Swap() {
   const buyTokenUsdPrice = buyTokenAddress && tokenPricesUSD[buyTokenAddress] ? tokenPricesUSD[buyTokenAddress] : 0
   const sellTokenUsdPrice = sellTokenAddress && tokenPricesUSD[sellTokenAddress] ? tokenPricesUSD[sellTokenAddress] : 0
 
+  let sellErrorMessage
+  switch (validationStateSell) {
+    case ValidationState.ExceedsAllowance:
+      sellErrorMessage = "Amount exceeds allowance."
+      break
+    case ValidationState.InsufficientBalance:
+      sellErrorMessage = "Amount exceeds balance."
+      break
+    case ValidationState.InternalError:
+      sellErrorMessage = "Internal error."
+      break
+    case ValidationState.IsNaN:
+      sellErrorMessage = "Amount cannot be NaN."
+      break
+    case ValidationState.IsNegative:
+      sellErrorMessage = "Amount cannot be negative."
+      break
+    default:
+      break
+  }
+  const sellErrorElement = <div className={`${styles.error_element} ${sellErrorMessage ? "" : styles.hidden_error_element}`}>{sellErrorMessage}</div>
+
+  let buyErrorMessage
+  switch (validationStateBuy) {
+    case ValidationState.ExceedsAllowance:
+      buyErrorMessage = "Amount exceeds allowance."
+      break
+    case ValidationState.InsufficientBalance:
+      buyErrorMessage = "Amount exceeds balance."
+      break
+    case ValidationState.InternalError:
+      buyErrorMessage = "Internal error."
+      break
+    case ValidationState.IsNaN:
+      buyErrorMessage = "Amount cannot be NaN."
+      break
+    case ValidationState.IsNegative:
+      buyErrorMessage = "Amount cannot be negative."
+      break
+    default:
+      break
+  }
+  const buyErrorElement = <div className={`${styles.error_element} ${buyErrorMessage ? "" : styles.hidden_error_element}`}>{buyErrorMessage}</div>
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Swap</h1>
@@ -76,8 +120,14 @@ function Swap() {
             />
           </div>
           <div className={styles.below_input_container}>
-            <div>{sellTokenAddress}</div>
-            <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
+            {sellErrorMessage ? (
+              sellErrorElement
+            ) : (
+              <div className={styles.address_value_container}>
+                <div>{sellTokenAddress}</div>
+                <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -107,9 +157,19 @@ function Swap() {
               setValidationStateBuy={setValidationStateBuy}
             />
           </div>
-          <div className={styles.below_input_container}>
+          {/* <div className={styles.below_input_container}>
             <div>{buyTokenAddress}</div>
             <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)}`}</div>
+          </div> */}
+          <div className={styles.below_input_container}>
+            {buyErrorMessage ? (
+              buyErrorElement
+            ) : (
+              <div className={styles.address_value_container}>
+                <div>{buyTokenAddress}</div>
+                <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)}`}</div>
+              </div>
+            )}
           </div>
         </div>
       </div>

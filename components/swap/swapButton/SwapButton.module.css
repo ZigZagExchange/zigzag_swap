@@ -5,8 +5,8 @@
   backdrop-filter: blur(20px);
   background-color: var(--turquoise_dark);
   background-color: var(--glass_background);
-  border: 1px solid var(--turquoise_darker);
-  box-shadow: 0 0 10px var(--turquoise_darker);
+  border: 1px solid var(--turquoise);
+  box-shadow: 0 0 10px var(--glass_shadow);
   color: white;
   transition: all 0.1s ease-out;
   font-size: 1em;

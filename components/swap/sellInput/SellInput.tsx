@@ -63,30 +63,6 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   // if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
 
-  let error_message
-  switch (validationStateSell) {
-    case ValidationState.ExceedsAllowance:
-      error_message = "ExceedsAllowance"
-      break
-    case ValidationState.InsufficientBalance:
-      error_message = "InsufficientBalance"
-      break
-    case ValidationState.InternalError:
-      error_message = "InternalError"
-      break
-    case ValidationState.IsNaN:
-      error_message = "IsNaN"
-      break
-    case ValidationState.IsNegative:
-      error_message = "IsNegative"
-      break
-    default:
-      break
-  }
-  const error_element = (
-    <div className={`${input_styles.error_element} ${error_message ? "" : input_styles.hidden_error_element}`}>{error_message}</div>
-  )
-
   return (
     <div className={`${input_styles.container} ${validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
@@ -108,7 +84,6 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
           }
         }}
       />
-      {error_element}
     </div>
   )
 }

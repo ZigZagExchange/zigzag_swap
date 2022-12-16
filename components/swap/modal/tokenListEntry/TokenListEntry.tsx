@@ -4,14 +4,13 @@ import styles from "./TokenListEntry.module.css"
 interface Props {
   selected: boolean
   symbol: string
-  address: string
   name: string
   balance: string
   usdValue: string
   onClick: () => void
 }
 
-function TokenListEntry({ selected, symbol, address, name, balance, usdValue, onClick }: Props) {
+function TokenListEntry({ selected, symbol, name, balance, usdValue, onClick }: Props) {
   return (
     <div className={`${styles.container} ${selected ? styles.selected : ""}`} onClick={onClick}>
       <div className={styles.icon_symbol_container}>
@@ -23,7 +22,6 @@ function TokenListEntry({ selected, symbol, address, name, balance, usdValue, on
           <div className={styles.token_name}>{name}</div>
           <div className={styles.token_symbol}>
             {symbol}
-            {/* {address} */}
           </div>
         </div>
       </div>

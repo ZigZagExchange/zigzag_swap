@@ -122,7 +122,7 @@ function ExchangeProvider({ children }: Props) {
   const [allowances, setAllowances] = useState<TokenAllowanceObject>({})
   const [tokenPricesUSD, setTokenPricesUSD] = useState<TokenPriceObject>({})
 
-  const { address, network, ethersProvider } = useContext(WalletContext)
+  const { userAddress, network, ethersProvider } = useContext(WalletContext)
 
   useEffect(() => {
     fetchMarketsInfo()
@@ -136,7 +136,7 @@ function ExchangeProvider({ children }: Props) {
   useEffect(() => {
     _updateAllowance()
     _updateBalances()
-  }, [markets, address, network])
+  }, [markets, userAddress, network])
 
   useEffect(() => {
     updateTokenPricesUSD()
@@ -207,8 +207,8 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const _updateBalances = async (reqTokens: string[] = getTokens()) => {
-    if (!network || !reqTokens || !ethersProvider || !address) {
-      console.warn("_updateBalances: Missing ethers provider, address or network")
+    if (!network || !reqTokens || !ethersProvider || !userAddress) {
+      console.warn("_updateBalances: Missing ethers provider, userAddress or network")
       setBalances({})
       return
     }
@@ -241,12 +241,12 @@ function ExchangeProvider({ children }: Props) {
       let decimals: number | undefined | null = null
       if (tokenAddress === ethers.constants.AddressZero) {
         console.log("Getting balance of native currency", tokenAddress)
-        value = await ethersProvider.getBalance(address)
+        value = await ethersProvider.getBalance(userAddress)
         decimals = network?.nativeCurrency.decimals
       } else if (tokenAddress) {
         console.log("Getting balance of currency at", tokenAddress)
         const contract = new ethers.Contract(tokenAddress, erc20Abi, ethersProvider)
-        value = await contract.balanceOf(address)
+        value = await contract.balanceOf(userAddress)
         decimals = getTokenInfo(tokenAddress)?.decimals
       }
       newBalance[tokenAddress] = getBalanceEntry(value, decimals)
@@ -258,8 +258,8 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const _updateAllowance = async (reqTokens: string[] = getTokens()) => {
-    if (!network || !reqTokens || !ethersProvider || !address || !exchangeAddress) {
-      console.warn("_updateAllowance: Missing ethers provider, exchangeAddress, network or address")
+    if (!network || !reqTokens || !ethersProvider || !userAddress || !exchangeAddress) {
+      console.warn("_updateAllowance: Missing ethers provider, exchangeAddress, network or userAddress")
       setAllowances({})
       return
     }
@@ -279,7 +279,7 @@ function ExchangeProvider({ children }: Props) {
       } else if (tokenAddress) {
         console.log("Getting allowance of currency at", tokenAddress)
         const contract = new ethers.Contract(tokenAddress, erc20Abi, ethersProvider)
-        value = await contract.allowance(address, exchangeAddress)
+        value = await contract.allowance(userAddress, exchangeAddress)
       }
       newAllowances[tokenAddress] = value
     })

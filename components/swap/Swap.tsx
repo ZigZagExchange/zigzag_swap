@@ -34,9 +34,9 @@ function Swap() {
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { sellAmount, buyAmount, swapPrice } = useContext(SwapContext)
 
-  const getBalanceReadable = (address: string | null) => {
-    if (address && balances[address]) {
-      return prettyBalance(balances[address].valueReadable)
+  const getBalanceReadable = (tokenAddress: string | null) => {
+    if (tokenAddress && balances[tokenAddress]) {
+      return prettyBalance(balances[tokenAddress].valueReadable)
     } else {
       return "0.0"
     }

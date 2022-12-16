@@ -26,7 +26,7 @@ function TransactionSettings({
   nativeCurrencyUsd,
   nativeCurrencySymbol,
 }: Props) {
-  const { address } = useContext(WalletContext)
+  const { userAddress } = useContext(WalletContext)
   const { estimatedGasFee } = useContext(SwapContext)
 
   let buy_price_element
@@ -58,7 +58,7 @@ function TransactionSettings({
         <div>{`${prettyBalance(estimatedGasFee, 8)} ${nativeCurrencySymbol}  ~$${estimatedGasFeeUsd}`}</div>
       </div>
     )
-  } else if (address) {
+  } else if (userAddress) {
     gas_fee_element = (
       <div className={styles.gas_fee}>
         <div>Gas fee</div>

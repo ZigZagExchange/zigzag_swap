@@ -19,7 +19,7 @@ interface Props {
 export type WalletContextType = {
   username: string | null
   signer: ethers.Signer | null
-  address: string | null
+  userAddress: string | null
   ethersProvider: ethers.providers.Web3Provider | null
   network: NetworkType
   isLoading: boolean
@@ -32,7 +32,7 @@ export type WalletContextType = {
 export const WalletContext = createContext<WalletContextType>({
   username: null,
   signer: null,
-  address: null,
+  userAddress: null,
   ethersProvider: null,
   network: _getDefaultNetwork(),
   isLoading: false,
@@ -87,7 +87,7 @@ function WalletProvider({ children }: Props) {
   const [username, setUsername] = useState<string | null>(null)
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
   const [signer, setSigner] = useState<ethers.Signer | null>(null)
-  const [address, setAddress] = useState<string | null>(null)
+  const [userAddress, setUserAddress] = useState<string | null>(null)
   const [network, setNetwork] = useState<NetworkType>(_getDefaultNetwork())
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -101,7 +101,7 @@ function WalletProvider({ children }: Props) {
     // console.log("wallets", wallets)
     const primaryAddress = wallets[0]?.accounts?.[0]?.address
     const primaryChain = parseInt(wallets[0]?.chains?.[0].id, 16)
-    if ((primaryAddress && primaryAddress.toLowerCase() !== address) || (primaryChain && network && primaryChain !== network.networkId)) {
+    if ((primaryAddress && primaryAddress.toLowerCase() !== userAddress) || (primaryChain && network && primaryChain !== network.networkId)) {
       updateWallet(wallets[0])
     }
   })
@@ -136,7 +136,7 @@ function WalletProvider({ children }: Props) {
 
   const updateWallet = (wallet: WalletState) => {
     const { accounts, chains, provider } = wallet
-    setAddress(accounts[0].address.toLowerCase())
+    setUserAddress(accounts[0].address.toLowerCase())
     // console.log(accounts[0])
     if (accounts[0].ens?.name) setUsername(accounts[0].ens?.name)
 
@@ -163,7 +163,7 @@ function WalletProvider({ children }: Props) {
     const [primaryWallet] = onboard.state.get().wallets
     if (!primaryWallet) return
     await onboard.disconnectWallet({ label: primaryWallet.label })
-    setAddress(null)
+    setUserAddress(null)
     setNetwork(_getDefaultNetwork())
     setProvider(null)
   }
@@ -173,7 +173,7 @@ function WalletProvider({ children }: Props) {
       value={{
         username: username,
         signer: signer,
-        address: address,
+        userAddress: userAddress,
         ethersProvider: provider,
         network: network,
         isLoading: isLoading,

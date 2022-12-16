@@ -18,14 +18,14 @@ interface Props {
 }
 
 function Layout(props: Props) {
-  const { address, network } = useContext(WalletContext)
+  const { userAddress, network } = useContext(WalletContext)
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
   const router = useRouter()
 
   let header_warning
-  if (!network && address) {
+  if (!network && userAddress) {
     header_warning = (
       <div className={styles.header_warning_container}>
         <strong>{"Please change the Network"}</strong>{" "}

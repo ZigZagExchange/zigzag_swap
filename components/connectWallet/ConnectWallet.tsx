@@ -12,7 +12,7 @@ import { hideAddress } from "../../utils/utils"
 function ConnectWallet() {
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false)
 
-  const { address, username, network, connect, disconnect } = useContext(WalletContext) 
+  const { userAddress, username, network, connect, disconnect } = useContext(WalletContext) 
 
   function openProfile() {
     setIsProfileOpen(true)
@@ -23,7 +23,7 @@ function ConnectWallet() {
   }
   
   
-  if (!address) {
+  if (!userAddress) {
     return (
       <div className={styles.container}>
         <button className={styles.connect_button} onClick={() => {connect()}}>
@@ -35,8 +35,8 @@ function ConnectWallet() {
     let usernameOrAddress
     if (username) {
       usernameOrAddress = <div className={styles.username}>{username}</div>
-    } else if (address){
-      usernameOrAddress = <div className={styles.address}>{hideAddress(address)}</div>
+    } else if (userAddress){
+      usernameOrAddress = <div className={styles.address}>{hideAddress(userAddress)}</div>
     }
 
     return (
@@ -48,7 +48,7 @@ function ConnectWallet() {
       >
         <div className={styles.profile_button}>
           <div className={styles.profile_image_container}>
-            <Jazzicon diameter={40} seed={jsNumberForAddress(address)} />
+            <Jazzicon diameter={40} seed={jsNumberForAddress(userAddress)} />
           </div>
           <div className={styles.username_address_container}>
             {usernameOrAddress}
@@ -62,7 +62,7 @@ function ConnectWallet() {
             close={closeProfile} 
             disconnect={disconnect}
             networkId={network?.networkId ? network?.networkId : 0}
-            address={address}
+            userAddress={userAddress}
             /> 
             : null
           }

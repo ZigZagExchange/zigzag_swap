@@ -7,7 +7,7 @@ interface Props {
   close: () => void
   disconnect: () => void
   networkId: number
-  address: string
+  userAddress: string
 }
 
 function ConnectButtonDropdown(props: Props) {
@@ -23,7 +23,7 @@ function ConnectButtonDropdown(props: Props) {
     <div ref={container_ref} className={styles.container}>
       <>
         <a
-          href={(props.networkId && props.address) ? `${NETWORKS[props.networkId].explorerUrl}address/${props.address}` : undefined}
+          href={(props.networkId && props.userAddress) ? `${NETWORKS[props.networkId].explorerUrl}address/${props.userAddress}` : undefined}
           target="_blank"
           rel="noopener noreferrer"
         >

@@ -147,7 +147,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("starting sendApprove")
 
     if (!exchangeAddress) {
-      console.warn("sendApprove: missing exchange address")
+      console.warn("sendApprove: missing exchangeAddress")
       return
     }
 

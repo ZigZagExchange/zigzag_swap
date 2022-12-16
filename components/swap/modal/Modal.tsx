@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Props) {
-  const { address } = useContext(WalletContext)
+  const { userAddress } = useContext(WalletContext)
   const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
@@ -29,7 +29,7 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
       if (tokenAddress === buyTokenInfo?.address) continue
-      if (address && balances[tokenAddress] && balances[tokenAddress].value !== ethers.constants.Zero) continue
+      if (userAddress && balances[tokenAddress] && balances[tokenAddress].value !== ethers.constants.Zero) continue
 
       tokens.push(tokenAddress)        
     }
@@ -59,24 +59,23 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
 
   const tokenList: JSX.Element[] = useMemo(
     () =>
-      tokens.reduce((currentList, address) => {
-        const tokenInfo = getTokenInfo(address)
+      tokens.reduce((currentList, tokenAddress) => {
+        const tokenInfo = getTokenInfo(tokenAddress)
         if (tokenInfo === null) return currentList
         if (!tokenInfo.symbol.toLocaleLowerCase().includes(query.toLowerCase()) && !tokenInfo.name.toLocaleLowerCase().includes(query.toLowerCase()))
           return currentList
         return [
           ...currentList,
           <TokenListEntry
-            key={address}
+            key={tokenAddress}
             symbol={tokenInfo.symbol}
             name={tokenInfo.name}
-            address={tokenInfo.address}
-            selected={address === selectedToken}
-            balance={balances[address] ? prettyBalance(balances[address].valueReadable) : "0.0"}
+            selected={tokenAddress === selectedToken}
+            balance={balances[tokenAddress] ? prettyBalance(balances[tokenAddress].valueReadable) : "0.0"}
             usdValue={
-              balances[address] && tokenPricesUSD[address] ? prettyBalanceUSD(balances[address].valueReadable * tokenPricesUSD[address]) : "0.0"
+              balances[tokenAddress] && tokenPricesUSD[tokenAddress] ? prettyBalanceUSD(balances[tokenAddress].valueReadable * tokenPricesUSD[tokenAddress]) : "0.0"
             }
-            onClick={() => onTokenClick(address)}
+            onClick={() => onTokenClick(tokenAddress)}
           />,
         ]
       }, [] as JSX.Element[]),

@@ -87,6 +87,17 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
+    const remainingTime = Number(quoteOrder.order.expirationTimeSeconds) - Date.now() / 1000 
+    if (remainingTime < 0) {
+      console.warn("sendSwap: quote is expierd")
+      return
+    }
+    if (remainingTime < 5) {
+      console.warn(`sendSwap: only ${remainingTime} seconds remaining`)
+    } else {
+      console.log(`sendSwap: ${remainingTime} seconds remaining`)
+    }
+
     if (!sellAmount || !sellTokenInfo || !buyTokenInfo) {
       console.warn("sendSwap: missing sellAmount, sellTokenInfo or buyTokenInfo")
       return

@@ -63,13 +63,12 @@ function SwapProvider({ children }: Props) {
       return [null, 0]
     }
 
-    const minTimeStamp: number = Date.now() / 1000 + 10
+    const minTimeStamp: number = Date.now() / 1000 + 15
     let bestOrder: ZZOrder | null = null
     let bestPrice: number = 0
     for (let i = 0; i < orderBook.length; i++) {
       const { order } = orderBook[i]
-
-      if (minTimeStamp < Number(order.expirationTimeSeconds)) continue
+      if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
       const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
       if (quoteSellAmount < buyAmount) continue
 
@@ -108,10 +107,11 @@ function SwapProvider({ children }: Props) {
       }
 
       const feeData = await signer.getFeeData()
-      if (!feeData.lastBaseFeePerGas || !feeData.maxPriorityFeePerGas) {
-        console.warn("getGasFees: missing lastBaseFeePerGas or maxPriorityFeePerGas")
+      if (!feeData.lastBaseFeePerGas) {
+        console.warn("getGasFees: missing lastBaseFeePerGas")
         return
       }
+      console.log("feeData", feeData)
 
       const buyAmountParsed = ethers.utils.parseUnits(buyAmount.toFixed(buyTokenInfo.decimals), buyTokenInfo.decimals)
 
@@ -135,7 +135,7 @@ function SwapProvider({ children }: Props) {
         console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
       }
 
-      const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.add(feeData.maxPriorityFeePerGas).mul(estimatedGasUsed)
+      const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.mul(estimatedGasUsed)
       const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
       setEstimatedGasFee(Number(estimatedFee))
     }
@@ -173,7 +173,7 @@ function SwapProvider({ children }: Props) {
     }
 
     const response = await fetch(
-      `${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}&expires=1672157228`
+      `${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}`
     )
     if (response.status !== 200) {
       console.error("Failed to fetch order book.")
@@ -181,7 +181,10 @@ function SwapProvider({ children }: Props) {
     }
 
     const orders: { "orders": ZZOrder[] } = await response.json()
-    setOrderBook(orders.orders)
+
+    const minTimeStamp: number = Date.now() / 1000 + 10
+    const goodOrders = orders.orders.filter((o: ZZOrder) => (minTimeStamp < Number(o.order.expirationTimeSeconds)))
+    setOrderBook(goodOrders)
   }
 
   function setBuyAndSellSize(buyAmout: number | null, sellAmount: number | null) {

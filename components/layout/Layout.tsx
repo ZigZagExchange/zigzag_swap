@@ -18,7 +18,7 @@ interface Props {
 }
 
 function Layout(props: Props) {
-  const { network, ethersProvider } = useContext(WalletContext)
+  const { userAddress, network, ethersProvider } = useContext(WalletContext)
   const [headerWarning, setHeaderWarning] = useState<JSX.Element | null>(null)
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
@@ -30,15 +30,21 @@ function Layout(props: Props) {
       ethersProvider.getNetwork().then(proivderNetwork => {
         if (proivderNetwork.chainId === network.networkId) {
           setHeaderWarning(null)
+          return
         }
       })
     }
-    setHeaderWarning(
-      <div className={styles.header_warning_container}>
-        <strong>{"Please change the Network"}</strong>{" "}
-        <span>{"Please change the Network"}</span>
-      </div>
-    )
+    if (userAddress) {
+      setHeaderWarning(
+        <div className={styles.header_warning_container}>
+          <strong>{"Please change the Network"}</strong>{" "}
+          <span>{"Please change the Network"}</span>
+        </div>
+      )
+    }
+
+    setHeaderWarning(null)
+    
   }, [ethersProvider, network])  
 
   let headerLeft = (

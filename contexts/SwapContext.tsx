@@ -82,6 +82,13 @@ function SwapProvider({ children }: Props) {
     return [bestOrder, bestPrice]
   }, [orderBook, buyAmount, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
+  const exchangeContract: ethers.Contract | null = useMemo(() => {
+    if (exchangeAddress && signer) {
+      return new ethers.Contract(exchangeAddress, exchangeAbi, signer)
+    }
+    return null
+  }, [exchangeAddress, signer])
+
   useEffect(() => {
     const getGasFees = async () => {
       if (!network) {
@@ -106,16 +113,18 @@ function SwapProvider({ children }: Props) {
         return
       }
 
+      if (!exchangeContract) {
+        console.warn("getGasFees: missing exchangeContract")
+        return
+      }
+
       const feeData = await signer.getFeeData()
       if (!feeData.lastBaseFeePerGas) {
         console.warn("getGasFees: missing lastBaseFeePerGas")
         return
       }
-      console.log("feeData", feeData)
 
       const buyAmountParsed = ethers.utils.parseUnits(buyAmount.toFixed(buyTokenInfo.decimals), buyTokenInfo.decimals)
-
-      const exchangeContract = new ethers.Contract(exchangeAddress, exchangeAbi, signer)
       let estimatedGasUsed = ethers.constants.Zero
       try {
         estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(

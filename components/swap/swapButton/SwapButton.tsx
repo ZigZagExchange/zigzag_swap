@@ -23,7 +23,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
 
   const { signer } = useContext(WalletContext)
   const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress } = useContext(ExchangeContext)
-  const { swapPrice, sellAmount, quoteOrder } = useContext(SwapContext)
+  const { sellAmount, quoteOrder } = useContext(SwapContext)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {

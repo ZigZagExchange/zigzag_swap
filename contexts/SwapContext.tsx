@@ -102,11 +102,18 @@ function SwapProvider({ children }: Props) {
         return
       }
 
+      if (!buyTokenInfo) {
+        console.warn("getGasFees: missing buyTokenInfo")
+        return
+      }
+
       const feeData = await signer.getFeeData()
       if (!feeData.lastBaseFeePerGas || !feeData.maxPriorityFeePerGas) {
         console.warn("getGasFees: missing lastBaseFeePerGas or maxPriorityFeePerGas")
         return
       }
+
+      const buyAmountParsed = ethers.utils.parseUnits(buyAmount.toFixed(buyTokenInfo.decimals), buyTokenInfo.decimals)
 
       const exchangeContract = new ethers.Contract(exchangeAddress, exchangeAbi, signer)
       let estimatedGasUsed = ethers.constants.Zero
@@ -121,7 +128,7 @@ function SwapProvider({ children }: Props) {
             quoteOrder.order.expirationTimeSeconds
           ],
           quoteOrder.signature,
-          buyAmount.toString(),
+          buyAmountParsed,
           false
         )
       } catch (err: any) {

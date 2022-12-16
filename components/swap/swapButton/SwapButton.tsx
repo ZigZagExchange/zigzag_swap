@@ -126,7 +126,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       buyAmountParsed.toString(),
       false
     )
-    console.log("sendSwap: approve submitted: ", tx)
+    console.log("sendSwap: swap submitted: ", tx)
     await tx.wait()
     console.log("sendSwap: tx processed")
   }

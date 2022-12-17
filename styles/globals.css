@@ -132,6 +132,8 @@
 
   --zz_light: #02e7d7;
   --zz_dark: #1997e0;
+
+  --zz_gradient: linear-gradient(-45deg, var(--zz_dark), var(--zz_light));
 }
 
 html,
@@ -175,9 +177,15 @@ body {
   /* display: flex; */
   align-items: center;
   justify-content: center;
-  background-size: 150% 150%;
-  background-image: radial-gradient(circle at 50% 50%, rgb(0, 183, 255) 1.9%, var(--turquoise_darker) 2%, rgb(0, 17, 24) 50%);
-  animation: AnimateBG 40s ease-in-out infinite;
+  /* background-size: 150% 150%; */
+  /* background-image: radial-gradient(circle at 50% 50%, rgb(0, 183, 255) 1.9%, var(--turquoise_darker) 2%, rgb(0, 17, 24) 50%); */
+
+  --bg: #162537;
+  background: radial-gradient(circle at -10% -10%, #0569a3, #0c3c58 10%, #12334e 20%, var(--bg) 50%, transparent 60%) -10% -10%,
+    radial-gradient(circle at 110% 110%, #0569a3, #0c3c58 10%, #12334e 15%, var(--bg) 50%) 100% 100%;
+  background-repeat: no-repeat;
+  /* filter: blur(20px); */
+  /* animation: AnimateBG 40s ease-in-out infinite; */
 }
 
 @keyframes AnimateBG {

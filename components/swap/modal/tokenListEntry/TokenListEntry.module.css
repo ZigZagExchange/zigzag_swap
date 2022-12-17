@@ -14,12 +14,13 @@
 .container:hover {
   /* backdrop-filter: brightness(10%); */
   background-color: var(--turquoise);
+  background: var(--zz_gradient);
   cursor: pointer;
 }
 
 .selected {
-  background-color: lime;
-  color: black;
+  background: var(--zz_gradient);
+  /* color: black; */
 }
 
 .icon_symbol_container {

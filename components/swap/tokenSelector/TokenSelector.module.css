@@ -33,13 +33,15 @@
   color: white;
   gap: 0;
   font-size: 15px;
-  transition: background ease-out 0.1s;
+  transition: all ease-out 0.1s;
   border-radius: 4px;
   font-size: 1em;
 }
 
 .button:hover {
   background-color: var(--turquoise);
+  background: var(--zz_gradient);
+
   cursor: pointer;
 }
 

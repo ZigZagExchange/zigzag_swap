@@ -20,6 +20,7 @@
 
 .error {
   background-color: var(--glass_red);
+  background: linear-gradient(-15deg, hsla(0, 100%, 50%, 0.5), hsla(0, 100%, 50%, 0.1) 75%);
 }
 
 .error .input::selection {
@@ -46,6 +47,7 @@
 
 .max_button:hover {
   background-color: var(--turquoise);
+  background: var(--zz_gradient);
   cursor: pointer;
   opacity: 1;
 }

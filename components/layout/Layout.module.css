@@ -68,8 +68,8 @@
 }
 
 .footer {
-  background-color: var(--glass_background);
-  backdrop-filter: blur(20px);
+  /* background-color: var(--glass_background);
+  backdrop-filter: blur(20px); */
   display: flex;
   flex: 1;
   /* height: 75px; */

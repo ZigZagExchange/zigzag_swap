@@ -1,0 +1,15 @@
+{
+  "swap": "Swap",
+
+  "from": "From",
+  "to": "To",
+  "max": "MAX",
+
+  "transaction_settings": "Transaction Settings",
+  "token_buy_price": "{{tokenSymbol}} buy price",
+  "token_sell_price": "{{tokenSymbol}} sell price",
+  "gas_fee": "Gas fee",
+
+  "modal_title": "Select a token to swap {{from_or_to}}",
+  "search": "Search..."
+}

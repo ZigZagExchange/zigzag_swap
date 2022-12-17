@@ -22,10 +22,15 @@
 
   border: 1px solid var(--glass_background);
   background-color: var(--glass_background);
+
   backdrop-filter: blur(30px);
   box-shadow: 0 0 10px var(--glass_shadow);
   border-radius: 4px;
   /* mix-blend-mode: multiply; */
+
+  /* background: radial-gradient(circle at 0 0, red, transparent 5%); */
+  /* background-repeat: no-repeat; */
+  /* overflow: hidden; */
 }
 
 .from_header,
@@ -58,6 +63,7 @@
   padding-bottom: 5px;
   display: flex;
   justify-content: space-between;
+  min-height: 23px;
 }
 
 .value_container {

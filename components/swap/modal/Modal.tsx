@@ -4,6 +4,7 @@ import TokenListEntry from "./tokenListEntry/TokenListEntry"
 
 import { prettyBalance, prettyBalanceUSD } from "../../../utils/utils"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
+import useTranslation from "next-translate/useTranslation"
 
 interface Props {
   selectedModal: "buy" | "sell" | null
@@ -13,8 +14,8 @@ interface Props {
 }
 
 type TokenEntry = {
-  tokenAddress: string,
-  balance: number,
+  tokenAddress: string
+  balance: number
   value: number
 }
 
@@ -22,11 +23,12 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
   const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
+  const container_ref = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation("swap")
+
   const selectedToken = selectedModal === "sell" ? sellTokenInfo?.address : buyTokenInfo?.address
 
-  const container_ref = useRef<HTMLDivElement>(null)
-
-  const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {  
+  const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {
     const tokens: string[] = []
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
@@ -42,8 +44,8 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
   }, [balances, tokenPricesUSD, markets, sellTokenInfo])
 
   useEffect(() => {
-    if (buyModalTokenEntryList.length === 0) return 
-    
+    if (buyModalTokenEntryList.length === 0) return
+
     // check if current buy token in possible options
     const searchList = buyModalTokenEntryList.filter(e => e.tokenAddress === buyTokenInfo?.address)
     if (searchList.length === 0) {
@@ -68,14 +70,16 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
 
   const sortedTokenEntrys: TokenEntry[] = useMemo(() => {
     const tokenEntrysList = selectedModal === "buy" ? buyModalTokenEntryList : sellModalTokenEntryList
-    const tokensWithValue: TokenEntry[] = tokenEntrysList.filter(t => t.value !== 0)
+    const tokensWithValue: TokenEntry[] = tokenEntrysList
+      .filter(t => t.value !== 0)
       .sort(function (a: TokenEntry, b: TokenEntry) {
         return b.value - a.value
-      });
-    const tokensWithBalance: TokenEntry[] = tokenEntrysList.filter(t => t.value === 0 && t.balance !== 0)
+      })
+    const tokensWithBalance: TokenEntry[] = tokenEntrysList
+      .filter(t => t.value === 0 && t.balance !== 0)
       .sort(function (a: TokenEntry, b: TokenEntry) {
         return b.balance - a.balance
-      });
+      })
     const otherTokens: TokenEntry[] = tokenEntrysList.filter(t => t.balance === 0 && t.value === 0)
 
     return tokensWithValue.concat(tokensWithBalance).concat(otherTokens)
@@ -120,12 +124,15 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
       ref={container_ref}
     >
       <div className={styles.modal}>
-        <div className={styles.title}>Select a token to swap {selectedModal === "sell" ? "from" : "to"} </div>
+        <div className={styles.title}>
+          {t("modal_title", { from_or_to: selectedModal === "sell" ? "from" : "to" })}
+          {/* Select a token to swap {selectedModal === "sell" ? "from" : "to"}  */}
+        </div>
         <hr />
         <input
           className={styles.search_input}
           type="text"
-          placeholder="Search..."
+          placeholder={t("search")}
           value={query}
           onChange={p => setQuery(p.target.value)}
           spellCheck="false"

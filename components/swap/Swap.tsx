@@ -7,7 +7,7 @@ import Modal from "./modal/Modal"
 import TransactionSettings from "./transactionSettings/TransactionSettings"
 import SwapButton from "./swapButton/SwapButton"
 
-import { ExchangeContext } from "../../contexts/ExchangeContext"
+import { ExchangeContext, ZZTokenInfo } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
 import { hideAddress, prettyBalance, prettyBalanceUSD } from "../../utils/utils"
@@ -15,6 +15,7 @@ import { constants, ethers } from "ethers"
 import { INFO_ICON } from "../../public/commonIcons"
 import Separator from "./separator/Separator"
 import DownArrow from "../DownArrow"
+import useTranslation from "next-translate/useTranslation"
 
 export enum ValidationState {
   OK,
@@ -28,12 +29,13 @@ export enum ValidationState {
 
 function Swap() {
   console.log("SWAP RENDER")
-
-  const [modal, setModal] = useState<"buy" | "sell" | null>(null)
-
   const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { sellAmount, buyAmount, swapPrice, switchTokens } = useContext(SwapContext)
+
+  const [modal, setModal] = useState<"buy" | "sell" | null>(null)
+
+  const { t } = useTranslation("swap")
 
   const getBalanceReadable = (tokenAddress: string | null) => {
     if (tokenAddress && balances[tokenAddress]) {
@@ -65,7 +67,6 @@ function Swap() {
 
     return ValidationState.OK
   }, [swapPrice, sellAmount, allowances, balances, sellTokenInfo])
-
 
   const validationStateBuy = useMemo((): ValidationState => {
     if (isNaN(buyAmount)) return ValidationState.IsNaN
@@ -156,7 +157,7 @@ function Swap() {
   return (
     <div className={styles.container}>
       <div className={styles.from_to_container}>
-        <h1 className={styles.title}>Swap</h1>
+        <h1 className={styles.title}>{t("swap")}</h1>
 
         <div className={styles.from_container}>
           <div className={styles.from_header}>
@@ -177,13 +178,7 @@ function Swap() {
             {sellErrorElement}
             <div className={styles.value_container}>{sellTokenEstimatedValue}</div>
           </div>
-          <div className={styles.sell_token_info}>
-            <div style={{ display: "flex" }}>
-              More info on {sellTokenInfo.name} <DownArrow />
-            </div>
-            <div>Address: {parseInt(sellTokenInfo.address, 16) === 0 ? "Native" : sellTokenInfo.address}</div>
-            <div>Decimals: {sellTokenInfo.decimals}</div>
-          </div>
+          <TokenInfoDisplay tokenInfo={sellTokenInfo} />
         </div>
 
         <Separator onClick={_switchTokens} />
@@ -196,23 +191,13 @@ function Swap() {
             </div>
           </div>
           <div className={styles.to_input_container}>
-            <BuyInput
-              buyTokenInfo={buyTokenInfo}
-              validationStateBuy={validationStateBuy}
-              openModal={() => setModal("buy")}
-            />
+            <BuyInput buyTokenInfo={buyTokenInfo} validationStateBuy={validationStateBuy} openModal={() => setModal("buy")} />
           </div>
           <div className={styles.below_input_container}>
             {buyErrorElement}
             <div className={styles.value_container}>{buyTokenEstimatedValue}</div>
           </div>
-          <div className={styles.buy_token_info}>
-            <div style={{ display: "flex" }}>
-              More info on {buyTokenInfo.name} <DownArrow />
-            </div>
-            <div>Address: {buyTokenInfo.address}</div>
-            <div>Decimals: {buyTokenInfo.decimals}</div>
-          </div>
+          <TokenInfoDisplay tokenInfo={buyTokenInfo} />
         </div>
       </div>
 
@@ -240,3 +225,21 @@ function Swap() {
 }
 
 export default Swap
+
+function TokenInfoDisplay({ tokenInfo }: { tokenInfo: ZZTokenInfo }) {
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+
+  return (
+    <div className={styles.sell_token_info}>
+      <div style={{ display: "flex", cursor: "pointer" }} onClick={() => setIsOpen(o => !o)}>
+        Details <DownArrow up={isOpen} />
+      </div>
+      {isOpen ? (
+        <>
+          <div>Address: {parseInt(tokenInfo.address, 16) === 0 ? "Native" : tokenInfo.address}</div>
+          <div>Decimals: {tokenInfo.decimals}</div>
+        </>
+      ) : null}
+    </div>
+  )
+}

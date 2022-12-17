@@ -282,11 +282,9 @@ function ExchangeProvider({ children }: Props) {
       let value: ethers.BigNumber = ethers.constants.Zero
       let decimals: number | undefined | null = null
       if (tokenAddress === ethers.constants.AddressZero) {
-        console.log("Getting balance of native currency", tokenAddress)
         value = await ethersProvider.getBalance(userAddress)
         decimals = network?.nativeCurrency.decimals
       } else if (tokenAddress) {
-        console.log("Getting balance of currency at", tokenAddress)
         const contract = new ethers.Contract(tokenAddress, erc20Abi, ethersProvider)
         value = await contract.balanceOf(userAddress)
         decimals = getTokenInfo(tokenAddress)?.decimals
@@ -295,7 +293,7 @@ function ExchangeProvider({ children }: Props) {
     })
     await Promise.all(promises)
 
-    console.log(newBalance)
+    console.log("_updateBalances - newBalance", newBalance)
     setBalances(newBalance)
   }
 
@@ -319,7 +317,6 @@ function ExchangeProvider({ children }: Props) {
       if (tokenAddress === ethers.constants.AddressZero) {
         value = ethers.constants.MaxUint256
       } else if (tokenAddress) {
-        console.log("Getting allowance of currency at", tokenAddress)
         const contract = new ethers.Contract(tokenAddress, erc20Abi, ethersProvider)
         value = await contract.allowance(userAddress, exchangeAddress)
       }
@@ -327,12 +324,11 @@ function ExchangeProvider({ children }: Props) {
     })
     await Promise.all(promises)
 
-    console.log(newAllowances)
+    console.log("_updateAllowance - newAllowances", newAllowances)
     setAllowances(newAllowances)
   }
 
   const getTokenInfo = (tokenAddress: string) => {
-    console.log("tokenAddress", tokenAddress)
     tokenAddress = tokenAddress.toLowerCase()
     for (let i = 0; i < tokenInfos.length; i++) {
       const tokenInfo = tokenInfos[i]

@@ -31,7 +31,7 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
   function maximize() {
     if (!sellTokenInfo || !balance) return
     const balanceString = utils.formatUnits(balance, sellTokenInfo.decimals)
-    safeSetSellAmount(balanceString)
+    safeSetSellAmount(prettyBalance(balanceString))
   }
 
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"

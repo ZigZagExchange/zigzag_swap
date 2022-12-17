@@ -5,6 +5,7 @@ import exchangeAbi from "../data/abis/exchange.json"
 
 import { WalletContext } from "./WalletContext"
 import { ExchangeContext } from "./ExchangeContext"
+import { prettyBalance } from "../utils/utils"
 
 interface Props {
   children: React.ReactNode
@@ -28,9 +29,12 @@ export type SwapContextType = {
   estimatedGasFee: number | undefined
   sellAmount: number
   buyAmount: number
+  sellInput: string
+  buyInput: string
+  isLoadingOrders: boolean
 
-  setSellAmount: (amount: number) => void
-  setBuyAmount: (amount: number) => void
+  setSellInput: (amount: string) => void
+  setBuyInput: (amount: string) => void
 
   switchTokens: () => void
 
@@ -43,9 +47,12 @@ export const SwapContext = createContext<SwapContextType>({
   estimatedGasFee: undefined,
   sellAmount: 0,
   buyAmount: 0,
+  sellInput: "",
+  buyInput: "",
+  isLoadingOrders: true,
 
-  setSellAmount: (amount: number) => {},
-  setBuyAmount: (amount: number) => {},
+  setSellInput: (amount: string) => {},
+  setBuyInput: (amount: string) => {},
 
   switchTokens: () => {},
 
@@ -53,31 +60,40 @@ export const SwapContext = createContext<SwapContextType>({
 })
 
 function SwapProvider({ children }: Props) {
-  const [sellAmount, setSellAmount] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
+  const [userInputSide, setUserInputtSide] = useState<"buy" | "sell">("sell")
+  const [isLoadingOrders, setIsLoading] = useState<boolean>(true)
+  const [sellInput, setSellInput] = useState<string>("")
+  const [buyInput, setBuyInput] = useState<string>("")
 
   const { network, signer } = useContext(WalletContext)
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
-  const [quoteOrder, swapPrice, buyAmount] = useMemo((): [ZZOrder | null, number, number] => {
+  const exchangeContract: ethers.Contract | null = useMemo(() => {
+    if (exchangeAddress && signer) {
+      return new ethers.Contract(exchangeAddress, exchangeAbi, signer)
+    }
+    return null
+  }, [exchangeAddress, signer])
+  
+  const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
     let newQuoteAmount: ZZOrder | null = null
     let newSwapPrice: number = 0
-    let newBuyAmount: number = 0    
     if (!buyTokenInfo) {
       console.warn("buyTokenInfo is null")
-      return [newQuoteAmount, newSwapPrice, newBuyAmount]
+      return [newQuoteAmount, newSwapPrice]
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
-      return [newQuoteAmount, newSwapPrice, newBuyAmount]
+      return [newQuoteAmount, newSwapPrice]
     }
 
     if (
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
       (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
     ) {
-      return [newQuoteAmount, newSwapPrice, newBuyAmount]
+      return [newQuoteAmount, newSwapPrice]
     }
 
     const minTimeStamp: number = Date.now() / 1000 + 15
@@ -85,7 +101,7 @@ function SwapProvider({ children }: Props) {
       const { order } = orderBook[i]
       if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
       const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
-      if (quoteBuyAmount < sellAmount) continue
+      if (sellInput && Number(sellInput) && quoteBuyAmount < Number(sellInput)) continue
 
       const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
       const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
@@ -94,16 +110,27 @@ function SwapProvider({ children }: Props) {
         newQuoteAmount = orderBook[i]
       }
     }
-    newBuyAmount = sellAmount * newSwapPrice
-    return [newQuoteAmount, newSwapPrice, newBuyAmount]
-  }, [network, sellAmount, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
+    return [newQuoteAmount, newSwapPrice]
+  }, [network, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
-  const exchangeContract: ethers.Contract | null = useMemo(() => {
-    if (exchangeAddress && signer) {
-      return new ethers.Contract(exchangeAddress, exchangeAbi, signer)
+  const [buyAmount, sellAmount] = useMemo((): [number, number] => {
+    let newBuyAmount: number = 0
+    let newSellAmount: number = 0
+    if (userInputSide === "buy") {
+      if (!swapPrice) return [newBuyAmount, newSellAmount]
+      newBuyAmount = Number(buyInput)
+      newSellAmount = Number(buyInput) / swapPrice
+      setSellInput(prettyBalance(newSellAmount))
+      return [newBuyAmount, newSellAmount]
+    } else {
+      if (!swapPrice) return [newBuyAmount, newSellAmount]
+      newBuyAmount = Number(sellInput) * swapPrice
+      newSellAmount = Number(sellInput)
+
+      setBuyInput(prettyBalance(newBuyAmount))
+      return [newBuyAmount, newSellAmount]
     }
-    return null
-  }, [exchangeAddress, signer])
+  }, [buyInput, sellInput, swapPrice])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -123,17 +150,12 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: missing quoteOrder")
         return
       }
-      if (!buyTokenInfo) {
-        console.warn("getGasFees: missing buyTokenInfo")
-        return
-      }
 
       if (!exchangeContract) {
         console.warn("getGasFees: missing exchangeContract")
         return
       }
 
-      const buyAmountParsed = ethers.utils.parseUnits(buyAmount.toFixed(buyTokenInfo.decimals), buyTokenInfo.decimals)
       let estimatedGasUsed = ethers.constants.Zero
       try {
         const feeData = await signer.getFeeData()
@@ -152,7 +174,7 @@ function SwapProvider({ children }: Props) {
             quoteOrder.order.expirationTimeSeconds,
           ],
           quoteOrder.signature,
-          buyAmountParsed,
+          "1",
           false
         )
 
@@ -177,6 +199,7 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo])
 
   async function getOrderBook() {
+    setIsLoading(true)
     if (!network) {
       console.warn("getOrderBook: Missing network")
       return
@@ -207,27 +230,31 @@ function SwapProvider({ children }: Props) {
     const minTimeStamp: number = Date.now() / 1000 + 10
     const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
     setOrderBook(goodOrders)
-  }
-  
-  const _setSellAmount = (newSellAmount: number) => {
-    if (newSellAmount) {
-      setSellAmount(newSellAmount)
-    } else {
-      setSellAmount(0)
-    }
-  }
-
-  const _setBuyAmount = (newBuyAmount: number) => {
-    if (newBuyAmount) {
-      const newSellAmount = newBuyAmount / swapPrice
-      _setSellAmount(newSellAmount)
-    } else {
-      setSellAmount(0)
-    }
+    setIsLoading(false)
   }
 
   const switchTokens = () => {
-    setSellAmount(buyAmount)
+    if (userInputSide === "sell") {
+      setUserInputtSide("buy")
+
+      setBuyInput(sellInput)
+      setSellInput(buyInput)
+    } else {
+      setUserInputtSide("sell")
+
+      setBuyInput(sellInput)
+      setSellInput(buyInput)
+    }   
+  }
+
+  const _setSellInput = (newInput: string) => {
+    setUserInputtSide("sell")
+    setSellInput(newInput)
+  }
+
+  const _setBuyInput = (newInput: string) => {
+    setUserInputtSide("buy")
+    setBuyInput(newInput)
   }
 
   return (
@@ -238,9 +265,12 @@ function SwapProvider({ children }: Props) {
         estimatedGasFee,
         sellAmount,
         buyAmount,
+        sellInput,
+        buyInput,
+        isLoadingOrders,
 
-        setSellAmount: _setSellAmount,
-        setBuyAmount: _setBuyAmount,
+        setSellInput: _setSellInput,
+        setBuyInput: _setBuyInput,
 
         switchTokens,
         orderBook,

@@ -1,5 +1,6 @@
 .container {
-  height: 50px;
+  height: 46px;
+  margin-right: 10px;
 
   display: flex;
   align-items: center;
@@ -9,9 +10,12 @@
   transition: all 0.1s ease-out;
   position: relative;
   z-index: 100;
-  font-size: 15px;
+  font-size: 0.9rem;
 
-  font-weight: bold;
+  /* font-weight: bold; */
+
+  border-radius: 14px;
+  background-color: var(--glass_background);
 }
 
 .selected {
@@ -28,18 +32,19 @@
 }
 
 .selected:hover {
-  color: var(--accent);
+  /* color: var(--accent); */
   cursor: pointer;
   opacity: 1;
 }
 
 .dropdown_container {
   position: absolute;
+  /* border: 1px solid red; */
   top: 100%;
   left: 0;
   /* right: 0; */
   /* background-color: var(--container_background_color); */
-  backdrop-filter: blur(20px) brightness(80%);
+  /* backdrop-filter: blur(20px) brightness(80%); */
 
   min-width: 100%;
   /* border: 1px solid var(--container_border_color); */
@@ -50,7 +55,9 @@
   transition: all 0.1s ease-out;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
-  border-radius: 4px;
+  /* border-radius: 4px; */
+  gap: 5px;
+  padding: 5px;
 }
 
 .network_entry {
@@ -61,13 +68,23 @@
   align-items: center;
   flex-wrap: nowrap;
   white-space: nowrap;
+  background-color: var(--glass_background);
+  backdrop-filter: blur(20px);
+  border-radius: 14px;
+}
+.network_entry > * {
+  opacity: 0.5;
+}
+
+.network_entry:hover > * {
+  opacity: 1;
 }
 
 .network_entry:hover {
-  background-color: var(--container_background_color);
+  /* background-color: var(--container_background_color); */
   /* backdrop-filter: brightness(50%); */
   cursor: pointer;
-  color: var(--accent);
+  /* color: var(--accent); */
 }
 
 .selected_network_icon {
@@ -95,37 +112,14 @@
 }
 
 .wrong_network {
-  background-color: var(--accent_darker);
-  font-weight: bold;
-  color: var(--accent);
-  color: black;
+  /* background-color: var(--accent_darker); */
+  /* font-weight: bold; */
+  /* color: var(--accent); */
+  /* color: black; */
   /* color: black;
   fill: black !important;
   stroke: black; */
-  animation: pulse 0.5s ease-in-out infinite alternate;
-}
-
-.warning_ball {
-  width: 1em;
-  height: 1em;
-  background-color: var(--accent);
-  background-color: red;
-  box-shadow: 0 0 10px red;
-  border-radius: 50%;
   /* animation: pulse 0.5s ease-in-out infinite alternate; */
-}
-
-@keyframes pulse {
-  from {
-    background-color: var(--accent_lighter);
-
-    /* stroke: white; */
-  }
-  to {
-    background-color: var(--accent);
-
-    /* stroke: black; */
-  }
 }
 
 .disabled {
@@ -135,7 +129,10 @@
 
 .selected_name_container {
   white-space: nowrap;
-  max-width: 0;
+  /* max-width: 0; */
+  padding-left: 5px;
+  padding-right: 3px;
+
   overflow: hidden;
   transition: all 0.2s ease-out;
 }

@@ -17,12 +17,8 @@ function NetworkSelector() {
     const networkOption = NETWORKS[key]
 
     networkList.push(
-      <div
-        key={key}
-        className={styles.network_entry}
-        onClick={() => switchNetwork(networkOption.networkId) }
-      >
-        <span className={styles.network_icon}>{networkOption.icon}</span> {networkOption.name}
+      <div key={key} className={styles.network_entry} onClick={() => switchNetwork(networkOption.networkId)}>
+        <span className={styles.network_icon}>{networkOption.icon}</span> <span> {networkOption.name}</span>
       </div>
     )
   }
@@ -36,13 +32,15 @@ function NetworkSelector() {
       onClick={() => setShowDropdown(false)}
     >
       <div
-        className={`${styles.selected} ${showDropdown ? styles.active_selected : ""} ${network?.networkId === undefined || network?.networkId === null ? styles.wrong_network : ""}`}
+        className={`${styles.selected} ${showDropdown ? styles.active_selected : ""} ${
+          network?.networkId === undefined || network?.networkId === null ? styles.wrong_network : ""
+        }`}
         onMouseEnter={() => setShowDropdown(true)}
       >
         <span className={styles.selected_network_icon}>
-          {network && (network.networkId === undefined || network.networkId !== null) ? NETWORKS[network.networkId].icon : <div className={styles.warning_ball} />}
+          {network && (network.networkId === undefined || network.networkId !== null) ? NETWORKS[network.networkId].icon : "?"}
         </span>{" "}
-        <div className={styles.selected_name_container}>{network?.name}</div>
+        <div className={styles.selected_name_container}>{network ? network.name : "Unknown"}</div>
         {networkList.length > 0 ? <DownArrow /> : ""}
       </div>
       <div

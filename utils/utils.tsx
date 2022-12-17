@@ -1,22 +1,5 @@
-export function balanceCommas(balance: string) {
-  let [integer, decimal] = balance.split(".")
-  integer = integer
-    .split("")
-    .reverse()
-    .reduce((c, p) => c + p)
-  const parts = []
-  for (let i = 0; i < integer.length; i += 3) {
-    const part = integer.slice(i, i + 3)
-    parts.push(
-      part
-        .split("")
-        .reverse()
-        .reduce((c, p) => c + p)
-    )
-  }
-  integer = parts.reduce((c, p) => (p === "-" ? p + c : p + "," + c))
-  const result = decimal === undefined ? integer : integer + "." + decimal
-  return result
+export function balanceCommas(amount: number) {
+  return amount.toLocaleString(undefined, { minimumFractionDigits: 1 })
 }
 
 const getDecimalsNeeded = (amount: number | string) => {
@@ -41,13 +24,13 @@ const getDecimalsNeeded = (amount: number | string) => {
 export function prettyBalance(balance: number | string, decimals: number = getDecimalsNeeded(balance)) {
   const truncattedAmount = truncateDecimals(balance.toString(), decimals, false)
   if (truncattedAmount === "0") { return "0.0" }
-  return balanceCommas(truncattedAmount)
+  return balanceCommas(Number(truncattedAmount))
 }
 
 export function prettyBalanceUSD(balance: number) {
   const truncattedAmount = truncateDecimals(balance.toString(), 2, true)
   if (truncattedAmount === "0") { return "0.0" }
-  return balanceCommas(truncattedAmount)
+  return balanceCommas(Number(truncattedAmount))
 }
 
 export function hideAddress(address: string, digits = 4) {

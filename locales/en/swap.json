@@ -5,7 +5,7 @@
   "to": "To",
   "max": "MAX",
 
-  "transaction_settings": "Transaction Settings",
+  "transaction_settings": "Transaction Details",
   "token_buy_price": "{{tokenSymbol}} buy price",
   "token_sell_price": "{{tokenSymbol}} sell price",
   "gas_fee": "Gas fee",

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useMemo } from "react"
 
 import styles from "./Swap.module.css"
 import SellInput from "./sellInput/SellInput"
@@ -30,8 +30,6 @@ function Swap() {
   console.log("SWAP RENDER")
 
   const [modal, setModal] = useState<"buy" | "sell" | null>(null)
-  const [validationStateBuy, setValidationStateBuy] = useState<ValidationState>(ValidationState.OK)
-  const [validationStateSell, setValidationStateSell] = useState<ValidationState>(ValidationState.OK)
 
   const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
@@ -44,6 +42,41 @@ function Swap() {
       return "0.0"
     }
   }
+
+  const validationStateSell = useMemo((): ValidationState => {
+    if (isNaN(sellAmount)) return ValidationState.IsNaN
+    if (sellAmount < 0) return ValidationState.IsNegative
+
+    const amountString = String(sellAmount)
+    if (amountString === "") return ValidationState.IsNaN
+    if (!sellTokenInfo) return ValidationState.InternalError
+    if (!swapPrice) return ValidationState.MissingLiquidity
+
+    const balance = balances[sellTokenInfo.address] ? balances[sellTokenInfo.address].value : ethers.constants.Zero
+    if (balance === null) return ValidationState.InsufficientBalance
+
+    const amountBN = ethers.utils.parseUnits(amountString, sellTokenInfo.decimals)
+    if (amountBN.gt(balance)) return ValidationState.InsufficientBalance
+
+    const allowance = allowances[sellTokenInfo.address] ? allowances[sellTokenInfo.address] : ethers.constants.Zero
+    if (allowance !== null && allowance !== undefined && amountBN.gt(allowance)) {
+      return ValidationState.ExceedsAllowance
+    }
+
+    return ValidationState.OK
+  }, [swapPrice, sellAmount, allowances, balances, sellTokenInfo])
+
+
+  const validationStateBuy = useMemo((): ValidationState => {
+    if (isNaN(buyAmount)) return ValidationState.IsNaN
+    if (buyAmount < 0) return ValidationState.IsNegative
+
+    const amountString = String(buyAmount)
+    if (amountString === "") return ValidationState.IsNaN
+    if (!buyTokenInfo) return ValidationState.InternalError
+
+    return ValidationState.OK
+  }, [buyAmount, buyTokenInfo])
 
   const getErrorMessage = (validationState: ValidationState) => {
     if (!userAddress) return
@@ -136,10 +169,8 @@ function Swap() {
             <SellInput
               sellTokenInfo={sellTokenInfo}
               balance={sellTokenAddress && balances[sellTokenAddress] ? balances[sellTokenAddress].value : ethers.constants.Zero}
-              allowance={sellTokenAddress ? allowances[sellTokenAddress] : ethers.constants.Zero}
               validationStateSell={validationStateSell}
               openModal={() => setModal("sell")}
-              setValidationStateSell={setValidationStateSell}
             />
           </div>
           <div className={styles.below_input_container}>
@@ -169,7 +200,6 @@ function Swap() {
               buyTokenInfo={buyTokenInfo}
               validationStateBuy={validationStateBuy}
               openModal={() => setModal("buy")}
-              setValidationStateBuy={setValidationStateBuy}
             />
           </div>
           <div className={styles.below_input_container}>

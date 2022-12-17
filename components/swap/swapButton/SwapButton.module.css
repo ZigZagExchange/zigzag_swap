@@ -3,10 +3,10 @@
   padding: 10px;
   border-radius: 4px;
   backdrop-filter: blur(20px);
-  background-color: var(--glass_background);
+  background-color: var(--turquoise);
   /* background-color: var(--turquoise); */
 
-  border: 1px solid var(--glass_background);
+  border: 1px solid var(--turquoise);
   box-shadow: 0 0 10px var(--glass_shadow);
   color: white;
   transition: all 0.1s ease-out;
@@ -16,16 +16,14 @@
   width: 100%;
   /* margin-top: 10px; */
 
-  /* background-color: var(--glass_red);
-  border: 1px solid var(--glass_red);
-  box-shadow: 0 0 10px var(--glass_red); */
+  opacity: 0.8;
 }
 
 .container:not(:disabled):hover {
   cursor: pointer;
-  background-color: var(--turquoise);
-  border-color: var(--turquoise);
-  /* color: black; */
+  background-color: var(--turquoise_dark);
+  box-shadow: 0 0 10px var(--turquoise_dark);
+  opacity: 0.7;
 }
 
 .container:disabled {

@@ -21,7 +21,7 @@ interface Props {
 }
 
 export default function SellInput({ sellTokenInfo, balance, allowance, validationStateSell, openModal, setValidationStateSell }: Props) {
-  const { sellAmount, setSellAmount, setBuyAmount } = useContext(SwapContext)
+  const { sellAmount, swapPrice, setSellAmount } = useContext(SwapContext)
   const { userAddress } = useContext(WalletContext)
   const [input, setInput] = useState<string>("")
 
@@ -30,6 +30,10 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     console.log("Setting sell input to " + prettyBalance(sellAmount))
     setInput(prettyBalance(sellAmount))
   }, [sellAmount])
+
+  useEffect(() => {
+    if (!swapPrice) getValidationState(String(sellAmount))
+  }, [swapPrice])
 
   function getValidationState(amount: string) {
     if (amount === "" || isNaN(Number(amount))) {
@@ -47,6 +51,9 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     }
     if (allowance !== null && allowance !== undefined && amountBN.gt(allowance)) {
       return ValidationState.ExceedsAllowance
+    }
+    if (!swapPrice) {
+      return ValidationState.MissingLiquidity
     }
     return ValidationState.OK
   }

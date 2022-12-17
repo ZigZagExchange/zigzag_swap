@@ -47,8 +47,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   }, [sellTokenInfo, signer])
 
   const wethContract: ethers.Contract | null = useMemo(() => {
-    if (network && network.wethContractAddress  && signer) {
-      return new ethers.Contract(network.wethContractAddress, 
+    if (network && network.wethContractAddress && signer) {
+      return new ethers.Contract(network.wethContractAddress,
         [
           { "constant": false, "inputs": [], "name": "deposit", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" },
           { "constant": false, "inputs": [{ "name": "wad", "type": "uint256" }], "name": "withdraw", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }
@@ -58,7 +58,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     }
     return null
   }, [network, signer])
-  
+
 
   const buttonText: string = useMemo(() => {
     if (!userAddress) return "Swap"
@@ -81,7 +81,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     if (validationStateSell !== ValidationState.OK) {
       setSwapMode(SwapMode.Disabled)
       return "Error on the sell side"
-    } 
+    }
     if (validationStateBuy !== ValidationState.OK) {
       setSwapMode(SwapMode.Disabled)
       return "Error on the buy side"
@@ -96,7 +96,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       setSwapMode(SwapMode.Withdraw)
       return "Withdraw WETH"
     }
-    
+
     setSwapMode(SwapMode.Swap)
     return "Swap"
   }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
@@ -112,10 +112,10 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       case SwapMode.Deposit:
         sendDeposit()
         break
-      case SwapMode.Withdraw: 
+      case SwapMode.Withdraw:
         sendWithdraw()
         break
-      case SwapMode.Disabled: 
+      case SwapMode.Disabled:
         console.error("handleSwapButton: swap mode disabled")
         break
     }

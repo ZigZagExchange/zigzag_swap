@@ -12,7 +12,7 @@ interface Props {
   close: () => void
 }
 
-type TokenEntry = { 
+type TokenEntry = {
   tokenAddress: string,
   balance: number,
   value: number
@@ -28,7 +28,7 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
 
   const tokenEntrysList: TokenEntry[] = useMemo(() => {
     const newTokenEntrysList: TokenEntry[] = []
-    
+
     if (selectedModal === "sell") {
       const possibleTokens = getTokens()
       for (let i = 0; i < possibleTokens.length; i++) {
@@ -53,7 +53,7 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
       })
     }
     return newTokenEntrysList
-  }, [balances, tokenPricesUSD, getTokens, selectedModal, selectedToken, markets, sellTokenInfo ])
+  }, [balances, tokenPricesUSD, getTokens, selectedModal, selectedToken, markets, sellTokenInfo])
 
   const sortedTokenEntrys: TokenEntry[] = useMemo(() => {
     const tokensWithValue: TokenEntry[] = tokenEntrysList.filter(t => t.value !== 0)
@@ -65,7 +65,7 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
         return b.balance - a.balance
       });
     const otherTokens: TokenEntry[] = tokenEntrysList.filter(t => t.balance === 0 && t.value === 0)
-    
+
     return tokensWithValue.concat(tokensWithBalance).concat(otherTokens)
   }, [tokenEntrysList])
 
@@ -77,7 +77,7 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
         if (
           !tokenInfo.symbol.toLocaleLowerCase().includes(query.toLowerCase()) &&
           !tokenInfo.name.toLocaleLowerCase().includes(query.toLowerCase()) &&
-          !tokenAddress.includes(query.toLowerCase())          
+          !tokenAddress.includes(query.toLowerCase())
         )
           return currentList
         return [

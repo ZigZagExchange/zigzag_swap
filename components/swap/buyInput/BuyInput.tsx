@@ -17,7 +17,7 @@ interface Props {
 }
 
 export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, setValidationStateBuy }: Props) {
-  const { buyAmount, setBuyAmount, setSellAmount } = useContext(SwapContext)
+  const { buyAmount, setBuyAmount } = useContext(SwapContext)
 
   // const [isFocused, setIsFocused] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")

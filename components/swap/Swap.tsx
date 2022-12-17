@@ -21,6 +21,7 @@ export enum ValidationState {
   InsufficientBalance,
   ExceedsAllowance,
   InternalError,
+  MissingLiquidity,
 }
 
 function Swap() {
@@ -56,6 +57,8 @@ function Swap() {
         return "Amount cannot be NaN."
       case ValidationState.IsNegative:
         return "Amount cannot be negative."
+      case ValidationState.MissingLiquidity:
+        return "No enough Liquidity"
       default:
         return
     }

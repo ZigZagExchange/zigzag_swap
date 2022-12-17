@@ -42,6 +42,8 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
   }, [balances, tokenPricesUSD, markets, sellTokenInfo])
 
   useEffect(() => {
+    if (buyModalTokenEntryList.length === 0) return 
+    
     // check if current buy token in possible options
     const searchList = buyModalTokenEntryList.filter(e => e.tokenAddress === buyTokenInfo?.address)
     if (searchList.length === 0) {

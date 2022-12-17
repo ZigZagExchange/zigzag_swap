@@ -45,15 +45,15 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     if (!sellTokenInfo) {
       return ValidationState.InternalError
     }
+    if (!swapPrice) {
+      return ValidationState.MissingLiquidity
+    }
     const amountBN = ethers.utils.parseUnits(amount, sellTokenInfo.decimals)
     if (balance !== null && amountBN.gt(balance)) {
       return ValidationState.InsufficientBalance
     }
     if (allowance !== null && allowance !== undefined && amountBN.gt(allowance)) {
       return ValidationState.ExceedsAllowance
-    }
-    if (!swapPrice) {
-      return ValidationState.MissingLiquidity
     }
     return ValidationState.OK
   }

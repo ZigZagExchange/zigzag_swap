@@ -46,6 +46,8 @@ function Swap() {
   }
 
   const validationStateSell = useMemo((): ValidationState => {
+    if (!userAddress) return ValidationState.OK
+
     if (isNaN(sellAmount)) return ValidationState.IsNaN
     if (sellAmount < 0) return ValidationState.IsNegative
     if (!sellTokenInfo) return ValidationState.InternalError
@@ -66,9 +68,11 @@ function Swap() {
     }
 
     return ValidationState.OK
-  }, [swapPrice, sellAmount, allowances, balances, sellTokenInfo])
+  }, [userAddress, swapPrice, sellAmount, allowances, balances, sellTokenInfo])
 
   const validationStateBuy = useMemo((): ValidationState => {
+    if (!userAddress) return ValidationState.OK
+
     if (isNaN(buyAmount)) return ValidationState.IsNaN
     if (buyAmount < 0) return ValidationState.IsNegative
 
@@ -77,7 +81,7 @@ function Swap() {
     if (!buyTokenInfo) return ValidationState.InternalError
 
     return ValidationState.OK
-  }, [buyAmount, buyTokenInfo])
+  }, [userAddress, buyAmount, buyTokenInfo])
 
   const getErrorMessage = (validationState: ValidationState) => {
     if (!userAddress) return

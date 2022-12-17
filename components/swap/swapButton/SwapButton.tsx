@@ -188,7 +188,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendSwap: tx processed")
 
     updateBalances([buyTokenInfo.address, sellTokenInfo.address])
-    setInterval(updateBalances, 5000, [buyTokenInfo.address, sellTokenInfo.address])
+    setTimeout(updateBalances, 3000, [buyTokenInfo.address, sellTokenInfo.address])
   }
 
   async function sendApprove() {
@@ -217,7 +217,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendApprove: tx processed")
 
     updateAllowances([sellTokenInfo.address])
-    setInterval(updateAllowances, 5000, [sellTokenInfo.address])
+    setTimeout(updateAllowances, 3000, [sellTokenInfo.address])
   }
 
   async function sendDeposit() {
@@ -260,7 +260,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendDeposit: tx processed")
 
     updateBalances([buyTokenInfo.address, sellTokenInfo.address])
-    setInterval(updateBalances, 5000, [buyTokenInfo.address, sellTokenInfo.address])
+    setTimeout(updateBalances, 3000, [buyTokenInfo.address, sellTokenInfo.address])
   }
 
   async function sendWithdraw() {
@@ -303,7 +303,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendWithdraw: tx processed")
 
     updateBalances([buyTokenInfo.address, sellTokenInfo.address])
-    setInterval(updateBalances, 5000, [buyTokenInfo.address, sellTokenInfo.address])
+    setTimeout(updateBalances, 3000, [buyTokenInfo.address, sellTokenInfo.address])
   }
 
   return (

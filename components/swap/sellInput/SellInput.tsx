@@ -86,8 +86,7 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   function maximize() {
     if (!sellTokenInfo || !balance) return
     const balance_string = utils.formatUnits(balance, sellTokenInfo.decimals)
-    setInput(prettyBalance(balance_string))
-    setSellAmount(Number(balance_string))
+    safeSetSellAmount(prettyBalance(balance_string))
   }
 
   // if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))

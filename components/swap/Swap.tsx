@@ -58,7 +58,7 @@ function Swap() {
       case ValidationState.IsNegative:
         return "Amount cannot be negative."
       case ValidationState.MissingLiquidity:
-        return "No enough Liquidity"
+        return "Not enough liquidity"
       default:
         return
     }

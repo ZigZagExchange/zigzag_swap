@@ -299,7 +299,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     <button
       className={styles.container}
       onClick={handleSwapButton}
-      disabled={signer === null || validationStateBuy !== ValidationState.OK || validationStateSell !== ValidationState.OK}
+      disabled={signer === null || swapMode === SwapMode.Disabled}
     >
       {buttonText}
     </button>

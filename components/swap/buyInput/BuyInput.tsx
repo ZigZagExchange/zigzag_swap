@@ -33,7 +33,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal }
         onInput={p => safeSetBuyAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
-        value={buyInput}
+        value={buyInput === "0.0" ? "" : buyInput}
         type="number"
         placeholder={"0"}
         onKeyDown={e => {

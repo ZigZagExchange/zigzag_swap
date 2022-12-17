@@ -36,9 +36,12 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
   }
 
   useEffect(() => {
-    if (buyAmount === 0) return
-    console.log("Setting buy input to " + prettyBalance(buyAmount))
-    setInput(prettyBalance(buyAmount))
+    if (buyAmount === 0) {
+      setInput("")
+    } else {
+      console.log("Setting buy input to " + prettyBalance(buyAmount))
+      setInput(prettyBalance(buyAmount))
+    }
   }, [buyAmount])
 
   function safeSetBuyAmount(newAmount: string) {
@@ -53,7 +56,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal, 
     const validation = newAmount === "" ? ValidationState.OK : getValidationState(newAmount)
     setValidationStateBuy(validation)
 
-    if (validation === ValidationState.OK) setBuyAmount(Number(newAmount))
+    if (newAmount === "0" || validation === ValidationState.OK) setBuyAmount(Number(newAmount))
   }
 
   // if (!isFocused && buyAmount !== Number(input)) setInput(prettyBalance(buyAmount))

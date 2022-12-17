@@ -78,7 +78,7 @@ export const NETWORKS: NetworkObject = {
     backendUrl: "https://api.arbitrum.zigzag.exchange",
     icon: ARBITRUM_ICON,
     nativeCurrency: {
-      name: "ETH",
+      name: "Ethereum",
       symbol: "ETH",
       decimals: 18,
       address: ethers.constants.AddressZero,

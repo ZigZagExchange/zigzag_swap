@@ -1,4 +1,4 @@
-import { useRef, useContext, useState, useMemo } from "react"
+import { useRef, useContext, useState, useMemo, useEffect } from "react"
 import styles from "./Modal.module.css"
 import TokenListEntry from "./tokenListEntry/TokenListEntry"
 
@@ -19,43 +19,53 @@ type TokenEntry = {
 }
 
 export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Props) {
-  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo } = useContext(ExchangeContext)
+  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
   const selectedToken = selectedModal === "sell" ? sellTokenInfo?.address : buyTokenInfo?.address
 
   const container_ref = useRef<HTMLDivElement>(null)
 
-  const tokenEntrysList: TokenEntry[] = useMemo(() => {
+  const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {  
+    const tokens: string[] = []
+    for (let i = 0; i < markets.length; i++) {
+      const [tokenA, tokenB] = markets[i].split("-")
+      if (sellTokenInfo?.address === tokenB && sellTokenInfo?.address !== tokenA && !tokens.includes(tokenA)) tokens.push(tokenA)
+      if (sellTokenInfo?.address === tokenA && sellTokenInfo?.address !== tokenB && !tokens.includes(tokenB)) tokens.push(tokenB)
+    }
+
+    return tokens.map((tokenAddress: string) => {
+      const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
+      const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
+      return { tokenAddress, balance, value }
+    })
+  }, [balances, tokenPricesUSD, markets, sellTokenInfo])
+
+  useEffect(() => {
+    // check if current buy token in possible options
+    const searchList = buyModalTokenEntryList.filter(e => e.tokenAddress === buyTokenInfo?.address)
+    if (searchList.length === 0) {
+      // selected token not in options -> update
+      setBuyToken(buyModalTokenEntryList[0].tokenAddress)
+    }
+  }, [buyModalTokenEntryList])
+
+  const sellModalTokenEntryList: TokenEntry[] = useMemo(() => {
     const newTokenEntrysList: TokenEntry[] = []
+    const possibleTokens = getTokens()
+    for (let i = 0; i < possibleTokens.length; i++) {
+      const tokenAddress = possibleTokens[i]
+      if (tokenAddress === selectedToken) continue
 
-    if (selectedModal === "sell") {
-      const possibleTokens = getTokens()
-      for (let i = 0; i < possibleTokens.length; i++) {
-        const tokenAddress = possibleTokens[i]
-        if (tokenAddress === selectedToken) continue
-
-        const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
-        const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
-        newTokenEntrysList.push({ tokenAddress, balance, value })
-      }
-    } else if (selectedModal === "buy") {
-      const tokens: string[] = []
-      for (let i = 0; i < markets.length; i++) {
-        const [tokenA, tokenB] = markets[i].split("-")
-        if (sellTokenInfo?.address !== tokenA && !tokens.includes(tokenA)) tokens.push(tokenA)
-        if (sellTokenInfo?.address !== tokenB && !tokens.includes(tokenB)) tokens.push(tokenB)
-      }
-      tokens.forEach((tokenAddress: string) => {
-        const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
-        const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
-        newTokenEntrysList.push({ tokenAddress, balance, value })
-      })
+      const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
+      const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
+      newTokenEntrysList.push({ tokenAddress, balance, value })
     }
     return newTokenEntrysList
-  }, [balances, tokenPricesUSD, getTokens, selectedModal, selectedToken, markets, sellTokenInfo])
+  }, [balances, tokenPricesUSD, getTokens, selectedToken])
 
   const sortedTokenEntrys: TokenEntry[] = useMemo(() => {
+    const tokenEntrysList = selectedModal === "buy" ? buyModalTokenEntryList : sellModalTokenEntryList
     const tokensWithValue: TokenEntry[] = tokenEntrysList.filter(t => t.value !== 0)
       .sort(function (a: TokenEntry, b: TokenEntry) {
         return b.value - a.value
@@ -67,7 +77,7 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     const otherTokens: TokenEntry[] = tokenEntrysList.filter(t => t.balance === 0 && t.value === 0)
 
     return tokensWithValue.concat(tokensWithBalance).concat(otherTokens)
-  }, [tokenEntrysList])
+  }, [selectedModal, buyModalTokenEntryList, sellModalTokenEntryList])
 
   const tokenList: JSX.Element[] = useMemo(
     () =>

@@ -140,7 +140,7 @@ function ExchangeProvider({ children }: Props) {
   const [allowances, setAllowances] = useState<TokenAllowanceObject>({})
   const [tokenPricesUSD, setTokenPricesUSD] = useState<TokenPriceObject>({})
 
-  const { userAddress, network, ethersProvider } = useContext(WalletContext)
+  const { userAddress, network, ethersProvider, updateWalletBalance } = useContext(WalletContext)
 
   useEffect(() => {
     fetchMarketsInfo()
@@ -154,6 +154,11 @@ function ExchangeProvider({ children }: Props) {
   useEffect(() => {
     _updateAllowance()
     _updateBalances()
+
+    const updateBalancesInterval = setInterval(() => {
+      _updateBalances()
+    }, 30 * 1000)
+    return () => clearInterval(updateBalancesInterval)
   }, [markets, userAddress, network])
 
   useEffect(() => {
@@ -243,6 +248,7 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const _updateBalances = async (reqTokens: string[] = getTokens()) => {
+    updateWalletBalance(reqTokens)
     if (!reqTokens || !ethersProvider || !userAddress || !network) {
       console.warn("_updateBalances: Missing ethers provider, network or userAddress")
       setBalances({})

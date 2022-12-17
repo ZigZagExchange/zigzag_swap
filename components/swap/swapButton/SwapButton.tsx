@@ -29,8 +29,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   const [swapMode, setSwapMode] = useState<SwapMode>(SwapMode.Disabled)
 
   const { network, signer, userAddress } = useContext(WalletContext)
-  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress } = useContext(ExchangeContext)
-  const { buyAmount, sellAmount, quoteOrder } = useContext(SwapContext)
+  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, updateAllowances, updateBalances } = useContext(ExchangeContext)
+  const { sellAmount, quoteOrder } = useContext(SwapContext)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -38,13 +38,6 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     }
     return null
   }, [exchangeAddress, signer])
-
-  const tokenContract: ethers.Contract | null = useMemo(() => {
-    if (sellTokenInfo && signer) {
-      return new ethers.Contract(sellTokenInfo.address, erc20Abi, signer)
-    }
-    return null
-  }, [sellTokenInfo, signer])
 
   const wethContract: ethers.Contract | null = useMemo(() => {
     if (network && network.wethContractAddress && signer) {
@@ -89,12 +82,12 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
 
     if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
       setSwapMode(SwapMode.Deposit)
-      return "Deposit ETH"
+      return "Wrap ETH to WETH"
     }
 
     if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
       setSwapMode(SwapMode.Withdraw)
-      return "Withdraw WETH"
+      return "Unwrap WETH to ETH"
     }
 
     setSwapMode(SwapMode.Swap)
@@ -193,6 +186,9 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendSwap: swap submitted: ", tx)
     await tx.wait()
     console.log("sendSwap: tx processed")
+
+    updateBalances([buyTokenInfo.address, sellTokenInfo.address])
+    setInterval(updateBalances, 5000, [buyTokenInfo.address, sellTokenInfo.address])
   }
 
   async function sendApprove() {
@@ -204,15 +200,24 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    if (!tokenContract) {
-      console.warn("sendApprove: missing tokenContract")
+    if (!signer) {
+      console.warn("sendApprove: missing signer")
       return
     }
 
+    if (!sellTokenInfo) {
+      console.warn("sendApprove: missing sellTokenInfo")
+      return
+    }
+
+    const tokenContract: ethers.Contract = new ethers.Contract(sellTokenInfo.address, erc20Abi, signer)
     const tx = await tokenContract.approve(exchangeAddress, ethers.constants.MaxUint256)
     console.log("sendApprove: approve submitted: ", tx)
     await tx.wait()
     console.log("sendApprove: tx processed")
+
+    updateAllowances([sellTokenInfo.address])
+    setInterval(updateAllowances, 5000, [sellTokenInfo.address])
   }
 
   async function sendDeposit() {
@@ -253,6 +258,9 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendDeposit: deposit submitted: ", tx)
     await tx.wait()
     console.log("sendDeposit: tx processed")
+
+    updateBalances([buyTokenInfo.address, sellTokenInfo.address])
+    setInterval(updateBalances, 5000, [buyTokenInfo.address, sellTokenInfo.address])
   }
 
   async function sendWithdraw() {
@@ -293,6 +301,9 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendWithdraw: withdraw submitted: ", tx)
     await tx.wait()
     console.log("sendWithdraw: tx processed")
+
+    updateBalances([buyTokenInfo.address, sellTokenInfo.address])
+    setInterval(updateBalances, 5000, [buyTokenInfo.address, sellTokenInfo.address])
   }
 
   return (

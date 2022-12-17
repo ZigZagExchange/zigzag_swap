@@ -26,9 +26,12 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   const [input, setInput] = useState<string>("")
 
   useEffect(() => {
-    if (sellAmount === 0) return
-    console.log("Setting sell input to " + prettyBalance(sellAmount))
-    setInput(prettyBalance(sellAmount))
+    if (sellAmount === 0) {
+      setInput("")
+    } else {
+      console.log("Setting sell input to " + prettyBalance(sellAmount))
+      setInput(prettyBalance(sellAmount))
+    }
   }, [sellAmount])
 
   useEffect(() => {
@@ -70,8 +73,12 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     const validation = newAmount === "" ? ValidationState.OK : getValidationState(newAmount)
     setValidationStateSell(validation)
 
-    if (validation === ValidationState.OK || validation === ValidationState.ExceedsAllowance || validation === ValidationState.InsufficientBalance)
+    if (
+      newAmount === "0" || 
+      (validation === ValidationState.OK || validation === ValidationState.ExceedsAllowance || validation === ValidationState.InsufficientBalance)
+    ) {
       setSellAmount(Number(newAmount))
+    }      
   }
 
   // if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))
@@ -82,7 +89,6 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
       <input
         className={input_styles.input}
-        // onInput={p => safeSetSellAmount(p.currentTarget.value)}
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}

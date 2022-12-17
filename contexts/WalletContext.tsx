@@ -28,6 +28,7 @@ export type WalletContextType = {
   connect: () => void
   disconnect: () => void
   switchNetwork: (network: number) => Promise<boolean>
+  updateWalletBalance: (tokenAddressList: string[]) => void
 }
 
 export const WalletContext = createContext<WalletContextType>({
@@ -43,6 +44,7 @@ export const WalletContext = createContext<WalletContextType>({
   switchNetwork: async (network: number) => {
     return false
   },
+  updateWalletBalance: (tokenAddressList: string[]) => {},
 })
 
 const wallets = [
@@ -169,6 +171,14 @@ function WalletProvider({ children }: Props) {
     setProvider(null)
   }
 
+  const updateWalletBalance = (tokenAddressList: string[]) => {
+    if (tokenAddressList.length > 0) {
+      onboard.state.actions.updateBalances(tokenAddressList)
+    } else {
+      onboard.state.actions.updateBalances()
+    }
+  }
+
   return (
     <WalletContext.Provider
       value={{
@@ -182,6 +192,7 @@ function WalletProvider({ children }: Props) {
         connect: connectWallet,
         disconnect: disconnectWallet,
         switchNetwork: _switchNetwork,
+        updateWalletBalance: updateWalletBalance,
       }}
     >
       {children}

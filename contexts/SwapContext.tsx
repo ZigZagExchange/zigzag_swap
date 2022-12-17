@@ -90,7 +90,7 @@ function SwapProvider({ children }: Props) {
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
       (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
     ) {
-      return [newQuoteAmount, newSwapPrice]
+      return [newQuoteAmount, 1]
     }
 
     const minTimeStamp: number = Date.now() / 1000 + 15

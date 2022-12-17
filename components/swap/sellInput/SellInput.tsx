@@ -46,7 +46,7 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
-        value={sellInput === "0.0" ? "" : sellInput}
+        value={sellInput}
         type="number"
         placeholder={"0"}
         onKeyDown={e => {

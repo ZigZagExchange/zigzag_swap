@@ -46,10 +46,10 @@ function Swap() {
   const validationStateSell = useMemo((): ValidationState => {
     if (isNaN(sellAmount)) return ValidationState.IsNaN
     if (sellAmount < 0) return ValidationState.IsNegative
-
-    const amountString = String(sellAmount)
-    if (amountString === "") return ValidationState.IsNaN
     if (!sellTokenInfo) return ValidationState.InternalError
+
+    const amountString = sellAmount.toFixed(sellTokenInfo.decimals)
+    if (amountString === "") return ValidationState.IsNaN
     if (!swapPrice) return ValidationState.MissingLiquidity
 
     const balance = balances[sellTokenInfo.address] ? balances[sellTokenInfo.address].value : ethers.constants.Zero

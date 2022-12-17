@@ -19,31 +19,19 @@ interface Props {
 }
 
 export default function SellInput({ sellTokenInfo, balance, validationStateSell, openModal }: Props) {
-  const { sellAmount, setSellAmount } = useContext(SwapContext)
+  const { sellInput, setSellInput } = useContext(SwapContext)
   const { userAddress } = useContext(WalletContext)
-  const [input, setInput] = useState<string>("")
-
-  useEffect(() => {
-    if (sellAmount === 0) {
-      setInput("")
-    } else {
-      console.log("Setting sell input to " + prettyBalance(sellAmount))
-      setInput(prettyBalance(sellAmount))
-    }
-  }, [sellAmount])
-
 
   function safeSetSellAmount(newAmount: string) {
     newAmount = newAmount.replace(",", ".")
     newAmount = truncateDecimals(newAmount, sellTokenInfo ? sellTokenInfo.decimals : 18)
-    setInput(newAmount)
-    setSellAmount(Number(newAmount))
+    setSellInput(newAmount)
   }
 
   function maximize() {
     if (!sellTokenInfo || !balance) return
-    const balance_string = utils.formatUnits(balance, sellTokenInfo.decimals)
-    safeSetSellAmount(prettyBalance(balance_string))
+    const balanceString = utils.formatUnits(balance, sellTokenInfo.decimals)
+    safeSetSellAmount(balanceString)
   }
 
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
@@ -58,7 +46,7 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
-        value={input}
+        value={sellInput}
         type="number"
         placeholder={"0"}
         onKeyDown={e => {

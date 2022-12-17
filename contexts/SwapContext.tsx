@@ -67,6 +67,13 @@ function SwapProvider({ children }: Props) {
       return [null, 0]
     }
 
+    if (
+      (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
+      (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress) 
+    ) {
+      return [null, 1]
+    }
+
     const minTimeStamp: number = Date.now() / 1000 + 15
     let bestOrder: ZZOrder | null = null
     let bestPrice: number = 0

@@ -12,16 +12,23 @@ import { ValidationState } from "../Swap"
 
 import styles from "./SwapButton.module.css"
 
+enum SwapMode {
+  Disabled,
+  Swap,
+  Approve,
+  Deposit,
+  Withdraw
+}
+
 interface Props {
   validationStateBuy: ValidationState
   validationStateSell: ValidationState
 }
 
 export default function SwapButton({ validationStateBuy, validationStateSell }: Props) {
-  const [enabled, setEnabled] = useState<boolean>(false)
-  const [enableApprove, setEnableApprove] = useState<boolean>(false)
+  const [swapMode, setSwapMode] = useState<SwapMode>(SwapMode.Disabled)
 
-  const { signer, userAddress } = useContext(WalletContext)
+  const { network, signer, userAddress } = useContext(WalletContext)
   const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress } = useContext(ExchangeContext)
   const { buyAmount, sellAmount, quoteOrder } = useContext(SwapContext)
 
@@ -39,44 +46,83 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     return null
   }, [sellTokenInfo, signer])
 
+  const wethContract: ethers.Contract | null = useMemo(() => {
+    if (network && network.wethContractAddress  && signer) {
+      return new ethers.Contract(network.wethContractAddress, 
+        [
+          { "constant": false, "inputs": [], "name": "deposit", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" },
+          { "constant": false, "inputs": [{ "name": "wad", "type": "uint256" }], "name": "withdraw", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }
+        ],
+        signer
+      )
+    }
+    return null
+  }, [network, signer])
+  
+
   const buttonText: string = useMemo(() => {
     if (!userAddress) return "Swap"
 
     if (!buyTokenInfo || !sellTokenInfo) {
-      setEnableApprove(false)
-      setEnabled(false)
+      setSwapMode(SwapMode.Disabled)
       return "Error"
     }
 
     if (validationStateSell === ValidationState.InsufficientBalance) {
-      setEnableApprove(false)
-      setEnabled(false)
+      setSwapMode(SwapMode.Disabled)
       return `Sell amount exceeds ${sellTokenInfo.symbol} balance`
     }
 
     if (validationStateSell === ValidationState.ExceedsAllowance) {
-      setEnableApprove(true)
-      setEnabled(true)
+      setSwapMode(SwapMode.Approve)
       return `Approve ${sellTokenInfo.symbol}`
     }
 
     if (validationStateSell !== ValidationState.OK) {
-      setEnableApprove(false)
-      setEnabled(false)
+      setSwapMode(SwapMode.Disabled)
       return "Error on the sell side"
-    } else if (validationStateBuy !== ValidationState.OK) {
-      setEnableApprove(false)
-      setEnabled(false)
+    } 
+    if (validationStateBuy !== ValidationState.OK) {
+      setSwapMode(SwapMode.Disabled)
       return "Error on the buy side"
-    } else {
-      setEnableApprove(false)
-      setEnabled(true)
-      return "Swap"
     }
-  }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo])
+
+    if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
+      setSwapMode(SwapMode.Deposit)
+      return "Deposit ETH"
+    }
+
+    if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
+      setSwapMode(SwapMode.Withdraw)
+      return "Withdraw WETH"
+    }
+    
+    setSwapMode(SwapMode.Swap)
+    return "Swap"
+  }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
+
+  function handleSwapButton() {
+    switch (swapMode) {
+      case SwapMode.Approve:
+        sendApprove()
+        break
+      case SwapMode.Swap:
+        sendSwap()
+        break
+      case SwapMode.Deposit:
+        sendDeposit()
+        break
+      case SwapMode.Withdraw: 
+        sendWithdraw()
+        break
+      case SwapMode.Disabled: 
+        console.error("handleSwapButton: swap mode disabled")
+        break
+    }
+  }
 
   async function sendSwap() {
-    if (enableApprove || !enabled) return
+    if (swapMode !== SwapMode.Swap) return
     console.log("starting sendSwap")
 
     if (!exchangeContract) {
@@ -113,6 +159,11 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
 
     let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
 
+    if (sellAmountParsed.gt(sellBalanceParsed)) {
+      console.warn("sendSwap: sell amount exceeds balances")
+      return
+    }
+
     if (sellAmountParsed.gt(quoteOrder.order.buyAmount)) {
       console.warn("sendSwap: sell amount exceeds quote buy amount")
       return
@@ -145,7 +196,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   }
 
   async function sendApprove() {
-    if (!enableApprove || !enabled) return
+    if (swapMode !== SwapMode.Approve) return
     console.log("starting sendApprove")
 
     if (!exchangeAddress) {
@@ -164,10 +215,90 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     console.log("sendApprove: tx processed")
   }
 
+  async function sendDeposit() {
+    if (swapMode !== SwapMode.Deposit) return
+    console.log("starting sendDeposit")
+
+    if (!wethContract) {
+      console.warn("sendDeposit: missing wethContract")
+      return
+    }
+
+    if (!sellAmount) {
+      console.warn("sendDeposit: missing sellAmount, sellTokenInfo or buyTokenInfo")
+      return
+    }
+    const sellBalanceParsed = balances[sellTokenInfo.address]?.value
+
+    if (!sellBalanceParsed) {
+      console.warn("sendDeposit: missing balances for sell token")
+      return
+    }
+
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
+
+    if (sellAmountParsed.gt(sellBalanceParsed)) {
+      console.warn("sendDeposit: sell amount exceeds balances")
+      return
+    }
+
+    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber()
+    if (delta > 99990) {
+      // prevent dust issues
+      // 99.9 %
+      sellAmountParsed = sellBalanceParsed
+    }
+
+    const tx = await wethContract.deposit({ value: sellAmountParsed })
+    console.log("sendDeposit: deposit submitted: ", tx)
+    await tx.wait()
+    console.log("sendDeposit: tx processed")
+  }
+
+  async function sendWithdraw() {
+    if (swapMode !== SwapMode.Withdraw) return
+    console.log("starting sendWithdraw")
+
+    if (!wethContract) {
+      console.warn("sendWithdraw: missing wethContract")
+      return
+    }
+
+    if (!sellAmount) {
+      console.warn("sendWithdraw: missing sellAmount, sellTokenInfo or buyTokenInfo")
+      return
+    }
+    const sellBalanceParsed = balances[sellTokenInfo.address]?.value
+
+    if (!sellBalanceParsed) {
+      console.warn("sendWithdraw: missing balances for sell token")
+      return
+    }
+
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
+
+    if (sellAmountParsed.gt(sellBalanceParsed)) {
+      console.warn("sendWithdraw: sell amount exceeds balances")
+      return
+    }
+
+    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber()
+    if (delta > 99990) {
+      // prevent dust issues
+      // 99.9 %
+      sellAmountParsed = sellBalanceParsed
+    }
+
+    const tx = await wethContract.withdraw(sellAmountParsed)
+    console.log("sendWithdraw: withdraw submitted: ", tx)
+    await tx.wait()
+    console.log("sendWithdraw: tx processed")
+  }
+
   return (
     <button
       className={styles.container}
-      onClick={enableApprove ? sendApprove : sendSwap}
+      onClick={handleSwapButton}
       disabled={signer === null || validationStateBuy !== ValidationState.OK || validationStateSell !== ValidationState.OK}
     >
       {buttonText}

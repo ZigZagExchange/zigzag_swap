@@ -32,7 +32,7 @@ function Swap() {
 
   const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { sellAmount, buyAmount, swapPrice } = useContext(SwapContext)
+  const { sellAmount, buyAmount, swapPrice, switchTokens } = useContext(SwapContext)
 
   const getBalanceReadable = (tokenAddress: string | null) => {
     if (tokenAddress && balances[tokenAddress]) {
@@ -59,6 +59,29 @@ function Swap() {
       default:
         return
     }
+  }
+
+  function _switchTokens() {
+    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
+    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
+    switchTokens()
+  }
+
+  const handleTokenClick = (newTokenAddress: string) => {
+    if (modal === "sell") {
+      if (newTokenAddress === buyTokenInfo?.address) {
+        _switchTokens()
+      } else {
+        setSellToken(newTokenAddress)
+      }      
+    } else if (modal === "buy") {
+      if (newTokenAddress === sellTokenInfo?.address) {
+        _switchTokens()
+      } else {
+        setBuyToken(newTokenAddress)        
+      }  
+    }
+    setModal(null)
   }
 
   const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
@@ -175,17 +198,7 @@ function Swap() {
       <Modal
         isOpen={modal !== null}
         selectedModal={modal}
-        onTokenClick={
-          modal === "sell"
-            ? (token: string) => {
-                setSellToken(token)
-                setModal(null)
-              }
-            : (token: string) => {
-                setBuyToken(token)
-                setModal(null)
-              }
-        }
+        onTokenClick={(tokenAddress: string) => handleTokenClick(tokenAddress)}
         close={() => setModal(null)}
       />
     </div>

@@ -186,13 +186,16 @@ function ExchangeProvider({ children }: Props) {
     }
 
     const parsedMarkets = result.markets.filter(m => m.verified).map(m => `${m.buyToken.toLowerCase()}-${m.sellToken.toLowerCase()}`)
+    if (network.wethContractAddress) {
+      parsedMarkets.push(`${ethers.constants.AddressZero}-${network.wethContractAddress}`)
+    }
     setMarkets(parsedMarkets)
 
     const parsedTokenInfos = result.verifiedTokens.map(token => {
       token.address = token.address.toLowerCase()
-
       return token
     })
+    parsedTokenInfos.push(network.nativeCurrency)
     setTokenInfos(parsedTokenInfos)
     setExchangeAddress(result.exchange.exchangeAddress)
     setMakerFee(result.exchange.makerVolumeFee)
@@ -323,6 +326,7 @@ function ExchangeProvider({ children }: Props) {
   }
 
   const getTokenInfo = (tokenAddress: string) => {
+    console.log("tokenAddress", tokenAddress)
     tokenAddress = tokenAddress.toLowerCase()
     for (let i = 0; i < tokenInfos.length; i++) {
       const tokenInfo = tokenInfos[i]

@@ -55,9 +55,10 @@ export type NetworkType = {
     name: string
     symbol: string
     decimals: number
-    tokenId: number
+    address: string
   }
   provider: ethers.providers.JsonRpcProvider
+  wethContractAddress?: string
 }
 
 export const NETWORK = {
@@ -80,9 +81,10 @@ export const NETWORKS: NetworkObject = {
       name: "ETH",
       symbol: "ETH",
       decimals: 18,
-      tokenId: 1,
+      address: ethers.constants.AddressZero,
     },
-    provider: new ethers.providers.JsonRpcProvider("https://arb1.arbitrum.io/rpc")
+    provider: new ethers.providers.JsonRpcProvider("https://arb1.arbitrum.io/rpc"),
+    wethContractAddress: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1"
   }
 }
 

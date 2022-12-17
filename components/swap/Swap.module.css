@@ -51,51 +51,16 @@
   fill: white;
 }
 
-.arrow_container {
-  position: relative;
-}
-.hr {
-  border-color: var(--glass_background);
-  border-width: 1px;
-  opacity: 0.25;
-}
-
-.arrow {
-  position: absolute;
-  height: 25px;
-  top: 0;
-  left: 50%;
-  transform: translateY(-50%) translateX(-50%);
-  background-color: var(--glass_background);
-  /* border: 1px solid var(--turquoise_darker); */
-  /* background-color: var(--turquoise_dark); */
-  border-radius: 50%;
-  padding: 4px;
-  /* background: radial-gradient(var(--turquoise_lighter), var(--turquoise_darker)); */
-  transition: 0.2s ease-in-out;
-}
-.arrow path {
-  transition: 0.2s ease-in-out;
-  transform-origin: 50%;
-}
-
-.arrow:hover {
-  cursor: pointer;
-  background-color: var(--turquoise);
-}
-
-.arrow:hover path {
-  rotate: 180deg;
-}
-
 .below_input_container {
   font-size: 0.8rem;
   padding-right: 5px;
   margin-top: 5px;
   padding-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
 }
 
-.address_value_container {
+.value_container {
   display: flex;
   justify-content: space-between;
 
@@ -137,4 +102,10 @@
   opacity: 0;
   /* transform: scaleY(0.5); */
   pointer-events: none;
+}
+
+.sell_token_info,
+.buy_token_info {
+  opacity: 0.5;
+  font-size: 0.8rem;
 }

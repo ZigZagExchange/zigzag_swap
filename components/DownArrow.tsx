@@ -2,13 +2,13 @@ import { CSSProperties } from "react"
 import styles from "./DownArrow.module.css"
 
 interface Props {
-  style?: CSSProperties
+  up?: boolean
 }
 
-function DownArrow({ style }: Props) {
+function DownArrow({ up }: Props) {
   return (
     <div className={styles.container}>
-      <div className={styles.arrow} style={style}></div>
+      <div className={styles.arrow} style={up ? { rotate: "180deg", translate: "0 0.2em 0" } : {}}></div>
     </div>
   )
 }

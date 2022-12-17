@@ -31,3 +31,21 @@
   color: white;
   opacity: 0.5;
 }
+
+.max_button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  padding: 0 15px;
+  font-size: inherit;
+  font-family: inherit;
+  transition: background-color 0.1s ease-out;
+  opacity: 0.5;
+}
+
+.max_button:hover {
+  background-color: var(--turquoise);
+  cursor: pointer;
+  opacity: 1;
+}

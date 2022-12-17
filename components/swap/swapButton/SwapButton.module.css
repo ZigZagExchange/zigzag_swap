@@ -3,26 +3,32 @@
   padding: 10px;
   border-radius: 4px;
   backdrop-filter: blur(20px);
-  /* background-color: var(--turquoise); */
   background-color: var(--glass_background);
-  /* border: 1px solid var(--turquoise); */
-  /* box-shadow: 0 0 10px var(--glass_shadow); */
+  /* background-color: var(--turquoise); */
 
+  border: 1px solid var(--glass_background);
+  box-shadow: 0 0 10px var(--glass_shadow);
   color: white;
   transition: all 0.1s ease-out;
-  font-size: 1em;
+  /* font-size: 1em; */
+  font-size: inherit;
+
+  width: 100%;
+  /* margin-top: 10px; */
+
+  /* background-color: var(--glass_red);
+  border: 1px solid var(--glass_red);
+  box-shadow: 0 0 10px var(--glass_red); */
 }
 
 .container:not(:disabled):hover {
   cursor: pointer;
   background-color: var(--turquoise);
   border-color: var(--turquoise);
-  color: black;
+  /* color: black; */
 }
 
 .container:disabled {
-  /* opacity: 0.5; */
   background-color: var(--glass_background);
-
   border-color: var(--glass_background);
 }

@@ -33,6 +33,8 @@ export type SwapContextType = {
   setBuyAmount: (amount: number) => void
 
   switchTokens: () => void
+
+  orderBook: ZZOrder[]
 }
 
 export const SwapContext = createContext<SwapContextType>({
@@ -42,10 +44,12 @@ export const SwapContext = createContext<SwapContextType>({
   sellAmount: 0,
   buyAmount: 0,
 
-  setSellAmount: (amount: number) => { },
-  setBuyAmount: (amount: number) => { },
+  setSellAmount: (amount: number) => {},
+  setBuyAmount: (amount: number) => {},
 
-  switchTokens: () => { },
+  switchTokens: () => {},
+
+  orderBook: [],
 })
 
 function SwapProvider({ children }: Props) {
@@ -69,7 +73,7 @@ function SwapProvider({ children }: Props) {
 
     if (
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
-      (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress) 
+      (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
     ) {
       return [null, 1]
     }
@@ -253,16 +257,17 @@ function SwapProvider({ children }: Props) {
   return (
     <SwapContext.Provider
       value={{
-        quoteOrder: quoteOrder,
-        swapPrice: swapPrice,
-        estimatedGasFee: estimatedGasFee,
-        sellAmount: sellAmount,
-        buyAmount: buyAmount,
+        quoteOrder,
+        swapPrice,
+        estimatedGasFee,
+        sellAmount,
+        buyAmount,
 
         setSellAmount: _setSellAmount,
         setBuyAmount: _setBuyAmount,
 
-        switchTokens: switchTokens,
+        switchTokens,
+        orderBook,
       }}
     >
       {children}

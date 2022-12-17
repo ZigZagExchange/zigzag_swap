@@ -13,6 +13,8 @@ import { SwapContext } from "../../contexts/SwapContext"
 import { hideAddress, prettyBalance, prettyBalanceUSD } from "../../utils/utils"
 import { constants, ethers } from "ethers"
 import { INFO_ICON } from "../../public/commonIcons"
+import Separator from "./separator/Separator"
+import DownArrow from "../DownArrow"
 
 export enum ValidationState {
   OK,
@@ -76,13 +78,13 @@ function Swap() {
         _switchTokens()
       } else {
         setSellToken(newTokenAddress)
-      }      
+      }
     } else if (modal === "buy") {
       if (newTokenAddress === sellTokenInfo?.address) {
         _switchTokens()
       } else {
-        setBuyToken(newTokenAddress)        
-      }  
+        setBuyToken(newTokenAddress)
+      }
     }
     setModal(null)
   }
@@ -114,9 +116,9 @@ function Swap() {
 
   // Error messages
   const sellErrorMessage = getErrorMessage(validationStateSell)
-  const sellErrorElement = <div className={`${styles.error_element} ${sellErrorMessage ? "" : styles.hidden_error_element}`}>{sellErrorMessage}</div>
+  const sellErrorElement = <div className={styles.error_element}>{sellErrorMessage}</div>
   const buyErrorMessage = getErrorMessage(validationStateBuy)
-  const buyErrorElement = <div className={`${styles.error_element} ${buyErrorMessage ? "" : styles.hidden_error_element}`}>{buyErrorMessage}</div>
+  const buyErrorElement = <div className={styles.error_element}>{buyErrorMessage}</div>
 
   return (
     <div className={styles.container}>
@@ -125,7 +127,7 @@ function Swap() {
 
         <div className={styles.from_container}>
           <div className={styles.from_header}>
-            <div className={styles.from_title}>{INFO_ICON} From</div>
+            <div className={styles.from_title}> From</div>
             <div className={styles.from_balance}>
               {getBalanceReadable(sellTokenAddress)} {sellTokenSymbol}
             </div>
@@ -141,22 +143,23 @@ function Swap() {
             />
           </div>
           <div className={styles.below_input_container}>
-            {sellErrorMessage ? (
-              sellErrorElement
-            ) : (
-              <div className={styles.address_value_container}>
-                <div>{sellTokenAddress}</div>
-                {sellTokenEstimatedValue}
-              </div>
-            )}
+            {sellErrorElement}
+            <div className={styles.value_container}>{sellTokenEstimatedValue}</div>
+          </div>
+          <div className={styles.sell_token_info}>
+            <div style={{ display: "flex" }}>
+              More info on {sellTokenInfo.name} <DownArrow />
+            </div>
+            <div>Address: {parseInt(sellTokenInfo.address, 16) === 0 ? "Native" : sellTokenInfo.address}</div>
+            <div>Decimals: {sellTokenInfo.decimals}</div>
           </div>
         </div>
 
-        <Separator />
+        <Separator onClick={_switchTokens} />
 
         <div className={styles.to_container}>
           <div className={styles.to_header}>
-            <div className={styles.to_title}>{INFO_ICON} To</div>
+            <div className={styles.to_title}> To</div>
             <div className={styles.to_balance}>
               {getBalanceReadable(buyTokenAddress)} {buyTokenSymbol}
             </div>
@@ -169,35 +172,33 @@ function Swap() {
               setValidationStateBuy={setValidationStateBuy}
             />
           </div>
-          {/* <div className={styles.below_input_container}>
-            <div>{buyTokenAddress}</div>
-            <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)}`}</div>
-          </div> */}
           <div className={styles.below_input_container}>
-            {buyErrorMessage ? (
-              buyErrorElement
-            ) : (
-              <div className={styles.address_value_container}>
-                <div>{buyTokenAddress}</div>
-                {buyTokenEstimatedValue}
-              </div>
-            )}
+            {buyErrorElement}
+            <div className={styles.value_container}>{buyTokenEstimatedValue}</div>
+          </div>
+          <div className={styles.buy_token_info}>
+            <div style={{ display: "flex" }}>
+              More info on {buyTokenInfo.name} <DownArrow />
+            </div>
+            <div>Address: {buyTokenInfo.address}</div>
+            <div>Decimals: {buyTokenInfo.decimals}</div>
           </div>
         </div>
       </div>
-      {!!swapPrice && (
-        <TransactionSettings
-          buySymbol={buyTokenSymbol}
-          sellSymbol={sellTokenSymbol}
-          priceBuy={`$${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
-          priceSell={`$${prettyBalance(swapPrice)}`}
-          priceBuyUsd={buyTokenUsdPrice}
-          priceSellUsd={sellTokenUsdPrice}
-          nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
-          nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
-        />
-      )}
-      {!!swapPrice && <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} />}
+
+      <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} />
+
+      <TransactionSettings
+        buySymbol={buyTokenSymbol}
+        sellSymbol={sellTokenSymbol}
+        priceBuy={`${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
+        priceSell={`${prettyBalance(swapPrice)}`}
+        priceBuyUsd={buyTokenUsdPrice}
+        priceSellUsd={sellTokenUsdPrice}
+        nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
+        nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
+      />
+
       <Modal
         isOpen={modal !== null}
         selectedModal={modal}
@@ -209,27 +210,3 @@ function Swap() {
 }
 
 export default Swap
-
-function Separator() {
-  const { buyTokenInfo, sellTokenInfo, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { switchTokens } = useContext(SwapContext)
-
-  function _switchTokens() {
-    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
-    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
-    switchTokens()
-  }
-
-  return (
-    <div className={styles.arrow_container}>
-      <hr className={styles.hr} />
-      <svg className={styles.arrow} viewBox="0 0 490 490" fill="currentColor" onClick={_switchTokens}>
-        <path
-          d="M52.8,311.3c-12.8-12.8-12.8-33.4,0-46.2c6.4-6.4,14.7-9.6,23.1-9.6s16.7,3.2,23.1,9.6l113.4,113.4V32.7
-c0-18,14.6-32.7,32.7-32.7c18,0,32.7,14.6,32.7,32.7v345.8L391,265.1c12.8-12.8,33.4-12.8,46.2,0c12.8,12.8,12.8,33.4,0,46.2
-L268.1,480.4c-6.1,6.1-14.4,9.6-23.1,9.6c-8.7,0-17-3.4-23.1-9.6L52.8,311.3z"
-        />
-      </svg>
-    </div>
-  )
-}

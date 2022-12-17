@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react"
 
-import { ethers } from "ethers"
+import { ethers, utils } from "ethers"
 
 import input_styles from "../Input.module.css"
 import TokenSelector from "../tokenSelector/TokenSelector"
@@ -74,11 +74,20 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
     setValidationStateSell(validation)
 
     if (
-      newAmount === "0" || 
-      (validation === ValidationState.OK || validation === ValidationState.ExceedsAllowance || validation === ValidationState.InsufficientBalance)
+      newAmount === "0" ||
+      validation === ValidationState.OK ||
+      validation === ValidationState.ExceedsAllowance ||
+      validation === ValidationState.InsufficientBalance
     ) {
       setSellAmount(Number(newAmount))
-    }      
+    }
+  }
+
+  function maximize() {
+    if (!sellTokenInfo || !balance) return
+    const balance_string = utils.formatUnits(balance, sellTokenInfo.decimals)
+    setInput(balance_string)
+    setSellAmount(Number(balance_string))
   }
 
   // if (!isFocused && sellAmount !== Number(input)) setInput(prettyBalance(sellAmount))
@@ -87,6 +96,9 @@ export default function SellInput({ sellTokenInfo, balance, allowance, validatio
   return (
     <div className={`${input_styles.container} ${userAddress && validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
+      <button className={input_styles.max_button} onClick={maximize}>
+        MAX
+      </button>
       <input
         className={input_styles.input}
         onInput={p => safeSetSellAmount(p.currentTarget.value)}

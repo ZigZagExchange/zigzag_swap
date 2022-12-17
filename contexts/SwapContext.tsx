@@ -98,9 +98,18 @@ function SwapProvider({ children }: Props) {
       const { order } = orderBook[i]
       if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
       const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
-      if (sellInput && Number(sellInput) && quoteBuyAmount < Number(sellInput)) continue
-
       const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
+      if (
+        userInputSide === "buy" && 
+        buyInput && Number(buyInput) && 
+        quoteSellAmount < Number(buyInput)
+      ) continue
+      if (
+        userInputSide === "sell" &&
+        sellInput && Number(sellInput) &&
+        quoteBuyAmount < Number(sellInput)
+      ) continue
+
       const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
       if (thisPrice > newSwapPrice) {
         newSwapPrice = thisPrice
@@ -108,7 +117,7 @@ function SwapProvider({ children }: Props) {
       }
     }
     return [newQuoteAmount, newSwapPrice]
-  }, [network, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
+  }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   const [buyAmount, sellAmount] = useMemo((): [number, number] => {
     let newBuyAmount: number = 0

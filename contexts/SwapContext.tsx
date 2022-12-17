@@ -31,7 +31,6 @@ export type SwapContextType = {
   buyAmount: number
   sellInput: string
   buyInput: string
-  isLoadingOrders: boolean
 
   setSellInput: (amount: string) => void
   setBuyInput: (amount: string) => void
@@ -49,7 +48,6 @@ export const SwapContext = createContext<SwapContextType>({
   buyAmount: 0,
   sellInput: "",
   buyInput: "",
-  isLoadingOrders: true,
 
   setSellInput: (amount: string) => {},
   setBuyInput: (amount: string) => {},
@@ -63,7 +61,6 @@ function SwapProvider({ children }: Props) {
   const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
   const [userInputSide, setUserInputtSide] = useState<"buy" | "sell">("sell")
-  const [isLoadingOrders, setIsLoading] = useState<boolean>(true)
   const [sellInput, setSellInput] = useState<string>("")
   const [buyInput, setBuyInput] = useState<string>("")
 
@@ -199,7 +196,6 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo])
 
   async function getOrderBook() {
-    setIsLoading(true)
     if (!network) {
       console.warn("getOrderBook: Missing network")
       return
@@ -230,7 +226,6 @@ function SwapProvider({ children }: Props) {
     const minTimeStamp: number = Date.now() / 1000 + 10
     const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
     setOrderBook(goodOrders)
-    setIsLoading(false)
   }
 
   const switchTokens = () => {
@@ -267,7 +262,6 @@ function SwapProvider({ children }: Props) {
         buyAmount,
         sellInput,
         buyInput,
-        isLoadingOrders,
 
         setSellInput: _setSellInput,
         setBuyInput: _setBuyInput,

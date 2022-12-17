@@ -33,7 +33,7 @@ function Swap() {
 
   const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { sellAmount, buyAmount, swapPrice, isLoadingOrders, switchTokens } = useContext(SwapContext)
+  const { sellAmount, buyAmount, swapPrice, switchTokens } = useContext(SwapContext)
 
   const getBalanceReadable = (tokenAddress: string | null) => {
     if (tokenAddress && balances[tokenAddress]) {
@@ -44,8 +44,6 @@ function Swap() {
   }
 
   const validationStateSell = useMemo((): ValidationState => {
-    if (isLoadingOrders) ValidationState.OK
-
     if (isNaN(sellAmount)) return ValidationState.IsNaN
     if (sellAmount < 0) return ValidationState.IsNegative
     if (!sellTokenInfo) return ValidationState.InternalError
@@ -70,8 +68,6 @@ function Swap() {
 
 
   const validationStateBuy = useMemo((): ValidationState => {
-    if (isLoadingOrders) ValidationState.OK
-
     if (isNaN(buyAmount)) return ValidationState.IsNaN
     if (buyAmount < 0) return ValidationState.IsNegative
 

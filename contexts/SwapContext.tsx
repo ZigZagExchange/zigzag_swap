@@ -54,48 +54,49 @@ export const SwapContext = createContext<SwapContextType>({
 
 function SwapProvider({ children }: Props) {
   const [sellAmount, setSellAmount] = useState<number>(0)
-  const [buyAmount, setBuyAmount] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
 
   const { network, signer } = useContext(WalletContext)
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
-  const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
+  const [quoteOrder, swapPrice, buyAmount] = useMemo((): [ZZOrder | null, number, number] => {
+    let newQuoteAmount: ZZOrder | null = null
+    let newSwapPrice: number = 0
+    let newBuyAmount: number = 0    
     if (!buyTokenInfo) {
       console.warn("buyTokenInfo is null")
-      return [null, 0]
+      return [newQuoteAmount, newSwapPrice, newBuyAmount]
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
-      return [null, 0]
+      return [newQuoteAmount, newSwapPrice, newBuyAmount]
     }
 
     if (
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
       (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
     ) {
-      return [null, 1]
+      return [newQuoteAmount, newSwapPrice, newBuyAmount]
     }
 
     const minTimeStamp: number = Date.now() / 1000 + 15
-    let bestOrder: ZZOrder | null = null
-    let bestPrice: number = 0
     for (let i = 0; i < orderBook.length; i++) {
       const { order } = orderBook[i]
       if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
-      const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
-      if (quoteSellAmount < buyAmount) continue
-
       const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
+      if (quoteBuyAmount < sellAmount) continue
+
+      const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
       const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
-      if (thisPrice > bestPrice) {
-        bestPrice = thisPrice
-        bestOrder = orderBook[i]
+      if (thisPrice > newSwapPrice) {
+        newSwapPrice = thisPrice
+        newQuoteAmount = orderBook[i]
       }
     }
-    return [bestOrder, bestPrice]
-  }, [orderBook, buyAmount, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
+    newBuyAmount = sellAmount * newSwapPrice
+    return [newQuoteAmount, newSwapPrice, newBuyAmount]
+  }, [network, sellAmount, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -166,10 +167,6 @@ function SwapProvider({ children }: Props) {
     getGasFees()
   }, [network, signer, exchangeAddress, quoteOrder])
 
-  // useEffect(() => {
-  //   setBuyAndSellSize(null, sellAmount)
-  // }, [quoteOrder])
-
   useEffect(() => {
     getOrderBook()
 
@@ -211,47 +208,26 @@ function SwapProvider({ children }: Props) {
     const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
     setOrderBook(goodOrders)
   }
-
-  function setBuyAndSellSize(buyAmount: number | null, sellAmount: number | null) {
-    // no price -> reset other side
-    if (!swapPrice) {
-      if (sellAmount) setBuyAmount(0)
-      if (buyAmount) setSellAmount(0)
-      return
-    }
-
-    if (sellAmount) {
-      const newBuyAmount = sellAmount * swapPrice
-      setBuyAmount(newBuyAmount)
-      setSellAmount(sellAmount)
-    } else if (buyAmount) {
-      const newSellAmount = buyAmount / swapPrice
-      setBuyAmount(buyAmount)
-      setSellAmount(newSellAmount)
-    }
-  }
-
+  
   const _setSellAmount = (newSellAmount: number) => {
     if (newSellAmount) {
-      setBuyAndSellSize(null, newSellAmount)
+      setSellAmount(newSellAmount)
     } else {
-      setBuyAmount(0)
       setSellAmount(0)
     }
   }
 
   const _setBuyAmount = (newBuyAmount: number) => {
     if (newBuyAmount) {
-      setBuyAndSellSize(newBuyAmount, null)
+      const newSellAmount = newBuyAmount / swapPrice
+      _setSellAmount(newSellAmount)
     } else {
-      setBuyAmount(0)
       setSellAmount(0)
     }
   }
 
   const switchTokens = () => {
     setSellAmount(buyAmount)
-    setBuyAmount(sellAmount)
   }
 
   return (

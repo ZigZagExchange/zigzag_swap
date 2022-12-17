@@ -6,7 +6,7 @@ import input_styles from "../Input.module.css"
 import TokenSelector from "../tokenSelector/TokenSelector"
 import { SwapContext } from "../../../contexts/SwapContext"
 import { ZZTokenInfo } from "../../../contexts/ExchangeContext"
-import { prettyBalance, truncateDecimals } from "../../../utils/utils"
+import { truncateDecimals } from "../../../utils/utils"
 import { ValidationState } from "../Swap"
 
 interface Props {
@@ -16,25 +16,12 @@ interface Props {
 }
 
 export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal }: Props) {
-  const { buyAmount, setBuyAmount } = useContext(SwapContext)
-
-  // const [isFocused, setIsFocused] = useState<boolean>(false)
-  const [input, setInput] = useState<string>("")
-
-  useEffect(() => {
-    if (buyAmount === 0) {
-      setInput("")
-    } else {
-      console.log("Setting buy input to " + prettyBalance(buyAmount))
-      setInput(prettyBalance(buyAmount))
-    }
-  }, [buyAmount])
+  const { buyInput, setBuyInput } = useContext(SwapContext)
 
   function safeSetBuyAmount(newAmount: string) {
     newAmount = newAmount.replace(",", ".")
     newAmount = truncateDecimals(newAmount, buyTokenInfo ? buyTokenInfo.decimals : 18)
-    setInput(newAmount)
-    setBuyAmount(Number(newAmount))
+    setBuyInput(newAmount)
   }
 
   const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
@@ -46,7 +33,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal }
         onInput={p => safeSetBuyAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
-        value={input}
+        value={buyInput}
         type="number"
         placeholder={"0"}
         onKeyDown={e => {

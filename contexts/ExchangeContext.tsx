@@ -1,4 +1,4 @@
-import React, { useContext, createContext, useEffect, useState } from "react"
+import React, { useContext, createContext, useEffect, useState, useMemo } from "react"
 import { ethers } from "ethers"
 
 import erc20Abi from "../data/abis/erc20.json"
@@ -142,6 +142,19 @@ function ExchangeProvider({ children }: Props) {
 
   const { userAddress, network, ethersProvider, updateWalletBalance } = useContext(WalletContext)
 
+
+  const usdcPriceSource: ethers.Contract | null = useMemo(() => {
+    if (network && network.offChainOracle && ethersProvider) {
+      return new ethers.Contract(network.offChainOracle,
+        [
+          { "inputs": [{ "internalType": "contract IERC20", "name": "srcToken", "type": "address" }, { "internalType": "contract IERC20", "name": "dstToken", "type": "address" }, { "internalType": "bool", "name": "useWrappers", "type": "bool" }], "name": "getRate", "outputs": [{ "internalType": "uint256", "name": "weightedRate", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+        ],
+        ethersProvider
+      )
+    }
+    return null
+  }, [network, ethersProvider])
+
   useEffect(() => {
     fetchMarketsInfo()
 
@@ -168,7 +181,7 @@ function ExchangeProvider({ children }: Props) {
       updateTokenPricesUSD()
     }, 60 * 1000)
     return () => clearInterval(updateTokenPricesUSDInterval)
-  }, [tokenInfos])
+  }, [usdcPriceSource, tokenInfos])
 
   async function fetchMarketsInfo() {
     if (!network) {
@@ -214,34 +227,29 @@ function ExchangeProvider({ children }: Props) {
       console.warn("updateTokenPricesUSD: Missing network")
       return
     }
-    const getPriceUSD = async (symbol: string) => {
-      let result: any
+    if (!usdcPriceSource) {
+      console.warn("updateTokenPricesUSD: Missing usdcPriceSource")
+      return
+    }
+    const getPriceUSD = async (tokenAddress: string) => {
+      if (tokenAddress === network.usdcToken) return 1
       try {
-        const response = await fetch(`https://api.coincap.io/v2/assets?search=${symbol}`)
-        if (response.status !== 200) {
-          console.error(`Failed to fetch token price for ${symbol}.`)
-          return
-        }
-
-        result = await response.json()
+        const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdcToken, true)
+        const weightedRate = ethers.utils.formatUnits(weightedRateParsed, 6)
+        return Number(weightedRate)
       } catch (err: any) {
         console.error(`Error fetching token price: ${err}`)
-        return
+        return 0
       }
-
-      const priceUSD = result.data?.[0]?.priceUsd ? result.data[0].priceUsd : 0
-
-      if (!priceUSD) {
-        console.warn(`Price for ${symbol} is zero`)
-      }
-      return priceUSD
     }
     // reuse old token price infos in case the API is not reachable for short periods
     const updatedTokenPricesUSD = tokenPricesUSD
     // allwas get native currency
-    updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.nativeCurrency.symbol)
+    if (network.wethContractAddress)
+      updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress)
+      
     tokenInfos.forEach(async (token: ZZTokenInfo) => {
-      updatedTokenPricesUSD[token.address] = await getPriceUSD(token.symbol)
+      updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address)
     })
 
     setTokenPricesUSD(updatedTokenPricesUSD)

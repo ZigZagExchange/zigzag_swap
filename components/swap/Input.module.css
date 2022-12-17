@@ -41,7 +41,7 @@
   font-size: inherit;
   font-family: inherit;
   transition: background-color 0.1s ease-out;
-  opacity: 0.5;
+  opacity: 1;
 }
 
 .max_button:hover {

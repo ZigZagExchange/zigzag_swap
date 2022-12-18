@@ -150,7 +150,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(String(sellAmount), sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(sellBalanceParsed)) {
       console.warn("sendSwap: sell amount exceeds balances")
@@ -240,7 +240,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(String(sellAmount), sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(sellBalanceParsed)) {
       console.warn("sendDeposit: sell amount exceeds balances")
@@ -283,7 +283,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(sellAmount.toFixed(sellTokenInfo.decimals), sellTokenInfo.decimals)
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(String(sellAmount), sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(sellBalanceParsed)) {
       console.warn("sendWithdraw: sell amount exceeds balances")

@@ -52,7 +52,7 @@ function Swap() {
     if (sellAmount < 0) return ValidationState.IsNegative
     if (!sellTokenInfo) return ValidationState.InternalError
 
-    const amountString = sellAmount.toFixed(sellTokenInfo.decimals)
+    const amountString = String(sellAmount)
     if (amountString === "") return ValidationState.IsNaN
     if (!swapPrice) return ValidationState.MissingLiquidity
 

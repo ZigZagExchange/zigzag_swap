@@ -5,7 +5,7 @@ import exchangeAbi from "../data/abis/exchange.json"
 
 import { WalletContext } from "./WalletContext"
 import { ExchangeContext } from "./ExchangeContext"
-import { prettyBalance } from "../utils/utils"
+import { prettyBalance, truncateDecimals } from "../utils/utils"
 
 interface Props {
   children: React.ReactNode
@@ -124,17 +124,17 @@ function SwapProvider({ children }: Props) {
     let newSellAmount: number = 0
     if (userInputSide === "buy") {
       if (!swapPrice) return [newBuyAmount, newSellAmount]
-      const buyInputModifyed = buyInput.replace(',', '')
+      const buyInputModifyed = truncateDecimals(buyInput, buyTokenInfo.decimals)
       newBuyAmount = Number(buyInputModifyed)
-      newSellAmount = Number(buyInputModifyed) / swapPrice
+      newSellAmount = Number(truncateDecimals(String(Number(buyInputModifyed) / swapPrice), sellTokenInfo.decimals))
       const newSellInput = newSellAmount === 0 ? "" : prettyBalance(newSellAmount)
 
       setSellInput(newSellInput)
       return [newBuyAmount, newSellAmount]
     } else {
       if (!swapPrice) return [newBuyAmount, newSellAmount]
-      const sellInputModifyed = sellInput.replace(',', '')
-      newBuyAmount = Number(sellInputModifyed) * swapPrice
+      const sellInputModifyed = truncateDecimals(sellInput, sellTokenInfo.decimals)
+      newBuyAmount = Number(truncateDecimals(String(Number(sellInputModifyed) * swapPrice), buyTokenInfo.decimals))
       newSellAmount = Number(sellInputModifyed)
       const newBuyInput = newBuyAmount === 0 ? "" : prettyBalance(newBuyAmount)
 

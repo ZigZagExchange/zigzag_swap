@@ -25,6 +25,16 @@
   justify-content: space-between;
 }
 
+.token_amount {
+  display: flex;
+}
+
+.usd_estimate {
+  display: flex;
+  margin-left: 5px;
+  color: var(--gray_light);
+}
+
 .buy_price_info:nth-child(1),
 .sell_price_info:nth-child(1),
 .gas_fee:nth-child(1) {

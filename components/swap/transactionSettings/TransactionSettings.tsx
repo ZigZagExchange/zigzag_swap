@@ -37,7 +37,10 @@ function TransactionSettings({
     buy_price_element = (
       <div className={styles.buy_price_info}>
         <div>{t("token_buy_price", { tokenSymbol: buySymbol })}</div>
-        <div>{`${priceBuy} ${sellSymbol}  ~$${prettyBalanceUSD(priceBuyUsd)}`}</div>
+        <div className={styles.token_amount}>
+          <div>{`${priceBuy} ${sellSymbol}`}</div>
+          <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceBuyUsd)}`}</div>
+        </div>
       </div>
     )
   }
@@ -47,7 +50,10 @@ function TransactionSettings({
     sell_price_element = (
       <div className={styles.sell_price_info}>
         <div>{t("token_sell_price", { tokenSymbol: sellSymbol })}</div>
-        <div>{`${priceSell} ${buySymbol}  ~$${prettyBalanceUSD(priceSellUsd)}`}</div>
+        <div className={styles.token_amount}>
+          <div>{`${priceSell} ${buySymbol}`}</div>
+          <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceSellUsd)}`}</div>
+        </div>
       </div>
     )
   }
@@ -58,7 +64,10 @@ function TransactionSettings({
     gas_fee_element = (
       <div className={styles.gas_fee}>
         <div>Gas fee</div>
-        <div>{`${prettyBalance(estimatedGasFee, 8)} ${nativeCurrencySymbol}  ~$${estimatedGasFeeUsd}`}</div>
+        <div className={styles.token_amount}>
+          <div>{`${prettyBalance(estimatedGasFee, 8)} ${nativeCurrencySymbol}`}</div>
+          <div className={styles.usd_estimate}>{`~$${estimatedGasFeeUsd}`}</div>
+        </div>
       </div>
     )
   } else if (userAddress) {

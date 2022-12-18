@@ -73,7 +73,7 @@ function SwapProvider({ children }: Props) {
     }
     return null
   }, [exchangeAddress, signer])
-  
+
   const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
     let newQuoteAmount: ZZOrder | null = null
     let newSwapPrice: number = 0
@@ -100,8 +100,8 @@ function SwapProvider({ children }: Props) {
       const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
       const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
       if (
-        userInputSide === "buy" && 
-        buyInput && Number(buyInput) && 
+        userInputSide === "buy" &&
+        buyInput && Number(buyInput) &&
         quoteSellAmount < Number(buyInput)
       ) continue
       if (
@@ -124,16 +124,21 @@ function SwapProvider({ children }: Props) {
     let newSellAmount: number = 0
     if (userInputSide === "buy") {
       if (!swapPrice) return [newBuyAmount, newSellAmount]
-      newBuyAmount = Number(buyInput)
-      newSellAmount = Number(buyInput) / swapPrice
-      setSellInput(prettyBalance(newSellAmount))
+      const buyInputModifyed = buyInput.replace(',', '')
+      newBuyAmount = Number(buyInputModifyed)
+      newSellAmount = Number(buyInputModifyed) / swapPrice
+      const newSellInput = newSellAmount === 0 ? "" : prettyBalance(newSellAmount)
+
+      setSellInput(newSellInput)
       return [newBuyAmount, newSellAmount]
     } else {
       if (!swapPrice) return [newBuyAmount, newSellAmount]
-      newBuyAmount = Number(sellInput) * swapPrice
-      newSellAmount = Number(sellInput)
+      const sellInputModifyed = sellInput.replace(',', '')
+      newBuyAmount = Number(sellInputModifyed) * swapPrice
+      newSellAmount = Number(sellInputModifyed)
+      const newBuyInput = newBuyAmount === 0 ? "" : prettyBalance(newBuyAmount)
 
-      setBuyInput(prettyBalance(newBuyAmount))
+      setBuyInput(newBuyInput)
       return [newBuyAmount, newSellAmount]
     }
   }, [buyInput, sellInput, swapPrice])
@@ -248,7 +253,7 @@ function SwapProvider({ children }: Props) {
 
       setBuyInput(sellInput)
       setSellInput(buyInput)
-    }   
+    }
   }
 
   const _setSellInput = (newInput: string) => {

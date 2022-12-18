@@ -247,7 +247,7 @@ function ExchangeProvider({ children }: Props) {
     // allwas get native currency
     if (network.wethContractAddress)
       updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress)
-      
+
     tokenInfos.forEach(async (token: ZZTokenInfo) => {
       updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address)
     })
@@ -357,7 +357,7 @@ function ExchangeProvider({ children }: Props) {
       console.warn(`setBuyToken: no tokenInfo for ${tokenAddress}`)
     } else {
       setBuyTokenInfo(newBuyTokenInfo)
-    }    
+    }
   }
 
   const setSellToken = (tokenAddress: string) => {
@@ -366,7 +366,7 @@ function ExchangeProvider({ children }: Props) {
       console.warn(`setSellToken: no tokenInfo for ${tokenAddress}`)
     } else {
       setSellTokenInfo(newSellTokenInfo)
-    }    
+    }
   }
 
   return (

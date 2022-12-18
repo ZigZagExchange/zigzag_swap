@@ -31,7 +31,7 @@ function Swap() {
   console.log("SWAP RENDER")
   const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { sellAmount, buyAmount, swapPrice, switchTokens } = useContext(SwapContext)
+  const { sellAmount, buyAmount, swapPrice, switchTokens, setSellInput } = useContext(SwapContext)
 
   const [modal, setModal] = useState<"buy" | "sell" | null>(null)
 
@@ -115,6 +115,7 @@ function Swap() {
       if (newTokenAddress === buyTokenInfo?.address) {
         _switchTokens()
       } else {
+        setSellInput("")
         setSellToken(newTokenAddress)
       }
     } else if (modal === "buy") {

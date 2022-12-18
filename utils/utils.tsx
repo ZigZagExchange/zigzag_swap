@@ -1,9 +1,14 @@
-export function balanceCommas(amount: number) {
-  return amount.toLocaleString(undefined, { minimumFractionDigits: 1 })
+export function balanceCommas(amount: number, decimals: number) {
+  const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+  let [integerString, decimalString] = formattedNumber.split('.')
+  // only remove trailing zeros:
+  while (decimalString.at(-1) === '0') { decimalString = decimalString.substring(0, decimalString.length - 1) }
+  decimalString = decimalString !== "" ? decimalString : '0'
+  return integerString + "." + decimalString
 }
 
 const getDecimalsNeeded = (amount: number | string) => {
-  amount = Number (amount)
+  amount = Number(amount)
   if (amount > 99999) {
     return 0
   } else if (amount > 9999) {
@@ -22,15 +27,13 @@ const getDecimalsNeeded = (amount: number | string) => {
 }
 
 export function prettyBalance(balance: number | string, decimals: number = getDecimalsNeeded(balance)) {
-  const truncattedAmount = truncateDecimals(balance.toString(), decimals, false)
-  if (truncattedAmount === "0") { return "0.0" }
-  return balanceCommas(Number(truncattedAmount))
+  if (balance === 0) { return "0.0" }
+  return balanceCommas(Number(balance), decimals)
 }
 
 export function prettyBalanceUSD(balance: number) {
-  const truncattedAmount = truncateDecimals(balance.toString(), 2, true)
-  if (truncattedAmount === "0") { return "0.0" }
-  return balanceCommas(Number(truncattedAmount))
+  if (balance === 0) { return "0.0" }
+  return balanceCommas(Number(balance), 2)
 }
 
 export function hideAddress(address: string, digits = 4) {
@@ -45,7 +48,7 @@ export function truncateDecimals(numberString: string, decimals: number, padDeci
     } else {
       return splitAtDecimal[0]
     }
-  } 
+  }
 
   let decimalPart = splitAtDecimal.at(-1)
   if (decimalPart !== undefined && decimalPart.length > 0) {

@@ -34,7 +34,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal }
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
         value={buyInput}
-        type="number"
+        type="string"
         placeholder={"0"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols

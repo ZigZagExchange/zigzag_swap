@@ -6,7 +6,7 @@ import input_styles from "../Input.module.css"
 import TokenSelector from "../tokenSelector/TokenSelector"
 import { SwapContext } from "../../../contexts/SwapContext"
 import { ZZTokenInfo } from "../../../contexts/ExchangeContext"
-import { prettyBalance, truncateDecimals } from "../../../utils/utils"
+import { balanceCommas, truncateDecimals } from "../../../utils/utils"
 
 import { ValidationState } from "../Swap"
 import { WalletContext } from "../../../contexts/WalletContext"
@@ -30,8 +30,11 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
 
   function maximize() {
     if (!sellTokenInfo || !balance) return
-    const balanceString = utils.formatUnits(balance, sellTokenInfo.decimals)
-    safeSetSellAmount(prettyBalance(balanceString))
+    let tokenBalance = Number(utils.formatUnits(balance, sellTokenInfo.decimals))
+    if (sellTokenInfo.address === ethers.constants.AddressZero) {
+      tokenBalance -= 0.005
+    }
+    setSellInput(balanceCommas(tokenBalance, sellTokenInfo.decimals))
   }
 
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
@@ -47,7 +50,7 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
         value={sellInput}
-        type="number"
+        type="string"
         placeholder={"0"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols

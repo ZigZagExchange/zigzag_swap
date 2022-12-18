@@ -29,11 +29,11 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
   const selectedToken = selectedModal === "sell" ? sellTokenInfo?.address : buyTokenInfo?.address
 
   const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {
-    const tokens: string[] = []
+    const tokens: string[] = [sellTokenInfo?.address]
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
-      if (sellTokenInfo?.address === tokenB && sellTokenInfo?.address !== tokenA && !tokens.includes(tokenA)) tokens.push(tokenA)
-      if (sellTokenInfo?.address === tokenA && sellTokenInfo?.address !== tokenB && !tokens.includes(tokenB)) tokens.push(tokenB)
+      if (sellTokenInfo?.address === tokenB && !tokens.includes(tokenA)) tokens.push(tokenA)
+      if (sellTokenInfo?.address === tokenA && !tokens.includes(tokenB)) tokens.push(tokenB)
     }
 
     return tokens.map((tokenAddress: string) => {
@@ -42,17 +42,6 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
       return { tokenAddress, balance, value }
     })
   }, [balances, tokenPricesUSD, markets, sellTokenInfo])
-
-  useEffect(() => {
-    if (buyModalTokenEntryList.length === 0) return
-
-    // check if current buy token in possible options
-    const searchList = buyModalTokenEntryList.filter(e => e.tokenAddress === buyTokenInfo?.address)
-    if (searchList.length === 0) {
-      // selected token not in options -> update
-      setBuyToken(buyModalTokenEntryList[0].tokenAddress)
-    }
-  }, [buyModalTokenEntryList])
 
   const sellModalTokenEntryList: TokenEntry[] = useMemo(() => {
     const newTokenEntrysList: TokenEntry[] = []
@@ -111,6 +100,27 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
       }, [] as JSX.Element[]),
     [sortedTokenEntrys, query, selectedToken]
   )
+
+  useEffect(() => {
+    if (buyModalTokenEntryList.length === 0) return
+
+    // check if current buy token in possible options
+    const searchList = buyModalTokenEntryList.filter(e => e.tokenAddress === buyTokenInfo?.address)
+    if (searchList.length === 0) {
+      // selected token not in options -> update
+      setBuyToken(buyModalTokenEntryList[0].tokenAddress)
+    }
+  }, [buyModalTokenEntryList])
+
+  useEffect(() => {
+    const close = (e: any) => {
+      if (e.key === 'Escape') {
+        close_modal()
+      }
+    }
+    if (isOpen) window.addEventListener('keydown', close)    
+    return () => window.removeEventListener('keydown', close)
+  }, [isOpen])
 
   function close_modal() {
     setQuery("")

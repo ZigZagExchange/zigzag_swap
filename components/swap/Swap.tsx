@@ -10,9 +10,8 @@ import SwapButton from "./swapButton/SwapButton"
 import { ExchangeContext, ZZTokenInfo } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
-import { hideAddress, prettyBalance, prettyBalanceUSD } from "../../utils/utils"
+import { prettyBalance, prettyBalanceUSD, truncateDecimals } from "../../utils/utils"
 import { constants, ethers } from "ethers"
-import { INFO_ICON } from "../../public/commonIcons"
 import Separator from "./separator/Separator"
 import DownArrow from "../DownArrow"
 import useTranslation from "next-translate/useTranslation"
@@ -52,7 +51,7 @@ function Swap() {
     if (sellAmount < 0) return ValidationState.IsNegative
     if (!sellTokenInfo) return ValidationState.InternalError
 
-    const amountString = String(sellAmount)
+    const amountString = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
     if (amountString === "") return ValidationState.IsNaN
     if (!swapPrice) return ValidationState.MissingLiquidity
 

@@ -11,6 +11,7 @@ import { SwapContext } from "../../../contexts/SwapContext"
 import { ValidationState } from "../Swap"
 
 import styles from "./SwapButton.module.css"
+import { truncateDecimals } from "../../../utils/utils"
 
 enum SwapMode {
   Disabled,
@@ -150,7 +151,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(String(sellAmount), sellTokenInfo.decimals)
+    const truncatedSellAmount = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(truncatedSellAmount, sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(sellBalanceParsed)) {
       console.warn("sendSwap: sell amount exceeds balances")
@@ -240,7 +242,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(String(sellAmount), sellTokenInfo.decimals)
+    const truncatedSellAmount = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(truncatedSellAmount, sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(sellBalanceParsed)) {
       console.warn("sendDeposit: sell amount exceeds balances")
@@ -283,7 +286,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(String(sellAmount), sellTokenInfo.decimals)
+    const truncatedSellAmount = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
+    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(truncatedSellAmount, sellTokenInfo.decimals)
 
     if (sellAmountParsed.gt(sellBalanceParsed)) {
       console.warn("sendWithdraw: sell amount exceeds balances")

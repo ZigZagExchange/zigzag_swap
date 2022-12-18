@@ -64,3 +64,11 @@ export function truncateDecimals(numberString: string, decimals: number, padDeci
 
   return "0.0"
 }
+
+export function cutNumberToDecimals(inputNumber: number, decimals: number) {
+  const inputNumberString = String(Number)
+  if (inputNumberString.includes('.'))  return inputNumber
+
+  let [integerPart, decimalPart] = inputNumberString.split('.')
+  return integerPart + '.' + decimalPart.substring(0, decimals)
+}

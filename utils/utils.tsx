@@ -53,7 +53,7 @@ export function truncateDecimals(numberString: string, decimals: number, padDeci
   let decimalPart = splitAtDecimal.at(-1)
   if (decimalPart !== undefined && decimalPart.length > 0) {
     if (decimalPart.length > decimals) {
-      decimalPart = decimalPart.slice(0, decimals - decimalPart.length)
+      decimalPart = decimalPart.slice(0, decimals)
     }
     if (padDecimals) {
       return splitAtDecimal[0] + "." + decimalPart + "0".repeat(decimals - decimalPart.length)

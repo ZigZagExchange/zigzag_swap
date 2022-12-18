@@ -90,11 +90,11 @@
   --accent_darker: #5a0012; */
 
   /* Website Palette */
-  --turquoise_lighter: #65e6f7;
-  --turquoise_light: #27e6ec;
+  --turquoise_lighter: #00cfbe;
+  --turquoise_light: #02e7d7;
   --turquoise: #0fc6df;
-  --turquoise_dark: #09a8bdb6;
-  --turquoise_darker: #0569a365;
+  --turquoise_dark: #1997e0;
+  --turquoise_darker: #0d61c065;
 
   --purple_lighter: #ffabd0;
   --purple_light: #ff64a7;
@@ -130,10 +130,8 @@
 
   --glass_red: hsla(0, 100%, 50%, 0.3);
 
-  --zz_light: #02e7d7;
-  --zz_dark: #1997e0;
-
-  --zz_gradient: linear-gradient(-45deg, var(--zz_dark), var(--zz_light));
+  --zz_gradient: linear-gradient(-45deg, var(--turquoise_dark), var(--turquoise_light));
+  --zz_gradient_dark: linear-gradient(-45deg, var(--turquoise_darker), var(--turquoise_dark));
 }
 
 html,

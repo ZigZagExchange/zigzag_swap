@@ -19,7 +19,7 @@
 }
 
 .selected {
-  background: var(--zz_gradient);
+  background: var(--zz_gradient_dark);
   /* color: black; */
 }
 

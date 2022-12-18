@@ -48,7 +48,6 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
     const possibleTokens = getTokens()
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
-      if (tokenAddress === selectedToken) continue
 
       const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
       const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0

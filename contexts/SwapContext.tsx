@@ -5,7 +5,7 @@ import exchangeAbi from "../data/abis/exchange.json"
 
 import { WalletContext } from "./WalletContext"
 import { ExchangeContext } from "./ExchangeContext"
-import { prettyBalance, truncateDecimals } from "../utils/utils"
+import { getBigNumberFromInput, prettyBalance, truncateDecimals } from "../utils/utils"
 
 interface Props {
   children: React.ReactNode
@@ -27,8 +27,8 @@ export type SwapContextType = {
   quoteOrder: ZZOrder | null
   swapPrice: number
   estimatedGasFee: number | undefined
-  sellAmount: number
-  buyAmount: number
+  sellAmount: ethers.BigNumber
+  buyAmount: ethers.BigNumber
   sellInput: string
   buyInput: string
 
@@ -44,15 +44,15 @@ export const SwapContext = createContext<SwapContextType>({
   quoteOrder: null,
   swapPrice: 0,
   estimatedGasFee: undefined,
-  sellAmount: 0,
-  buyAmount: 0,
+  sellAmount: ethers.constants.Zero,
+  buyAmount: ethers.constants.Zero,
   sellInput: "",
   buyInput: "",
 
-  setSellInput: (amount: string) => {},
-  setBuyInput: (amount: string) => {},
+  setSellInput: (amount: string) => { },
+  setBuyInput: (amount: string) => { },
 
-  switchTokens: () => {},
+  switchTokens: () => { },
 
   orderBook: [],
 })
@@ -74,6 +74,19 @@ function SwapProvider({ children }: Props) {
     return null
   }, [exchangeAddress, signer])
 
+  const wethContract: ethers.Contract | null = useMemo(() => {
+    if (network && network.wethContractAddress && signer) {
+      return new ethers.Contract(network.wethContractAddress,
+        [
+          { "constant": false, "inputs": [], "name": "deposit", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" },
+          { "constant": false, "inputs": [{ "name": "wad", "type": "uint256" }], "name": "withdraw", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }
+        ],
+        signer
+      )
+    }
+    return null
+  }, [network, signer])
+
   const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
     let newQuoteAmount: ZZOrder | null = null
     let newSwapPrice: number = 0
@@ -90,27 +103,36 @@ function SwapProvider({ children }: Props) {
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
       (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
     ) {
-      return [newQuoteAmount, 1]
+      const fakeWrapUnwrapOrder: ZZOrder = {
+          order: {
+            user: "0x0",
+            buyToken: "0x0",
+            sellToken: "0x0",
+            buyAmount: "1",
+            sellAmount: "1",
+            expirationTimeSeconds: "99999999999999999"
+          },
+        signature: "0x0",
+      }
+      return [fakeWrapUnwrapOrder, 1]
     }
 
     const minTimeStamp: number = Date.now() / 1000 + 15
     for (let i = 0; i < orderBook.length; i++) {
       const { order } = orderBook[i]
       if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
-      const quoteBuyAmount = Number(ethers.utils.formatUnits(order.buyAmount, sellTokenInfo.decimals))
-      const quoteSellAmount = Number(ethers.utils.formatUnits(order.sellAmount, buyTokenInfo.decimals))
-      if (
-        userInputSide === "buy" &&
-        buyInput && Number(buyInput) &&
-        quoteSellAmount < Number(buyInput)
-      ) continue
-      if (
-        userInputSide === "sell" &&
-        sellInput && Number(sellInput) &&
-        quoteBuyAmount < Number(sellInput)
-      ) continue
 
-      const thisPrice = (quoteSellAmount * (1 - takerFee)) / (quoteBuyAmount * (1 - makerFee))
+      const parsedBuyInput = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
+      const quoteSellAmount = ethers.BigNumber.from(order.sellAmount)
+      if (userInputSide === "buy" && quoteSellAmount.lt(parsedBuyInput)) continue
+
+      const parsedSellInput = getBigNumberFromInput(sellInput, sellTokenInfo.decimals)
+      const quoteBuyAmount = ethers.BigNumber.from(order.buyAmount)
+      if (userInputSide === "sell" && quoteBuyAmount.lt(parsedSellInput)) continue
+
+      const quoteSellAmountFormated = Number(ethers.utils.formatUnits(quoteSellAmount, buyTokenInfo.decimals))
+      const quoteBuyAmountFormated = Number(ethers.utils.formatUnits(quoteBuyAmount, sellTokenInfo.decimals))
+      const thisPrice = (quoteSellAmountFormated * (1 - takerFee)) / (quoteBuyAmountFormated * (1 - makerFee))
       if (thisPrice > newSwapPrice) {
         newSwapPrice = thisPrice
         newQuoteAmount = orderBook[i]
@@ -119,29 +141,39 @@ function SwapProvider({ children }: Props) {
     return [newQuoteAmount, newSwapPrice]
   }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
-  const [buyAmount, sellAmount] = useMemo((): [number, number] => {
-    let newBuyAmount: number = 0
-    let newSellAmount: number = 0
-    if (userInputSide === "buy") {
-      if (!swapPrice) return [newBuyAmount, newSellAmount]
-      const buyInputModifyed = truncateDecimals(buyInput, buyTokenInfo.decimals)
-      newBuyAmount = Number(buyInputModifyed)
-      newSellAmount = Number(truncateDecimals(String(Number(buyInputModifyed) / swapPrice), sellTokenInfo.decimals))
-      const newSellInput = newSellAmount === 0 ? "" : prettyBalance(newSellAmount)
+  const [buyAmount, sellAmount] = useMemo((): [ethers.BigNumber, ethers.BigNumber] => {
+    let newBuyAmount: ethers.BigNumber = ethers.constants.Zero
+    let newSellAmount: ethers.BigNumber = ethers.constants.Zero
+    if (!sellTokenInfo || !buyTokenInfo || !quoteOrder) return [newBuyAmount, newSellAmount]
+    const quoteSellAmount = ethers.BigNumber.from(quoteOrder.order.sellAmount)
+    const quoteBuyAmount = ethers.BigNumber.from(quoteOrder.order.buyAmount)
 
-      setSellInput(newSellInput)
+    if (userInputSide === "buy") {
+      newBuyAmount = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
+      newSellAmount = newBuyAmount.mul(quoteBuyAmount).div(quoteSellAmount)
+
+      if (newSellAmount.eq(0)) {
+        setSellInput("")
+      } else {
+        const newSellAmountFormated = ethers.utils.formatUnits(newSellAmount, sellTokenInfo.decimals)
+        setSellInput(prettyBalance(newSellAmountFormated))
+      }
+
       return [newBuyAmount, newSellAmount]
     } else {
-      if (!swapPrice) return [newBuyAmount, newSellAmount]
-      const sellInputModifyed = truncateDecimals(sellInput, sellTokenInfo.decimals)
-      newBuyAmount = Number(truncateDecimals(String(Number(sellInputModifyed) * swapPrice), buyTokenInfo.decimals))
-      newSellAmount = Number(sellInputModifyed)
-      const newBuyInput = newBuyAmount === 0 ? "" : prettyBalance(newBuyAmount)
+      newSellAmount = getBigNumberFromInput(sellInput, sellTokenInfo.decimals)
+      newBuyAmount = newSellAmount.mul(quoteSellAmount).div(quoteBuyAmount)
 
-      setBuyInput(newBuyInput)
+      if (newBuyAmount.eq(0)) {
+        setBuyInput("")
+      } else {
+        const newBuyAmountFormated = ethers.utils.formatUnits(newBuyAmount, buyTokenInfo.decimals)
+        setBuyInput(prettyBalance(newBuyAmountFormated))
+      }
+
       return [newBuyAmount, newSellAmount]
     }
-  }, [buyInput, sellInput, swapPrice])
+  }, [buyInput, sellInput, quoteOrder])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -162,11 +194,6 @@ function SwapProvider({ children }: Props) {
         return
       }
 
-      if (!exchangeContract) {
-        console.warn("getGasFees: missing exchangeContract")
-        return
-      }
-
       let estimatedGasUsed = ethers.constants.Zero
       try {
         const feeData = await signer.getFeeData()
@@ -175,19 +202,41 @@ function SwapProvider({ children }: Props) {
           return
         }
 
-        estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(
-          [
-            quoteOrder.order.user,
-            quoteOrder.order.sellToken,
-            quoteOrder.order.buyToken,
-            quoteOrder.order.sellAmount,
-            quoteOrder.order.buyAmount,
-            quoteOrder.order.expirationTimeSeconds,
-          ],
-          quoteOrder.signature,
-          "1",
-          false
-        )
+        if (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) {
+          // deposit
+          if (!wethContract) {
+            console.warn("getGasFees: missing wethContract")
+            return
+          }
+          estimatedGasUsed = await wethContract.estimateGas.deposit({ value: "1" })
+        } else if (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress) {
+          // withdraw
+          if (!wethContract) {
+            console.warn("getGasFees: missing wethContract")
+            return
+          }
+          estimatedGasUsed = await wethContract.estimateGas.withdraw("1")
+        } else {
+          // swap
+          if (!exchangeContract) {
+            console.warn("getGasFees: missing exchangeContract")
+            return
+          }
+
+          estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(
+            [
+              quoteOrder.order.user,
+              quoteOrder.order.sellToken,
+              quoteOrder.order.buyToken,
+              quoteOrder.order.sellAmount,
+              quoteOrder.order.buyAmount,
+              quoteOrder.order.expirationTimeSeconds,
+            ],
+            quoteOrder.signature,
+            "1",
+            false
+          )
+        }
 
         const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.mul(estimatedGasUsed)
         const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)

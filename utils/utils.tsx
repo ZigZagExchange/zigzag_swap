@@ -1,3 +1,5 @@
+import { ethers } from "ethers"
+
 export function balanceCommas(amount: number, decimals: number) {
   const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
   let [integerString, decimalString] = formattedNumber.split('.')
@@ -62,5 +64,12 @@ export function truncateDecimals(numberString: string, decimals: number, padDeci
     }
   }
 
-  return "0.0"
+  // this is probably "0."
+  return numberString
+}
+
+export function getBigNumberFromInput(input: string, decimals: number): ethers.BigNumber {
+  if (input === "") return ethers.constants.Zero
+  const inputModifyed = truncateDecimals(input, decimals)
+  return ethers.utils.parseUnits(inputModifyed, decimals)
 }

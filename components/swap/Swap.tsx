@@ -46,23 +46,15 @@ function Swap() {
 
   const validationStateSell = useMemo((): ValidationState => {
     if (!userAddress) return ValidationState.OK
-
-    if (isNaN(sellAmount)) return ValidationState.IsNaN
-    if (sellAmount < 0) return ValidationState.IsNegative
     if (!sellTokenInfo) return ValidationState.InternalError
-
-    const amountString = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
-    if (amountString === "") return ValidationState.IsNaN
     if (!swapPrice) return ValidationState.MissingLiquidity
 
     const balance = balances[sellTokenInfo.address] ? balances[sellTokenInfo.address].value : ethers.constants.Zero
     if (balance === null) return ValidationState.InsufficientBalance
-
-    const amountBN = ethers.utils.parseUnits(amountString, sellTokenInfo.decimals)
-    if (amountBN.gt(balance)) return ValidationState.InsufficientBalance
+    if (sellAmount.gt(balance)) return ValidationState.InsufficientBalance
 
     const allowance = allowances[sellTokenInfo.address] ? allowances[sellTokenInfo.address] : ethers.constants.Zero
-    if (allowance !== null && allowance !== undefined && amountBN.gt(allowance)) {
+    if (allowance !== null && allowance !== undefined && sellAmount.gt(allowance)) {
       return ValidationState.ExceedsAllowance
     }
 
@@ -71,16 +63,10 @@ function Swap() {
 
   const validationStateBuy = useMemo((): ValidationState => {
     if (!userAddress) return ValidationState.OK
-
-    if (isNaN(buyAmount)) return ValidationState.IsNaN
-    if (buyAmount < 0) return ValidationState.IsNegative
-
-    const amountString = String(buyAmount)
-    if (amountString === "") return ValidationState.IsNaN
     if (!buyTokenInfo) return ValidationState.InternalError
 
     return ValidationState.OK
-  }, [userAddress, buyAmount, buyTokenInfo])
+  }, [userAddress, buyTokenInfo])
 
   const getErrorMessage = (validationState: ValidationState) => {
     if (!userAddress) return
@@ -137,20 +123,33 @@ function Swap() {
   const sellTokenUsdPrice = sellTokenAddress && tokenPricesUSD[sellTokenAddress] ? tokenPricesUSD[sellTokenAddress] : undefined
 
   // Estimated sell token value
-  let sellTokenEstimatedValue
-  if (sellTokenUsdPrice !== undefined && sellAmount !== 0) {
-    sellTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmount * sellTokenUsdPrice)}`}</div>
-  }
+  const sellTokenEstimatedValue: any = useMemo(() => {
+    if (sellTokenUsdPrice !== undefined) {
+      const sellAmountFormated = Number(ethers.utils.formatUnits(sellAmount, sellTokenInfo.decimals))
+      if (sellAmountFormated === 0) return
+      return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmountFormated * sellTokenUsdPrice)}`}</div>
+    }
+  }, [sellTokenInfo, sellAmount, sellTokenUsdPrice])
+
 
   // Estimated buy token value
-  let buyTokenEstimatedValue
-  if (buyTokenUsdPrice !== undefined && buyAmount !== 0) {
-    let percent
-    if (sellTokenUsdPrice !== undefined && sellAmount !== 0)
-      percent = `(${prettyBalanceUSD(buyAmount * buyTokenUsdPrice - sellAmount * sellTokenUsdPrice)}%)`
+  const buyTokenEstimatedValue: any = useMemo(() => {
+    if (buyTokenUsdPrice !== undefined) {
+      const buyAmountFormated = Number(ethers.utils.formatUnits(buyAmount, buyTokenInfo.decimals))
+      if (buyAmountFormated === 0) return
 
-    buyTokenEstimatedValue = <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmount * buyTokenUsdPrice)} ${percent}`}</div>
-  }
+      let percent
+      if (sellTokenUsdPrice !== undefined) {
+        const sellAmountFormated = Number(ethers.utils.formatUnits(sellAmount, sellTokenInfo.decimals))
+        if (sellAmountFormated === 0) {
+          return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice)}`}</div>
+        }
+        percent = `(${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice - sellAmountFormated * sellTokenUsdPrice)}%)`
+      }
+      return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice)} ${percent}`}</div>
+    }
+    return
+  }, [sellTokenInfo, buyTokenInfo, sellAmount, buyAmount, sellTokenUsdPrice, buyTokenUsdPrice])
 
   // Error messages
   const sellErrorMessage = getErrorMessage(validationStateSell)

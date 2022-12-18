@@ -30,7 +30,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
   const [swapMode, setSwapMode] = useState<SwapMode>(SwapMode.Disabled)
 
   const { network, signer, userAddress } = useContext(WalletContext)
-  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, updateAllowances, updateBalances } = useContext(ExchangeContext)
+  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, takerFee, makerFee, updateAllowances, updateBalances } = useContext(ExchangeContext)
   const { sellAmount, quoteOrder } = useContext(SwapContext)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
@@ -140,8 +140,8 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       console.log(`sendSwap: ${remainingTime} seconds remaining`)
     }
 
-    if (!sellAmount || !sellTokenInfo || !buyTokenInfo) {
-      console.warn("sendSwap: missing sellAmount, sellTokenInfo or buyTokenInfo")
+    if (!sellTokenInfo || !buyTokenInfo) {
+      console.warn("sendSwap: missing sellTokenInfo or buyTokenInfo")
       return
     }
     const sellBalanceParsed = balances[sellTokenInfo.address]?.value
@@ -151,27 +151,31 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    const truncatedSellAmount = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(truncatedSellAmount, sellTokenInfo.decimals)
-
-    if (sellAmountParsed.gt(sellBalanceParsed)) {
+    if (sellAmount.gt(sellBalanceParsed)) {
       console.warn("sendSwap: sell amount exceeds balances")
       return
     }
 
-    if (sellAmountParsed.gt(quoteOrder.order.buyAmount)) {
+    if (sellAmount.gt(quoteOrder.order.buyAmount)) {
       console.warn("sendSwap: sell amount exceeds quote buy amount")
       return
     }
 
-    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber()
+    let sellAmountForSwap: ethers.BigNumber
+    const delta = sellAmount.mul("100000").div(sellBalanceParsed).toNumber()
     if (delta > 99990) {
       // prevent dust issues
       // 99.9 %
-      sellAmountParsed = sellBalanceParsed
+      sellAmountForSwap = sellBalanceParsed
+    } else {
+      sellAmountForSwap = sellAmount
     }
+    const quoteSellAmount = ethers.BigNumber.from(quoteOrder.order.sellAmount)
+    const quoteBuyAmount = ethers.BigNumber.from(quoteOrder.order.buyAmount)
+    const quoteSellAmountWithFee = quoteSellAmount.add(quoteSellAmount.mul(takerFee * 10000).div(10000))
+    const quoteBuyAmountWithFee = quoteBuyAmount.add(quoteBuyAmount.mul(makerFee * 10000).div(10000))
+    const buyAmountForSwap: ethers.BigNumber = sellAmountForSwap.mul(quoteSellAmountWithFee).div(quoteBuyAmountWithFee)
 
-    const buyAmountParsed = sellAmountParsed.mul(quoteOrder.order.sellAmount).div(quoteOrder.order.buyAmount)
     const tx = await exchangeContract.fillOrder(
       [
         quoteOrder.order.user,
@@ -182,7 +186,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
         quoteOrder.order.expirationTimeSeconds,
       ],
       quoteOrder.signature,
-      buyAmountParsed.toString(),
+      buyAmountForSwap.toString(),
       false
     )
     console.log("sendSwap: swap submitted: ", tx)
@@ -231,10 +235,6 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    if (!sellAmount) {
-      console.warn("sendDeposit: missing sellAmount, sellTokenInfo or buyTokenInfo")
-      return
-    }
     const sellBalanceParsed = balances[sellTokenInfo.address]?.value
 
     if (!sellBalanceParsed) {
@@ -242,22 +242,22 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    const truncatedSellAmount = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(truncatedSellAmount, sellTokenInfo.decimals)
-
-    if (sellAmountParsed.gt(sellBalanceParsed)) {
+    if (sellAmount.gt(sellBalanceParsed)) {
       console.warn("sendDeposit: sell amount exceeds balances")
       return
     }
 
-    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber()
+    let transactionValue: ethers.BigNumber
+    const delta = sellAmount.mul("100000").div(sellBalanceParsed).toNumber()
     if (delta > 99990) {
       // prevent dust issues
       // 99.9 %
-      sellAmountParsed = sellBalanceParsed
+      transactionValue = sellBalanceParsed
+    } else {
+      transactionValue = sellAmount
     }
 
-    const tx = await wethContract.deposit({ value: sellAmountParsed })
+    const tx = await wethContract.deposit({ value: transactionValue })
     console.log("sendDeposit: deposit submitted: ", tx)
     await tx.wait()
     console.log("sendDeposit: tx processed")
@@ -275,10 +275,6 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    if (!sellAmount) {
-      console.warn("sendWithdraw: missing sellAmount, sellTokenInfo or buyTokenInfo")
-      return
-    }
     const sellBalanceParsed = balances[sellTokenInfo.address]?.value
 
     if (!sellBalanceParsed) {
@@ -286,22 +282,22 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
       return
     }
 
-    const truncatedSellAmount = truncateDecimals(String(sellAmount), sellTokenInfo.decimals)
-    let sellAmountParsed: ethers.BigNumber = ethers.utils.parseUnits(truncatedSellAmount, sellTokenInfo.decimals)
-
-    if (sellAmountParsed.gt(sellBalanceParsed)) {
+    if (sellAmount.gt(sellBalanceParsed)) {
       console.warn("sendWithdraw: sell amount exceeds balances")
       return
     }
 
-    const delta = sellAmountParsed.mul("100000").div(sellBalanceParsed).toNumber()
+    let transactionValue: ethers.BigNumber
+    const delta = sellAmount.mul("100000").div(sellBalanceParsed).toNumber()
     if (delta > 99990) {
       // prevent dust issues
       // 99.9 %
-      sellAmountParsed = sellBalanceParsed
+      transactionValue = sellBalanceParsed
+    } else {
+      transactionValue = sellAmount
     }
 
-    const tx = await wethContract.withdraw(sellAmountParsed)
+    const tx = await wethContract.withdraw(transactionValue)
     console.log("sendWithdraw: withdraw submitted: ", tx)
     await tx.wait()
     console.log("sendWithdraw: tx processed")

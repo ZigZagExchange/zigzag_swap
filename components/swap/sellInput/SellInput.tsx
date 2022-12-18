@@ -14,7 +14,7 @@ import { WalletContext } from "../../../contexts/WalletContext"
 interface Props {
   sellTokenInfo: ZZTokenInfo | null
   balance: ethers.BigNumber | null
-  validationStateSell: ValidationState  
+  validationStateSell: ValidationState
   openModal: () => void
 }
 
@@ -30,11 +30,11 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
 
   function maximize() {
     if (!sellTokenInfo || !balance) return
-    let tokenBalance = Number(utils.formatUnits(balance, sellTokenInfo.decimals))
+    let tokenBalance: string = utils.formatUnits(balance, sellTokenInfo.decimals)
     if (sellTokenInfo.address === ethers.constants.AddressZero) {
-      tokenBalance -= 0.005
+      tokenBalance = String(Number(tokenBalance) - 0.005)
     }
-    setSellInput(balanceCommas(tokenBalance, sellTokenInfo.decimals))
+    setSellInput(tokenBalance)
   }
 
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"

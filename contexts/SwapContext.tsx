@@ -88,15 +88,15 @@ function SwapProvider({ children }: Props) {
   }, [network, signer])
 
   const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
-    let newQuoteAmount: ZZOrder | null = null
+    let newQuoteOrder: ZZOrder | null = null
     let newSwapPrice: number = 0
     if (!buyTokenInfo) {
       console.warn("buyTokenInfo is null")
-      return [newQuoteAmount, newSwapPrice]
+      return [newQuoteOrder, newSwapPrice]
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
-      return [newQuoteAmount, newSwapPrice]
+      return [newQuoteOrder, newSwapPrice]
     }
 
     if (
@@ -117,7 +117,7 @@ function SwapProvider({ children }: Props) {
       return [fakeWrapUnwrapOrder, 1]
     }
 
-    const minTimeStamp: number = Date.now() / 1000 + 15
+    const minTimeStamp: number = Date.now() / 1000 + 12
     for (let i = 0; i < orderBook.length; i++) {
       const { order } = orderBook[i]
       if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
@@ -135,10 +135,10 @@ function SwapProvider({ children }: Props) {
       const thisPrice = (quoteSellAmountFormated * (1 - takerFee)) / (quoteBuyAmountFormated * (1 - makerFee))
       if (thisPrice > newSwapPrice) {
         newSwapPrice = thisPrice
-        newQuoteAmount = orderBook[i]
+        newQuoteOrder = orderBook[i]
       }
     }
-    return [newQuoteAmount, newSwapPrice]
+    return [newQuoteOrder, newSwapPrice]
   }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   const [buyAmount, sellAmount] = useMemo((): [ethers.BigNumber, ethers.BigNumber] => {
@@ -254,7 +254,7 @@ function SwapProvider({ children }: Props) {
 
     const refreshOrderBookInterval = setInterval(() => {
       getOrderBook()
-    }, 5 * 1000)
+    }, 4 * 1000)
     return () => clearInterval(refreshOrderBookInterval)
   }, [network, buyTokenInfo, sellTokenInfo])
 

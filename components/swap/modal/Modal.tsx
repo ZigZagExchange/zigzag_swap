@@ -29,13 +29,23 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
   const selectedToken = selectedModal === "sell" ? sellTokenInfo?.address : buyTokenInfo?.address
 
   const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {
-    const tokens: string[] = [sellTokenInfo?.address]
+    const tokens: string[] = []
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
       if (sellTokenInfo?.address === tokenB && !tokens.includes(tokenA)) tokens.push(tokenA)
       if (sellTokenInfo?.address === tokenA && !tokens.includes(tokenB)) tokens.push(tokenB)
     }
 
+    if (tokens.length === 0) return []
+    // check if current buy token in possible options
+    const searchList = tokens.filter(tokenAddress => tokenAddress === buyTokenInfo?.address)
+    if (searchList.length === 0) {
+      // selected token not in options -> update
+      setBuyToken(tokens[0])
+    }
+
+    // push sellToken as well
+    tokens.push(sellTokenInfo?.address)    
     return tokens.map((tokenAddress: string) => {
       const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
       const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
@@ -99,17 +109,6 @@ export default function Modal({ selectedModal, onTokenClick, isOpen, close }: Pr
       }, [] as JSX.Element[]),
     [sortedTokenEntrys, query, selectedToken]
   )
-
-  useEffect(() => {
-    if (buyModalTokenEntryList.length === 0) return
-
-    // check if current buy token in possible options
-    const searchList = buyModalTokenEntryList.filter(e => e.tokenAddress === buyTokenInfo?.address)
-    if (searchList.length === 0) {
-      // selected token not in options -> update
-      setBuyToken(buyModalTokenEntryList[0].tokenAddress)
-    }
-  }, [buyModalTokenEntryList])
 
   useEffect(() => {
     const close = (e: any) => {

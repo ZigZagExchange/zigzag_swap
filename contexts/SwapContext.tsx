@@ -274,7 +274,8 @@ function SwapProvider({ children }: Props) {
 
     let orders: { orders: ZZOrder[] }
     try {
-      const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}`)
+      const minExpires = (Date.now() / 1000 + 11).toFixed(0)
+      const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}&minExpires=${minExpires}`)
       if (response.status !== 200) {
         console.error("Failed to fetch order book.")
         return

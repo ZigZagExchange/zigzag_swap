@@ -36,6 +36,8 @@
   transition: all ease-out 0.1s;
   border-radius: 4px;
   font-size: 1em;
+
+  outline: none;
 }
 
 .button:hover {

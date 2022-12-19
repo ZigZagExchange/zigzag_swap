@@ -56,9 +56,35 @@
   --onboard-modal-border-radius: 14px;
 
   --onboard-font-family-normal: "Poppins", sans-serif;
-  --onboard-font-family-semibold: Sofia Pro Semibold;
-  --onboard-font-family-light: Sofia Pro Light;
+  --onboard-font-family-semibold: "Poppins", sans-serif
+  --onboard-font-family-light: "Poppins", sans-serif;
   --onboard-font-size-5: 0.9rem;
+
+  --account-select-white: rgb(3, 25, 43);
+  /* --account-select-white: gray;  */
+  --account-select-gray-700: white;
+  --account-select-black: white;
+  --account-select-gray-600:var(--turquoise_dark);
+  --account-select-gray-500:var(--turquoise_dark);
+  --onboard-gray-400: rgb(3, 25, 43);
+  --onboard-white: var(--turquoise_dark);
+  --account-select-gray-200:none;
+  --account-select-gray-100:var(--turquoise_darker);
+  
+  --account-select-primary-500:var(--turquoise_dark);
+  --account-select-primary-300:var(--turquoise_dark);
+
+  --account-select-modal-primary-100: #eff1fc;
+  --account-select-modal-primary-200: #d0d4f7;
+  --account-select-modal-primary-300: #b1b8f2;
+  --account-select-modal-primary-500: #6370e5;
+  --account-select-modal-primary-600: #454ea0;
+  --account-select-modal-gray-100: #ebebed;
+  --account-select-modal-gray-200: #c2c4c9;
+  --account-select-modal-gray-300: #999ca5;
+  --account-select-modal-gray-500: #33394b;
+  --account-select-modal-gray-700: #1a1d26;
+  --account-select-modal-danger-500: #ff4f4f;
 
   /* --onboard-modal-backdrop: ; */
 

@@ -32,7 +32,7 @@
 .usd_estimate {
   display: flex;
   margin-left: 5px;
-  color: var(--gray_light);
+  opacity: 0.5;
 }
 
 .buy_price_info:nth-child(1),

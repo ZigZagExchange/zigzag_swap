@@ -178,3 +178,9 @@
     font-size: small !important;
   }
 }
+
+@media (width<=500px) {
+  .username_address_container {
+    display: none;
+  }
+}

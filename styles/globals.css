@@ -26,24 +26,41 @@
   --onboard-danger-600: #cc0000;
   --onboard-warning-500: #ffaf00;
 
-  --onboard-wallet-columns: 1;
+  --onboard-wallet-columns: 2;
 
-  --onboard-connect-sidebar-background: #1a1d26;
-  --onboard-connect-sidebar-color: #a9b2c4;
-  --onboard-connect-header-background: #1a1d26;
+  --onboard-connect-sidebar-background: var(--zz_gradient_dark);
+  --onboard-connect-sidebar-color: white;
+  --onboard-connect-header-background: transparent;
   --onboard-connect-header-color: #a9b2c4;
-  --onboard-main-scroll-container-background: #1a1d26;
-  --onboard-wallet-button-background: #1a1d26;
-  --onboard-wallet-button-background-hover: var(--turquoise_darker);
-  --onboard-wallet-button-border-color: var(--turquoise);
-  --onboard-wallet-app-icon-border-color: var(--turquoise);
-  --onboard-close-button-background: var(--turquoise_dark);
-  --onboard-close-button-color: #000000;
-  --onboard-wallet-button-color: #a9b2c4;
-  --onboard-wallet-button-box-shadow: #1a1d26;
+  --onboard-main-scroll-container-background: var(--glass_background);
 
-  --onboard-modal-background: #1a1d26;
+  --onboard-wallet-app-icon-border-color: transparent;
+  --onboard-connect-sidebar-progress-background: white;
+  --onboard-connect-sidebar-progress-color: var(--turquoise_dark);
+
+  --onboard-close-button-background: var(--zz_gradient_dark);
+  --onboard-close-button-background-hover: var(--zz_gradient);
+  --onboard-close-button-color: rgb(3, 25, 43);
+
+  --onboard-wallet-button-background: var(--zz_gradient_dark);
+  --onboard-wallet-button-background-hover: var(--zz_gradient);
+  --onboard-wallet-button-border-color: none;
+  --onboard-wallet-button-color: white;
+  --onboard-wallet-button-color-hover: white;
+
+  --onboard-wallet-button-box-shadow: var(--glass_shadow);
+
+  --onboard-modal-background: rgb(3, 25, 43);
   --onboard-modal-color: #a9b2c4;
+
+  --onboard-modal-border-radius: 14px;
+
+  --onboard-font-family-normal: "Poppins", sans-serif;
+  --onboard-font-family-semibold: Sofia Pro Semibold;
+  --onboard-font-family-light: Sofia Pro Light;
+  --onboard-font-size-5: 0.9rem;
+
+  /* --onboard-modal-backdrop: ; */
 
   /* Theme colors */
 

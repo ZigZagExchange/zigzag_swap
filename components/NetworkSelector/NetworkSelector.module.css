@@ -148,3 +148,9 @@
   padding-left: 5px;
   padding-right: 3px;
 }
+
+@media (width<=500px) {
+  .selected_name_container {
+    display: none;
+  }
+}

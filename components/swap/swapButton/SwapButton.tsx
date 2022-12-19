@@ -310,7 +310,7 @@ export default function SwapButton({ validationStateBuy, validationStateSell }: 
     <button
       className={styles.container}
       onClick={handleSwapButton}
-      disabled={signer === null || swapMode === SwapMode.Disabled || !sellAmount}
+      disabled={signer === null || swapMode === SwapMode.Disabled || sellAmount.eq(ethers.constants.Zero)}
     >
       {buttonText}
     </button>

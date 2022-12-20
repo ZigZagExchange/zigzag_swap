@@ -83,3 +83,9 @@ export default function Modal({ selectedModal, onTokenClick, close }: Props) {
     )
   } else return <></>
 }
+
+export const rightArrow = (
+  <svg viewBox="0 0 490 490" height="1em">
+    <path d="M15.541,490V0l458.917,245.009L15.541,490z" />
+  </svg>
+)

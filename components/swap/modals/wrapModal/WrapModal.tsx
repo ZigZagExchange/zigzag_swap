@@ -6,6 +6,7 @@ import { SwapContext } from "../../../../contexts/SwapContext"
 import useCountdown from "../../../../hooks/useCountdown"
 import { parseError, prettyBalance } from "../../../../utils/utils"
 import TransactionProgress from "../../../transactionProgress/TransactionProgress"
+import { rightArrow } from "../../modal/Modal"
 import styles from "./WrapModal.module.css"
 
 interface Props {
@@ -30,7 +31,7 @@ export default function WrapModal({ close }: Props) {
   return (
     <div className={styles.container}>
       <div className={styles.title}>
-        Swapping {sellTokenInfo.symbol} for {buyTokenInfo.symbol}
+        Wrapping {sellTokenInfo.symbol} to {buyTokenInfo.symbol}
       </div>
       <hr className={styles.hr} />
       <div className={styles.transaction_progress_container}>
@@ -43,7 +44,7 @@ export default function WrapModal({ close }: Props) {
             <Image src={`/tokenIcons/${sellTokenInfo.symbol.toLocaleLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
           </div>
         </div>
-        <div className={styles.arrow}>🢒</div>
+        <div className={styles.arrow}>{rightArrow}</div>
         <div className={styles.buy_token}>
           {prettyBalance(utils.formatUnits(buyAmount, buyTokenInfo.decimals))}
           <div className={styles.token_symbol}>

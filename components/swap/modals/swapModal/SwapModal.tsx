@@ -6,6 +6,7 @@ import { SwapContext } from "../../../../contexts/SwapContext"
 import useCountdown from "../../../../hooks/useCountdown"
 import { parseError, prettyBalance } from "../../../../utils/utils"
 import TransactionProgress from "../../../transactionProgress/TransactionProgress"
+import { rightArrow } from "../../modal/Modal"
 import styles from "./SwapModal.module.css"
 
 interface Props {
@@ -51,7 +52,7 @@ export default function SwapModal({ close }: Props) {
             <Image src={`/tokenIcons/${sellTokenInfo.symbol.toLocaleLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
           </div>
         </div>
-        <div className={styles.arrow}>🢒</div>
+        <div className={styles.arrow}>{rightArrow}</div>
         <div className={styles.buy_token}>
           {prettyBalance(utils.formatUnits(buyAmount, buyTokenInfo.decimals))}
           <div className={styles.token_symbol}>

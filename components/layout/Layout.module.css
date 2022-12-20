@@ -234,7 +234,6 @@
 .line {
   height: 100vh;
   width: 1px;
-  background-color: transparent;
   /* z-index: -1; */
   /* transform-origin: 100% 50%; */
   position: relative;
@@ -243,8 +242,8 @@
 .line::after {
   content: "";
   position: absolute;
-  top: -20%;
-  height: 20%;
+  top: -200%;
+  height: 40%;
   width: 1px;
   background: linear-gradient(to top, var(--turquoise_dark), transparent);
   animation: drop_line 5s linear infinite;

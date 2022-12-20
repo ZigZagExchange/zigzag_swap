@@ -41,7 +41,7 @@ export default function SwapButton({
   closeModal,
 }: Props) {
   const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, takerFee, makerFee, updateAllowances, updateBalances } = useContext(ExchangeContext)
-  const { network, signer, userAddress } = useContext(WalletContext)
+  const { network, signer, userAddress, connect } = useContext(WalletContext)
   const { sellAmount, quoteOrder, setTransactionStatus, setTransactionError, setIsFrozen } = useContext(SwapContext)
 
   const [swapMode, setSwapMode] = useState<SwapMode>(SwapMode.Disabled)
@@ -117,6 +117,11 @@ export default function SwapButton({
   }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
 
   function handleSwapButton() {
+    if (!userAddress) {
+      connect()
+      return
+    }
+
     switch (swapMode) {
       case SwapMode.Approve:
         sendApprove()
@@ -413,6 +418,13 @@ export default function SwapButton({
     }
   }
 
+  if (userAddress === null) {
+    return (
+      <button className={styles.container} onClick={() => connect()}>
+        Connect Wallet
+      </button>
+    )
+  }
   return (
     <button
       className={styles.container}

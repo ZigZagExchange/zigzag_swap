@@ -48,9 +48,18 @@
   align-items: center;
 }
 
+.connect_button .text {
+  background-clip: text;
+  background: var(--zz_gradient);
+  text-shadow: 0 0 10px var(--turquoise_darker);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .connect_button svg {
   fill: rgb(207, 255, 250);
-  margin-right: 10px;
+  height: 1em;
+  margin-right: 5px;
 }
 .connect_button:disabled {
   animation: none;
@@ -175,7 +184,8 @@
 
 @media screen and (max-width: 1000px) {
   .connect_button {
-    font-size: small !important;
+    font-size: 1rem !important;
+    padding: 5px;
   }
 }
 

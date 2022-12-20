@@ -3,11 +3,18 @@ import { ethers } from "ethers"
 export function balanceCommas(amount: number, decimals: number) {
   const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
   let [integerString, decimalString] = formattedNumber.split(".")
+
+  console.log(integerString, decimalString)
+  // if (decimalString === undefined) {
+  //   return integerString + "." + "0".repeat(decimals)
+  // }
+
   // only remove trailing zeros:
-  while (decimalString && decimalString && decimalString.at(-1) === "0") {
-    decimalString = decimalString.substring(0, decimalString.length - 1)
-  }
-  decimalString = decimalString !== "" || decimalString !== undefined ? decimalString : "00"
+  // while (decimalString && decimalString.at(-1) === "0") {
+  //   decimalString = decimalString.substring(0, decimalString.length - 1)
+  // }
+  // decimalString = decimalString !== "" ? decimalString : "0"
+
   return integerString + "." + decimalString
 }
 

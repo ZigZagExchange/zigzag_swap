@@ -32,7 +32,7 @@
   box-shadow: 0 0 5px var(--glass_shadow);
   backdrop-filter: blur(20px);
   padding: 10px 20px;
-  width: max(30vw, 300px);
+  width: max(40vw, 400px);
   transition: all 0.05s ease-out;
 }
 

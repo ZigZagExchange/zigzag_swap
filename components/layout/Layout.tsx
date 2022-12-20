@@ -51,7 +51,7 @@ function Layout(props: Props) {
       <Link href="/">
         <a className={`${styles.nav_link}`}>
           <span className={`${styles.icon}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <Image src={logo} alt="logo" width="30" />
+            <Image src={logo} alt="logo" width="30" height={"50"} />
           </span>
         </a>
       </Link>

@@ -6,6 +6,7 @@
   backdrop-filter: blur(30px);
   box-shadow: 0 0 10px var(--glass_shadow);
   border-radius: 4px;
+  height: 9.5rem;
 }
 
 .title {

@@ -17,17 +17,7 @@ export default function SwapModal({ close }: Props) {
   const { transactionStatus, transactionError, sellAmount, buyAmount, quoteOrder } = useContext(SwapContext)
   const countdown = useCountdown(quoteOrder?.order.expirationTimeSeconds ? Number(quoteOrder?.order.expirationTimeSeconds) - 3 : undefined)
 
-  let errorMessage
-  if (transactionError) errorMessage = parseError(transactionError)
-  // if (transactionError) {
-  //   if (transactionError.hasOwnProperty("message")) {
-  //     if (transactionError.message.includes("user rejected transaction") || transactionError.message.includes("Cannot set properties of undefined")) {
-  //       errorMessage = "Transaction rejected by the user."
-  //     } else {
-  //       errorMessage = transactionError.message
-  //     }
-  //   }
-  // }
+  const errorMessage = transactionError ? parseError(transactionError) : undefined
 
   let message
   if (transactionStatus === "awaitingWallet") {

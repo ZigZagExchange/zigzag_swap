@@ -21,7 +21,7 @@ export type WalletContextType = {
   username: string | null
   signer: ethers.Signer | null
   userAddress: string | null
-  ethersProvider: ethers.providers.Web3Provider | null
+  ethersProvider: ethers.providers.BaseProvider
   network: NetworkType | null
   isLoading: boolean
 
@@ -35,7 +35,7 @@ export const WalletContext = createContext<WalletContextType>({
   username: null,
   signer: null,
   userAddress: null,
-  ethersProvider: null,
+  ethersProvider: _getDefaultProvider(),
   network: _getDefaultNetwork(),
   isLoading: false,
 
@@ -88,10 +88,10 @@ const onboard = Onboard({
 
 function WalletProvider({ children }: Props) {
   const [username, setUsername] = useState<string | null>(null)
-  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null)
+  const [network, setNetwork] = useState<NetworkType | null>(_getDefaultNetwork())
+  const [ethersProvider, setEthersProvider] = useState<ethers.providers.BaseProvider>(_getDefaultProvider())
   const [signer, setSigner] = useState<ethers.Signer | null>(null)
   const [userAddress, setUserAddress] = useState<string | null>(null)
-  const [network, setNetwork] = useState<NetworkType | null>(_getDefaultNetwork())
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const walletsSub = onboard.state.select("wallets")
@@ -146,7 +146,7 @@ function WalletProvider({ children }: Props) {
     const network = parseInt(chains[0].id, 16)
     setNetwork(NETWORKS[network])
     const ethersProvider = new ethers.providers.Web3Provider(provider, "any")
-    if (ethersProvider) setProvider(ethersProvider)
+    if (ethersProvider) setEthersProvider(ethersProvider)
 
     const signer = ethersProvider?.getSigner()
     setSigner(signer)
@@ -168,7 +168,7 @@ function WalletProvider({ children }: Props) {
     await onboard.disconnectWallet({ label: primaryWallet.label })
     setUserAddress(null)
     setNetwork(_getDefaultNetwork())
-    setProvider(null)
+    setEthersProvider(_getDefaultProvider())
   }
 
   const updateWalletBalance = (tokenAddressList: string[]) => {
@@ -185,7 +185,7 @@ function WalletProvider({ children }: Props) {
         username: username,
         signer: signer,
         userAddress: userAddress,
-        ethersProvider: provider,
+        ethersProvider: ethersProvider,
         network: network,
         isLoading: isLoading,
 
@@ -204,4 +204,9 @@ export default WalletProvider
 
 function _getDefaultNetwork(): NetworkType {
   return NETWORKS[42161]
+}
+
+function _getDefaultProvider(): ethers.providers.BaseProvider {
+  const network = _getDefaultNetwork()
+  return new ethers.providers.JsonRpcProvider(network.rpcUrl)
 }

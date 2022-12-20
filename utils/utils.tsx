@@ -75,9 +75,13 @@ export function truncateDecimals(numberString: string, decimals: number, padDeci
 }
 
 export function getBigNumberFromInput(input: string, decimals: number): ethers.BigNumber {
-  if (input === "") return ethers.constants.Zero
-  const inputModifyed = truncateDecimals(input, decimals)
-  return ethers.utils.parseUnits(inputModifyed, decimals)
+  if (input === "" || input === ".") return ethers.constants.Zero
+  try {
+    const inputModified = truncateDecimals(input, decimals)
+    return ethers.utils.parseUnits(inputModified, decimals)
+  } catch (error) {
+    return ethers.constants.Zero
+  }
 }
 
 export function parseError(error: any) {

@@ -2,10 +2,12 @@ import { ethers } from "ethers"
 
 export function balanceCommas(amount: number, decimals: number) {
   const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-  let [integerString, decimalString] = formattedNumber.split('.')
+  let [integerString, decimalString] = formattedNumber.split(".")
   // only remove trailing zeros:
-  while (decimalString && decimalString.at(-1) === '0') { decimalString = decimalString.substring(0, decimalString.length - 1) }
-  decimalString = decimalString !== "" ? decimalString : '0'
+  while (decimalString && decimalString.at(-1) === "0") {
+    decimalString = decimalString.substring(0, decimalString.length - 1)
+  }
+  decimalString = decimalString !== "" ? decimalString : "0"
   return integerString + "." + decimalString
 }
 
@@ -29,12 +31,16 @@ const getDecimalsNeeded = (amount: number | string) => {
 }
 
 export function prettyBalance(balance: number | string, decimals: number = getDecimalsNeeded(balance)) {
-  if (balance === 0) { return "0.0" }
+  if (balance === 0) {
+    return "0.0"
+  }
   return balanceCommas(Number(balance), decimals)
 }
 
 export function prettyBalanceUSD(balance: number) {
-  if (balance === 0) { return "0.0" }
+  if (balance === 0) {
+    return "0.0"
+  }
   return balanceCommas(Number(balance), 2)
 }
 
@@ -72,4 +78,42 @@ export function getBigNumberFromInput(input: string, decimals: number): ethers.B
   if (input === "") return ethers.constants.Zero
   const inputModifyed = truncateDecimals(input, decimals)
   return ethers.utils.parseUnits(inputModifyed, decimals)
+}
+
+export function parseError(error: any) {
+  if (error.hasOwnProperty("reason")) {
+    const reason = error.reason.replace("execution reverted: ", "")
+
+    switch (reason) {
+      case "user rejected transaction":
+        return "User rejected transaction."
+      case "maker order not enough allowance":
+        return "Tried to fill a bad quote, please try again."
+      case "taker order not enough allowance":
+        return "Insufficient balance."
+      case "self swap not allowed":
+        return "Self swap is not allowed."
+      case "invalid maker signature":
+        return "Tried to fill a bad quote, please try again."
+      case "taker order not enough balance":
+        return "Insufficient balance."
+      case "maker order not enough balance":
+        return "Tried to fill a bad quote, please try again."
+      case "order is filled":
+        return "Tried to fill a bad quote, please try again."
+      case "order expired":
+        return "Tried to fill a bad quote, please try again."
+      case "order canceled":
+        return "Tried to fill a bad quote, please try again."
+      case "ERC20: insufficient allowance":
+        return "Insufficient allowance."
+      case "ERC20: transfer amount exceeds balance":
+        return "Insufficient balance."
+      default:
+        return error.reason
+    }
+  } else {
+    if (error.hasOwnProperty("message")) return error.message
+    else return "An unknown error has occurred."
+  }
 }

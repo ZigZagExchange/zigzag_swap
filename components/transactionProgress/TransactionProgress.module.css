@@ -1,0 +1,79 @@
+.container {
+  /* background-color: red; */
+  display: flex;
+  justify-content: space-between;
+
+  position: relative;
+
+  --stage: 0;
+  --percent: calc(var(--stage) * 50%);
+}
+
+.container .stage {
+  background-color: rgb(6, 10, 15);
+  border: 0.3em solid var(--turquoise_darker);
+
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.container::after {
+  content: "";
+  width: calc(var(--percent) - 2px);
+  /* background: linear-gradient(to right, var(--turquoise) var(--percent), rgb(6, 10, 15) var(--percent)); */
+  background: var(--zz_gradient);
+  box-shadow: 0 0 10px var(--turquoise);
+
+  height: 4px;
+  position: absolute;
+  left: 2px;
+
+  top: calc(50% - 2px);
+}
+
+.container::before {
+  content: "";
+  /* width: 100%; */
+  /* background: linear-gradient(to right, var(--turquoise) var(--percent), rgb(6, 10, 15) var(--percent)); */
+  background: var(--turquoise_darker);
+  /* box-shadow: 0 0 10px var(--turquoise); */
+
+  height: 4px;
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: calc(50% - 2px);
+}
+
+.pending {
+  background-color: var(--turquoise);
+  box-shadow: 0 0 10px var(--turquoise);
+  animation: pulse 0.8s ease-in-out infinite alternate;
+}
+
+.complete {
+  background-color: var(--turquoise_light) !important;
+  box-shadow: 0 0 10px var(--turquoise);
+}
+
+.failed {
+  background-color: red !important;
+  box-shadow: 0 0 10px red;
+}
+
+.pending,
+.complete,
+.failed {
+  border: none !important;
+}
+
+@keyframes pulse {
+  from {
+    background-color: var(--turquoise_light);
+  }
+  to {
+    background-color: var(--turquoise_dark);
+  }
+}

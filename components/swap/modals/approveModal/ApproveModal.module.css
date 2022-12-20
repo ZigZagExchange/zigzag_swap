@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 20px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.hr {
+  border-color: var(--glass_background);
+  width: 100%;
+}
+
+.transaction_progress_container {
+  width: 50%;
+  justify-self: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.text {
+  margin: 20px;
+}

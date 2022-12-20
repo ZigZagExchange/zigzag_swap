@@ -38,7 +38,18 @@ export type SwapContextType = {
   switchTokens: () => void
 
   orderBook: ZZOrder[]
+
+  transactionStatus: TransactionStatus
+  setTransactionStatus: React.Dispatch<React.SetStateAction<TransactionStatus>>
+
+  transactionError: any | null
+  setTransactionError: React.Dispatch<React.SetStateAction<any | null>>
+
+  isFrozen: boolean
+  setIsFrozen: React.Dispatch<React.SetStateAction<boolean>>
 }
+
+export type TransactionStatus = "awaitingWallet" | "processing" | "processed" | null
 
 export const SwapContext = createContext<SwapContextType>({
   quoteOrder: null,
@@ -49,23 +60,35 @@ export const SwapContext = createContext<SwapContextType>({
   sellInput: "",
   buyInput: "",
 
-  setSellInput: (amount: string) => { },
-  setBuyInput: (amount: string) => { },
+  setSellInput: (amount: string) => {},
+  setBuyInput: (amount: string) => {},
 
-  switchTokens: () => { },
+  switchTokens: () => {},
 
   orderBook: [],
+
+  transactionStatus: null,
+  setTransactionStatus: () => {},
+
+  transactionError: null,
+  setTransactionError: () => {},
+
+  isFrozen: false,
+  setIsFrozen: () => {},
 })
 
 function SwapProvider({ children }: Props) {
-  const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
-  const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
-  const [userInputSide, setUserInputtSide] = useState<"buy" | "sell">("sell")
-  const [sellInput, setSellInput] = useState<string>("")
-  const [buyInput, setBuyInput] = useState<string>("")
-
   const { network, signer } = useContext(WalletContext)
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
+
+  const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
+  const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
+  const [userInputSide, setUserInputSide] = useState<"buy" | "sell">("sell")
+  const [sellInput, setSellInput] = useState<string>("")
+  const [buyInput, setBuyInput] = useState<string>("")
+  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(null)
+  const [transactionError, setTransactionError] = useState<any | null>(null)
+  const [isFrozen, setIsFrozen] = useState<boolean>(false)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -76,10 +99,19 @@ function SwapProvider({ children }: Props) {
 
   const wethContract: ethers.Contract | null = useMemo(() => {
     if (network && network.wethContractAddress && signer) {
-      return new ethers.Contract(network.wethContractAddress,
+      return new ethers.Contract(
+        network.wethContractAddress,
         [
-          { "constant": false, "inputs": [], "name": "deposit", "outputs": [], "payable": true, "stateMutability": "payable", "type": "function" },
-          { "constant": false, "inputs": [{ "name": "wad", "type": "uint256" }], "name": "withdraw", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }
+          { constant: false, inputs: [], name: "deposit", outputs: [], payable: true, stateMutability: "payable", type: "function" },
+          {
+            constant: false,
+            inputs: [{ name: "wad", type: "uint256" }],
+            name: "withdraw",
+            outputs: [],
+            payable: false,
+            stateMutability: "nonpayable",
+            type: "function",
+          },
         ],
         signer
       )
@@ -104,14 +136,14 @@ function SwapProvider({ children }: Props) {
       (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
     ) {
       const fakeWrapUnwrapOrder: ZZOrder = {
-          order: {
-            user: "0x0",
-            buyToken: "0x0",
-            sellToken: "0x0",
-            buyAmount: "1",
-            sellAmount: "1",
-            expirationTimeSeconds: "99999999999999999"
-          },
+        order: {
+          user: "0x0",
+          buyToken: "0x0",
+          sellToken: "0x0",
+          buyAmount: "1",
+          sellAmount: "1",
+          expirationTimeSeconds: "99999999999999999",
+        },
         signature: "0x0",
       }
       return [fakeWrapUnwrapOrder, 1]
@@ -250,15 +282,15 @@ function SwapProvider({ children }: Props) {
   }, [network, signer, exchangeAddress, quoteOrder])
 
   useEffect(() => {
+    if (isFrozen) return
     getOrderBook()
 
-    const refreshOrderBookInterval = setInterval(() => {
-      getOrderBook()
-    }, 4 * 1000)
+    const refreshOrderBookInterval = setInterval(getOrderBook, 4 * 1000)
     return () => clearInterval(refreshOrderBookInterval)
-  }, [network, buyTokenInfo, sellTokenInfo])
+  }, [network, buyTokenInfo, sellTokenInfo, isFrozen])
 
   async function getOrderBook() {
+    console.log("Getting orderbook....")
     if (!network) {
       console.warn("getOrderBook: Missing network")
       return
@@ -275,7 +307,9 @@ function SwapProvider({ children }: Props) {
     let orders: { orders: ZZOrder[] }
     try {
       const minExpires = (Date.now() / 1000 + 11).toFixed(0)
-      const response = await fetch(`${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}&minExpires=${minExpires}`)
+      const response = await fetch(
+        `${network.backendUrl}/v1/orders?buyToken=${sellTokenInfo.address}&sellToken=${buyTokenInfo.address}&minExpires=${minExpires}`
+      )
       if (response.status !== 200) {
         console.error("Failed to fetch order book.")
         return
@@ -294,12 +328,12 @@ function SwapProvider({ children }: Props) {
 
   const switchTokens = () => {
     if (userInputSide === "sell") {
-      setUserInputtSide("buy")
+      setUserInputSide("buy")
 
       setBuyInput(sellInput)
       setSellInput(buyInput)
     } else {
-      setUserInputtSide("sell")
+      setUserInputSide("sell")
 
       setBuyInput(sellInput)
       setSellInput(buyInput)
@@ -307,12 +341,12 @@ function SwapProvider({ children }: Props) {
   }
 
   const _setSellInput = (newInput: string) => {
-    setUserInputtSide("sell")
+    setUserInputSide("sell")
     setSellInput(newInput)
   }
 
   const _setBuyInput = (newInput: string) => {
-    setUserInputtSide("buy")
+    setUserInputSide("buy")
     setBuyInput(newInput)
   }
 
@@ -332,6 +366,13 @@ function SwapProvider({ children }: Props) {
 
         switchTokens,
         orderBook,
+
+        transactionStatus,
+        setTransactionStatus,
+        transactionError,
+        setTransactionError,
+        isFrozen,
+        setIsFrozen,
       }}
     >
       {children}

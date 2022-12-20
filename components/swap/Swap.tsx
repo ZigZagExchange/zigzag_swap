@@ -3,7 +3,7 @@ import { useState, useContext, useMemo } from "react"
 import styles from "./Swap.module.css"
 import SellInput from "./sellInput/SellInput"
 import BuyInput from "./buyInput/BuyInput"
-import Modal from "./modal/Modal"
+import Modal, { ModalMode } from "./modal/Modal"
 import TransactionSettings from "./transactionSettings/TransactionSettings"
 import SwapButton from "./swapButton/SwapButton"
 
@@ -15,6 +15,8 @@ import { constants, ethers } from "ethers"
 import Separator from "./separator/Separator"
 import DownArrow from "../DownArrow"
 import useTranslation from "next-translate/useTranslation"
+import Link from "next/link"
+import { NetworkType } from "../../data/networks"
 
 export enum ValidationState {
   OK,
@@ -32,7 +34,7 @@ function Swap() {
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
   const { sellAmount, buyAmount, swapPrice, switchTokens, setSellInput } = useContext(SwapContext)
 
-  const [modal, setModal] = useState<"buy" | "sell" | null>(null)
+  const [modal, setModal] = useState<ModalMode>(null)
 
   const { t } = useTranslation("swap")
 
@@ -96,14 +98,14 @@ function Swap() {
   }
 
   const handleTokenClick = (newTokenAddress: string) => {
-    if (modal === "sell") {
+    if (modal === "selectSellToken") {
       if (newTokenAddress === buyTokenInfo?.address) {
         _switchTokens()
       } else {
         setSellInput("")
         setSellToken(newTokenAddress)
       }
-    } else if (modal === "buy") {
+    } else if (modal === "selectBuyToken") {
       if (newTokenAddress === sellTokenInfo?.address) {
         _switchTokens()
       } else {
@@ -131,7 +133,6 @@ function Swap() {
     }
   }, [sellTokenInfo, sellAmount, sellTokenUsdPrice])
 
-
   // Estimated buy token value
   const buyTokenEstimatedValue: any = useMemo(() => {
     if (buyTokenUsdPrice !== undefined) {
@@ -152,10 +153,10 @@ function Swap() {
   }, [sellTokenInfo, buyTokenInfo, sellAmount, buyAmount, sellTokenUsdPrice, buyTokenUsdPrice])
 
   // Error messages
-  const sellErrorMessage = getErrorMessage(validationStateSell)
-  const sellErrorElement = <div className={styles.error_element}>{sellErrorMessage}</div>
-  const buyErrorMessage = getErrorMessage(validationStateBuy)
-  const buyErrorElement = <div className={styles.error_element}>{buyErrorMessage}</div>
+  // const sellErrorMessage = getErrorMessage(validationStateSell)
+  // const sellErrorElement = <div className={styles.error_element}>{sellErrorMessage}</div>
+  // const buyErrorMessage = getErrorMessage(validationStateBuy)
+  // const buyErrorElement = <div className={styles.error_element}>{buyErrorMessage}</div>
 
   return (
     <div className={styles.container}>
@@ -174,14 +175,13 @@ function Swap() {
               sellTokenInfo={sellTokenInfo}
               balance={sellTokenAddress && balances[sellTokenAddress] ? balances[sellTokenAddress].value : ethers.constants.Zero}
               validationStateSell={validationStateSell}
-              openModal={() => setModal("sell")}
+              openSellTokenSelectModal={() => setModal("selectSellToken")}
             />
           </div>
           <div className={styles.below_input_container}>
-            {sellErrorElement}
+            <ExplorerButton network={network} token={sellTokenInfo} />
             <div className={styles.value_container}>{sellTokenEstimatedValue}</div>
           </div>
-          <TokenInfoDisplay tokenInfo={sellTokenInfo} />
         </div>
 
         <Separator onClick={_switchTokens} />
@@ -194,17 +194,28 @@ function Swap() {
             </div>
           </div>
           <div className={styles.to_input_container}>
-            <BuyInput buyTokenInfo={buyTokenInfo} validationStateBuy={validationStateBuy} openModal={() => setModal("buy")} />
+            <BuyInput
+              buyTokenInfo={buyTokenInfo}
+              validationStateBuy={validationStateBuy}
+              openBuyTokenSelectModal={() => setModal("selectBuyToken")}
+            />
           </div>
           <div className={styles.below_input_container}>
-            {buyErrorElement}
+            <ExplorerButton network={network} token={buyTokenInfo} />
             <div className={styles.value_container}>{buyTokenEstimatedValue}</div>
           </div>
-          <TokenInfoDisplay tokenInfo={buyTokenInfo} />
         </div>
       </div>
 
-      <SwapButton validationStateBuy={validationStateBuy} validationStateSell={validationStateSell} />
+      <SwapButton
+        validationStateBuy={validationStateBuy}
+        validationStateSell={validationStateSell}
+        openSwapModal={() => setModal("swap")}
+        openApproveModal={() => setModal("approve")}
+        openWrapModal={() => setModal("wrap")}
+        openUnwrapModal={() => setModal("unwrap")}
+        closeModal={() => setModal(null)}
+      />
 
       <TransactionSettings
         buySymbol={buyTokenSymbol}
@@ -217,32 +228,22 @@ function Swap() {
         nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
       />
 
-      <Modal
-        isOpen={modal !== null}
-        selectedModal={modal}
-        onTokenClick={(tokenAddress: string) => handleTokenClick(tokenAddress)}
-        close={() => setModal(null)}
-      />
+      <Modal selectedModal={modal} onTokenClick={(tokenAddress: string) => handleTokenClick(tokenAddress)} close={() => setModal(null)} />
     </div>
   )
 }
 
 export default Swap
 
-function TokenInfoDisplay({ tokenInfo }: { tokenInfo: ZZTokenInfo }) {
-  const [isOpen, setIsOpen] = useState<boolean>(false)
-
-  return (
-    <div className={styles.sell_token_info}>
-      <div style={{ display: "flex", cursor: "pointer" }} onClick={() => setIsOpen(o => !o)}>
-        Details <DownArrow up={isOpen} />
-      </div>
-      {isOpen ? (
-        <>
-          <div>Address: {parseInt(tokenInfo.address, 16) === 0 ? "Native" : tokenInfo.address}</div>
-          <div>Decimals: {tokenInfo.decimals}</div>
-        </>
-      ) : null}
-    </div>
-  )
+function ExplorerButton({ network, token }: { network: NetworkType | null; token: ZZTokenInfo | null }) {
+  if (network && token) {
+    if (token.address === "0x0000000000000000000000000000000000000000") {
+      return <a className={styles.native_token}>Native Token</a>
+    }
+    return (
+      <a className={styles.see_in_explorer_link} href={`${network.explorerUrl}/token/${token.address}`} target="_blank" rel="noopener noreferrer">
+        See in Explorer
+      </a>
+    )
+  } else return null
 }

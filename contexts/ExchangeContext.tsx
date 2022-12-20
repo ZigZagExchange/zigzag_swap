@@ -10,7 +10,7 @@ const _defaultBuyToken = (): ZZTokenInfo => {
     address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
     symbol: "USDC",
     decimals: 6,
-    name: "USD Coin"
+    name: "USD Coin",
   }
 }
 
@@ -19,7 +19,7 @@ const _defaultSellToken = (): ZZTokenInfo => {
     address: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
     symbol: "WETH",
     decimals: 18,
-    name: "Wrapped Ether"
+    name: "Wrapped Ether",
   }
 }
 
@@ -116,14 +116,14 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   tokenPricesUSD: {},
   markets: [],
 
-  updateBalances: async (tokens: string[] | null) => { },
-  updateAllowances: async (tokens: string[] | null) => { },
+  updateBalances: async (tokens: string[] | null) => {},
+  updateAllowances: async (tokens: string[] | null) => {},
 
   getTokens: () => [],
   getTokenInfo: (token: string) => null,
 
-  setBuyToken: (token: string) => { },
-  setSellToken: (token: string) => { },
+  setBuyToken: (token: string) => {},
+  setSellToken: (token: string) => {},
 })
 
 function ExchangeProvider({ children }: Props) {
@@ -142,12 +142,22 @@ function ExchangeProvider({ children }: Props) {
 
   const { userAddress, network, ethersProvider, updateWalletBalance } = useContext(WalletContext)
 
-
   const usdcPriceSource: ethers.Contract | null = useMemo(() => {
     if (network && network.offChainOracle && ethersProvider) {
-      return new ethers.Contract(network.offChainOracle,
+      return new ethers.Contract(
+        network.offChainOracle,
         [
-          { "inputs": [{ "internalType": "contract IERC20", "name": "srcToken", "type": "address" }, { "internalType": "contract IERC20", "name": "dstToken", "type": "address" }, { "internalType": "bool", "name": "useWrappers", "type": "bool" }], "name": "getRate", "outputs": [{ "internalType": "uint256", "name": "weightedRate", "type": "uint256" }], "stateMutability": "view", "type": "function" }
+          {
+            inputs: [
+              { internalType: "contract IERC20", name: "srcToken", type: "address" },
+              { internalType: "contract IERC20", name: "dstToken", type: "address" },
+              { internalType: "bool", name: "useWrappers", type: "bool" },
+            ],
+            name: "getRate",
+            outputs: [{ internalType: "uint256", name: "weightedRate", type: "uint256" }],
+            stateMutability: "view",
+            type: "function",
+          },
         ],
         ethersProvider
       )
@@ -245,8 +255,7 @@ function ExchangeProvider({ children }: Props) {
     // reuse old token price infos in case the API is not reachable for short periods
     const updatedTokenPricesUSD = tokenPricesUSD
     // allwas get native currency
-    if (network.wethContractAddress)
-      updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress)
+    if (network.wethContractAddress) updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress)
 
     tokenInfos.forEach(async (token: ZZTokenInfo) => {
       updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address)

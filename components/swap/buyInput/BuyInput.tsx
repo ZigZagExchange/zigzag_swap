@@ -12,10 +12,10 @@ import { ValidationState } from "../Swap"
 interface Props {
   buyTokenInfo: ZZTokenInfo | null
   validationStateBuy: ValidationState
-  openModal: () => void
+  openBuyTokenSelectModal: () => void
 }
 
-export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal }: Props) {
+export default function BuyInput({ buyTokenInfo, validationStateBuy, openBuyTokenSelectModal }: Props) {
   const { buyInput, setBuyInput } = useContext(SwapContext)
 
   function safeSetBuyAmount(newAmount: string) {
@@ -27,7 +27,7 @@ export default function BuyInput({ buyTokenInfo, validationStateBuy, openModal }
   const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
   return (
     <div className={`${input_styles.container} ${validationStateBuy !== ValidationState.OK ? input_styles.error : ""}`}>
-      <TokenSelector selectedTokenSymbol={buyTokenSymbol} openModal={openModal} />
+      <TokenSelector selectedTokenSymbol={buyTokenSymbol} openTokenSelectModal={openBuyTokenSelectModal} />
       <input
         className={input_styles.input}
         onInput={p => safeSetBuyAmount(p.currentTarget.value)}

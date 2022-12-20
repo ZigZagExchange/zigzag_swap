@@ -4,10 +4,10 @@ import styles from "./TokenSelector.module.css"
 
 interface Props {
   selectedTokenSymbol: string
-  openModal: () => void
+  openTokenSelectModal: () => void
 }
 
-export default function TokenSelector({ selectedTokenSymbol, openModal }: Props) {
+export default function TokenSelector({ selectedTokenSymbol, openTokenSelectModal }: Props) {
   const selected_token_icon = (
     <div className={styles.icon_container}>
       <Image src={`/tokenIcons/${selectedTokenSymbol.toLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
@@ -17,7 +17,7 @@ export default function TokenSelector({ selectedTokenSymbol, openModal }: Props)
   const down_arrow = <DownArrow />
   return (
     <>
-      <button className={styles.button} onClick={openModal}>
+      <button className={styles.button} onClick={openTokenSelectModal}>
         {selected_token_icon} {selectedTokenSymbol} {down_arrow}
       </button>
     </>

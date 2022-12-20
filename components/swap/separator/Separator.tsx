@@ -10,7 +10,7 @@ function Separator({ onClick }: { onClick: () => void }) {
   useEffect(() => {
     const bar = bar_ref.current
     if (!bar) return
-    const animation = bar.animate([{ transform: "scaleX(100%)" }, { transform: "scaleX(0%)" }], { iterations: 1, duration: 5000, fill: "forwards" })
+    const animation = bar.animate([{ transform: "scaleX(100%)" }, { transform: "scaleX(0%)" }], { iterations: 1, duration: 4000, fill: "forwards" })
     return () => animation.cancel()
   }, [orderBook])
 

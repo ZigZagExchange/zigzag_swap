@@ -1,0 +1,59 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 20px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.hr {
+  border-color: var(--glass_background);
+  width: 100%;
+}
+
+.transaction_progress_container {
+  width: 50%;
+  justify-self: center;
+  justify-content: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.text {
+  margin: 20px;
+}
+
+.buy_sell_tokens {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.buy_token,
+.sell_token {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.token_symbol {
+  height: 1.5rem;
+  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow {
+  margin-left: 0.1rem;
+  margin-top: -1.5rem;
+  margin-bottom: -1.1rem;
+  font-size: 3rem;
+}

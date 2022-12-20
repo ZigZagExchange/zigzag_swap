@@ -115,3 +115,17 @@
   opacity: 0.5;
   font-size: 0.8rem;
 }
+
+.see_in_explorer_link {
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.see_in_explorer_link:hover {
+  opacity: 1;
+}
+
+.native_token {
+  font-size: 0.8rem;
+  opacity: 0.5;
+}

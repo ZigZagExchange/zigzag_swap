@@ -15,10 +15,10 @@ interface Props {
   sellTokenInfo: ZZTokenInfo | null
   balance: ethers.BigNumber | null
   validationStateSell: ValidationState
-  openModal: () => void
+  openSellTokenSelectModal: () => void
 }
 
-export default function SellInput({ sellTokenInfo, balance, validationStateSell, openModal }: Props) {
+export default function SellInput({ sellTokenInfo, balance, validationStateSell, openSellTokenSelectModal }: Props) {
   const { sellInput, setSellInput } = useContext(SwapContext)
   const { userAddress } = useContext(WalletContext)
 
@@ -40,7 +40,7 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
   return (
     <div className={`${input_styles.container} ${userAddress && validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
-      <TokenSelector selectedTokenSymbol={sellTokenSymbol} openModal={openModal} />
+      <TokenSelector selectedTokenSymbol={sellTokenSymbol} openTokenSelectModal={openSellTokenSelectModal} />
       <button className={input_styles.max_button} onClick={maximize}>
         MAX
       </button>

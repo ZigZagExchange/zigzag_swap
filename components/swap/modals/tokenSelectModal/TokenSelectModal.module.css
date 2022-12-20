@@ -1,0 +1,31 @@
+.title {
+  font-size: 20px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.hr {
+  border-color: var(--glass_background);
+}
+
+.search_input {
+  margin-bottom: 10px;
+  width: 100%;
+  background-color: var(--glass_background);
+  border: none;
+  outline: none;
+  font-size: 20px;
+  /* height: 20px; */
+  color: white;
+  padding: 10px;
+}
+
+.token_list_container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 30vh;
+  padding: 5px 2px;
+  overflow-y: scroll;
+}

@@ -4,10 +4,10 @@ export function balanceCommas(amount: number, decimals: number) {
   const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
   let [integerString, decimalString] = formattedNumber.split(".")
   // only remove trailing zeros:
-  while (decimalString && decimalString.at(-1) === "0") {
+  while (decimalString && decimalString && decimalString.at(-1) === "0") {
     decimalString = decimalString.substring(0, decimalString.length - 1)
   }
-  decimalString = decimalString !== "" ? decimalString : "00"
+  decimalString = decimalString !== "" || decimalString !== undefined ? decimalString : "00"
   return integerString + "." + decimalString
 }
 

@@ -58,8 +58,8 @@
 
 .connect_button svg {
   fill: rgb(207, 255, 250);
-  height: 1em;
-  margin-right: 5px;
+  height: 2em;
+  margin-right: 10px;
 }
 .connect_button:disabled {
   animation: none;

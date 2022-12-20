@@ -69,6 +69,16 @@ function Layout(props: Props) {
 
   return (
     <>
+      <div className={styles.bg}>
+        <div className={styles.lines_container}>
+          <div className={styles.line} />
+          <div className={styles.line} />
+          <div className={styles.line} />
+          <div className={styles.line} />
+          <div className={styles.line} />
+        </div>
+      </div>
+
       <header className={`${styles.header} ${styles.mobile} ${isMenuOpen ? styles.menu_open : ""}`}>
         {headerWarning}
         {headerLeft}

@@ -2,9 +2,10 @@ import { ethers } from "ethers"
 
 export function balanceCommas(amount: number, decimals: number) {
   const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+  return formattedNumber
   let [integerString, decimalString] = formattedNumber.split(".")
 
-  console.log(integerString, decimalString)
+  // console.log(integerString, decimalString)
   // if (decimalString === undefined) {
   //   return integerString + "." + "0".repeat(decimals)
   // }

@@ -229,7 +229,7 @@ function SwapProvider({ children }: Props) {
       let estimatedGasUsed = ethers.constants.Zero
       try {
         const feeData = await signer.getFeeData()
-        if (!feeData.lastBaseFeePerGas) {
+        if (!feeData.lastBaseFeePerGas || !feeData.gasPrice) {
           console.warn("getGasFees: missing lastBaseFeePerGas")
           return
         }
@@ -270,7 +270,7 @@ function SwapProvider({ children }: Props) {
           )
         }
 
-        const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.mul(estimatedGasUsed)
+        const estimatedFeeBigNumber = (feeData.lastBaseFeePerGas.add(feeData.gasPrice)).mul(estimatedGasUsed)
         const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
         setEstimatedGasFee(Number(estimatedFee))
       } catch (err: any) {

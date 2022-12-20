@@ -78,7 +78,7 @@ export const SwapContext = createContext<SwapContextType>({
 })
 
 function SwapProvider({ children }: Props) {
-  const { network, signer } = useContext(WalletContext)
+  const { network, signer, ethersProvider } = useContext(WalletContext)
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
   const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
@@ -213,8 +213,8 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: Missing network")
         return
       }
-      if (!signer) {
-        console.warn("getGasFees: missing signer")
+      if (!ethersProvider) {
+        console.warn("getGasFees: missing ethersProvider")
         return
       }
       if (!exchangeAddress) {
@@ -228,20 +228,20 @@ function SwapProvider({ children }: Props) {
 
       let estimatedGasUsed = ethers.constants.Zero
       try {
-        const feeData = await signer.getFeeData()
+        const feeData = await ethersProvider.getFeeData()
         if (!feeData.lastBaseFeePerGas || !feeData.gasPrice) {
           console.warn("getGasFees: missing lastBaseFeePerGas")
           return
         }
 
-        if (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) {
+        if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
           // deposit
           if (!wethContract) {
             console.warn("getGasFees: missing wethContract")
             return
           }
           estimatedGasUsed = await wethContract.estimateGas.deposit({ value: "1" })
-        } else if (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress) {
+        } else if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
           // withdraw
           if (!wethContract) {
             console.warn("getGasFees: missing wethContract")

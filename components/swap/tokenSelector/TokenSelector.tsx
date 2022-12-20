@@ -18,7 +18,7 @@ export default function TokenSelector({ selectedTokenSymbol, openTokenSelectModa
   return (
     <>
       <button className={styles.button} onClick={openTokenSelectModal}>
-        {selected_token_icon} {selectedTokenSymbol} {down_arrow}
+        {selected_token_icon} <span className={styles.symbol}>{selectedTokenSymbol}</span> {down_arrow}
       </button>
     </>
   )

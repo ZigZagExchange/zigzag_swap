@@ -75,45 +75,45 @@ export default function SwapButton({
     return null
   }, [network, signer])
 
-  const buttonText: string = useMemo(() => {
-    if (!userAddress) return "Swap"
+  const buttonText: JSX.Element = useMemo(() => {
+    if (!userAddress) return <div>Connect wallet</div>
 
     if (!buyTokenInfo || !sellTokenInfo) {
       setSwapMode(SwapMode.Disabled)
-      return "Error"
+      return <div>Error</div>
     }
 
     if (validationStateSell === ValidationState.InsufficientBalance) {
       setSwapMode(SwapMode.Disabled)
-      return `Sell amount exceeds ${sellTokenInfo.symbol} balance`
+      return <div>Insufficient {sellTokenInfo.symbol} balance</div>
     }
 
     if (validationStateSell === ValidationState.ExceedsAllowance) {
       setSwapMode(SwapMode.Approve)
-      return `Approve ${sellTokenInfo.symbol}`
+      return <div>Approve {sellTokenInfo.symbol}</div>
     }
 
     if (validationStateSell !== ValidationState.OK) {
       setSwapMode(SwapMode.Disabled)
-      return "Error on the sell side"
+      return <div>Error on the sell side</div>
     }
     if (validationStateBuy !== ValidationState.OK) {
       setSwapMode(SwapMode.Disabled)
-      return "Error on the buy side"
+      return <div>Error on the buy side</div>
     }
 
     if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
       setSwapMode(SwapMode.Deposit)
-      return "Wrap ETH to WETH"
+      return <div>Wrap ETH to WETH</div>
     }
 
     if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
       setSwapMode(SwapMode.Withdraw)
-      return "Unwrap WETH to ETH"
+      return <div>Unwrap WETH to ETH</div>
     }
 
     setSwapMode(SwapMode.Swap)
-    return "Swap"
+    return <div>Swap</div>
   }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
 
   function handleSwapButton() {

@@ -40,6 +40,7 @@
   border: none;
   padding: 0.5rem 1em;
   border-radius: 14px;
+  backdrop-filter: blur(20px);
   /* width: 100%; */
   font-size: inherit;
   text-align: left;

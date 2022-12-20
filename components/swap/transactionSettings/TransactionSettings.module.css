@@ -1,12 +1,10 @@
 .container {
-  padding: 1rem;
-
   border: 1px solid var(--glass_background);
-  background-color: var(--glass_background);
-  backdrop-filter: blur(30px);
+  /* background-color: var(--glass_background); */
+  backdrop-filter: blur(20px);
   box-shadow: 0 0 10px var(--glass_shadow);
   border-radius: 4px;
-  height: 9.5rem;
+  margin-top: 0.5rem;
 }
 
 .title {
@@ -24,6 +22,16 @@
 .gas_fee {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.buy_price_info *,
+.sell_price_info *,
+.gas_fee * {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .token_amount {
@@ -33,12 +41,80 @@
 .usd_estimate {
   display: flex;
   margin-left: 5px;
+  /* opacity: 0.5; */
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+}
+
+.gas_fee {
   opacity: 0.5;
 }
 
-.buy_price_info:nth-child(1),
-.sell_price_info:nth-child(1),
-.gas_fee:nth-child(1) {
+/* .header > div {
+  display: flex;
+  align-items: center;
+} */
+
+.header_price {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.header_price_usd {
   opacity: 0.5;
-  color: red;
+}
+
+.header_gas {
+  display: flex;
+  align-items: center;
+  opacity: 0.5;
+}
+
+.header:hover .header_gas {
+  opacity: 1;
+}
+
+.header:hover {
+  background-color: var(--glass_background);
+  cursor: pointer;
+}
+
+.details_container {
+  border-top: 1px solid var(--glass_background);
+  transition: all 0.5s ease-out;
+  max-height: 6rem;
+  overflow: hidden;
+}
+
+.hidden {
+  border-color: transparent;
+
+  max-height: 0;
+}
+
+.details {
+  /* padding-top: 10px; */
+  padding: 0.5rem;
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (width <= 500px) {
+  .header_price,
+  .header_gas,
+  .details {
+    font-size: 0.8rem;
+  }
+
+  .header_price_usd {
+    display: none;
+  }
 }

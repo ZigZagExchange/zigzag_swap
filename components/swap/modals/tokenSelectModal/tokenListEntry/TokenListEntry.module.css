@@ -3,7 +3,7 @@
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid var(--glass_background);
+  border: 1px solid rgb(10, 10, 10);
   box-shadow: 0 0 5px var(--glass_shadow);
   padding: 5px 10px;
   border-radius: 4px;
@@ -16,6 +16,7 @@
   background-color: var(--turquoise);
   background: var(--zz_gradient);
   cursor: pointer;
+  color: black;
 }
 
 .selected {

@@ -14,7 +14,7 @@
   border: none !important;
   text-align: right;
   padding: 10px;
-  font-size: 20px;
+  font-size: 1.2rem;
   width: 100%;
 }
 
@@ -50,4 +50,10 @@
   background: var(--zz_gradient);
   cursor: pointer;
   opacity: 1;
+}
+
+@media (width<=500px) {
+  .input {
+    font-size: 1rem;
+  }
 }

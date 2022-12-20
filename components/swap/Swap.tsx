@@ -205,6 +205,17 @@ function Swap() {
             <div className={styles.value_container}>{buyTokenEstimatedValue}</div>
           </div>
         </div>
+
+        <TransactionSettings
+          buySymbol={buyTokenSymbol}
+          sellSymbol={sellTokenSymbol}
+          priceBuy={`${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
+          priceSell={`${prettyBalance(swapPrice)}`}
+          priceBuyUsd={buyTokenUsdPrice}
+          priceSellUsd={sellTokenUsdPrice}
+          nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
+          nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
+        />
       </div>
 
       <SwapButton
@@ -215,17 +226,6 @@ function Swap() {
         openWrapModal={() => setModal("wrap")}
         openUnwrapModal={() => setModal("unwrap")}
         closeModal={() => setModal(null)}
-      />
-
-      <TransactionSettings
-        buySymbol={buyTokenSymbol}
-        sellSymbol={sellTokenSymbol}
-        priceBuy={`${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
-        priceSell={`${prettyBalance(swapPrice)}`}
-        priceBuyUsd={buyTokenUsdPrice}
-        priceSellUsd={sellTokenUsdPrice}
-        nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
-        nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
       />
 
       <Modal selectedModal={modal} onTokenClick={(tokenAddress: string) => handleTokenClick(tokenAddress)} close={() => setModal(null)} />

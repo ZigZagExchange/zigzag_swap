@@ -149,6 +149,13 @@
   padding-right: 3px;
 }
 
+.wrong_network.selected {
+  background: linear-gradient(-45deg, rgba(255, 0, 0, 0.562), rgba(255, 0, 0, 0.253));
+  box-shadow: 0 0 30px rgba(255, 0, 0, 0.562);
+  border-radius: 14px;
+  opacity: 1;
+}
+
 @media (width<=500px) {
   .selected_name_container {
     display: none;

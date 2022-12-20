@@ -1,4 +1,4 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 
 import { prettyBalance, prettyBalanceUSD } from "../../../utils/utils"
 import styles from "./TransactionSettings.module.css"
@@ -33,52 +33,37 @@ function TransactionSettings({
 
   const [isOpen, setIsOpen] = useState(false)
 
+  const headerPriceRef = useRef<HTMLDivElement>(null)
+  const headerGasRef = useRef<HTMLDivElement>(null)
+  const gasFeeDetailRef = useRef<HTMLDivElement>(null)
+
+  const priceSellRef = useRef<HTMLDivElement>(null)
+  const priceBuyRef = useRef<HTMLDivElement>(null)
+
   const { t } = useTranslation("swap")
 
-  let buy_price_element
-  if (priceBuyUsd !== undefined) {
-    buy_price_element = (
-      <div className={styles.buy_price_info}>
-        {/* <div>{t("token_buy_price", { tokenSymbol: buySymbol })}</div> */}
-        <div className={styles.token_amount}>
-          <div>{`1 ${buySymbol} = ${priceBuy} ${sellSymbol}`}</div>
-          <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceBuyUsd)}`}</div>
-        </div>
-      </div>
-    )
-  }
-
-  let sell_price_element
-  if (priceSellUsd !== undefined) {
-    sell_price_element = (
-      <div className={styles.sell_price_info}>
-        <div>{t("token_sell_price", { tokenSymbol: sellSymbol })}</div>
-        <div className={styles.token_amount}>
-          <div>{`${priceSell} ${buySymbol}`}</div>
-          <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceSellUsd)}`}</div>
-        </div>
-      </div>
-    )
-  }
-
-  // let gas_fee_element
-  // if (estimatedGasFee !== undefined) {
-  //   const estimatedGasFeeUsd = Number.isFinite(estimatedGasFee) && nativeCurrencyUsd ? prettyBalanceUSD(estimatedGasFee * nativeCurrencyUsd) : "0.0"
-  //   gas_fee_element = (
-  //     <div className={styles.gas_fee}>
-  //       {/* <div></div> */}
+  // let buy_price_element
+  // if (priceBuyUsd !== undefined) {
+  //   buy_price_element = (
+  //     <div className={styles.buy_price_info}>
+  //       {/* <div>{t("token_buy_price", { tokenSymbol: buySymbol })}</div> */}
   //       <div className={styles.token_amount}>
-  //         {gas_icon}
-  //         {/* <div>{`${prettyBalance(estimatedGasFee, 8)} ${nativeCurrencySymbol}`}</div> */}
-  //         <div className={styles.usd_estimate}>{`$${estimatedGasFeeUsd}`}</div>
+  //         <div>{`1 ${buySymbol} = ${priceBuy} ${sellSymbol}`}</div>
+  //         <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceBuyUsd)}`}</div>
   //       </div>
   //     </div>
   //   )
-  // } else if (userAddress) {
-  //   gas_fee_element = (
-  //     <div className={styles.gas_fee}>
-  //       <div>{t("gas_fee")}</div>
-  //       <div>Loading...</div>
+  // }
+
+  // let sell_price_element
+  // if (priceSellUsd !== undefined) {
+  //   sell_price_element = (
+  //     <div className={styles.sell_price_info}>
+  //       <div>{t("token_sell_price", { tokenSymbol: sellSymbol })}</div>
+  //       <div className={styles.token_amount}>
+  //         <div>{`${priceSell} ${buySymbol}`}</div>
+  //         <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceSellUsd)}`}</div>
+  //       </div>
   //     </div>
   //   )
   // }
@@ -88,59 +73,82 @@ function TransactionSettings({
     estimatedGasFeeUsd = Number.isFinite(estimatedGasFee) && nativeCurrencyUsd ? prettyBalanceUSD(estimatedGasFee * nativeCurrencyUsd) : "0.0"
   }
 
+  useEffect(() => {
+    const headerGas = headerGasRef.current
+    if (headerGas) {
+      headerGas.classList.remove(styles.update_animated)
+      setTimeout(() => headerGas.classList.add(styles.update_animated), 10)
+    }
+
+    const gasFeeDetail = gasFeeDetailRef.current
+    if (gasFeeDetail) {
+      gasFeeDetail.classList.remove(styles.update_animated)
+      setTimeout(() => gasFeeDetail.classList.add(styles.update_animated), 10)
+    }
+  }, [nativeCurrencyUsd, nativeCurrencyUsd, estimatedGasFee])
+
+  useEffect(() => {
+    const priceSell = priceSellRef.current
+    if (priceSell) {
+      priceSell.classList.remove(styles.update_animated)
+      setTimeout(() => priceSell.classList.add(styles.update_animated), 10)
+    }
+  }, [priceSell, buySymbol])
+
+  useEffect(() => {
+    const headerPrice = headerPriceRef.current
+    if (headerPrice) {
+      headerPrice.classList.remove(styles.update_animated)
+      setTimeout(() => headerPrice.classList.add(styles.update_animated), 10)
+    }
+
+    const priceBuy = priceBuyRef.current
+    if (priceBuy) {
+      priceBuy.classList.remove(styles.update_animated)
+      setTimeout(() => priceBuy.classList.add(styles.update_animated), 10)
+    }
+  }, [priceBuy])
+
   return (
     <div className={styles.container}>
       <div className={styles.header} onClick={() => setIsOpen(v => !v)}>
         <div className={styles.header_price}>
-          {/* <div className={styles.token_amount}> */}
-          <div>{`1 ${buySymbol} = ${priceBuy} ${sellSymbol}`}</div>
+          <div className={styles.header_price_token}>
+            1 {buySymbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellSymbol}
+          </div>
           <div className={styles.header_price_usd}>{priceBuyUsd ? `$${prettyBalanceUSD(priceBuyUsd)}` : ""}</div>
-          {/* </div> */}
         </div>
-        <div className={styles.header_gas}>
+        <div className={styles.header_gas} ref={headerGasRef}>
           {gas_icon}
           <div className={styles.usd_estimate}>{`$${estimatedGasFeeUsd}`}</div>
-          <DownArrow />
+          <DownArrow up={isOpen} />
         </div>
       </div>
 
       <div className={`${styles.details_container} ${isOpen ? "" : styles.hidden}`}>
         <div className={styles.details}>
           <div className={styles.detail}>
-            <div>{sellSymbol} sell price</div>
-            <div>
-              {priceSell} {buySymbol}
+            <div> {t("token_sell_price", { tokenSymbol: sellSymbol })}</div>
+            <div ref={priceSellRef}>
+              {priceSell} {buySymbol} {priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}
             </div>
           </div>
           <div className={styles.detail}>
-            <div>{buySymbol} buy price</div>
-            <div>
-              {priceBuy} {sellSymbol}
+            <div> {t("token_buy_price", { tokenSymbol: buySymbol })}</div>
+            <div ref={priceBuyRef}>
+              {priceBuy} {sellSymbol} {priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}
             </div>
           </div>
           <div className={styles.detail}>
-            <div>Gas fee</div>
-            <div>
+            <div>{t("gas_fee")}</div>
+            <div ref={gasFeeDetailRef}>
               {estimatedGasFee} {nativeCurrencySymbol}
             </div>
           </div>
         </div>
       </div>
-      {/* {buy_price_element} */}
-      {/* {sell_price_element} */}
-      {/* {gas_fee_element} */}
     </div>
   )
-
-  // return (
-  //   <div className={styles.container}>
-  //     <div className={styles.title}>{t("transaction_settings")}</div>
-  //     <hr className={styles.hr} />
-  //     {buy_price_element}
-  //     {sell_price_element}
-  //     {gas_fee_element}
-  //   </div>
-  // )
 }
 
 export default TransactionSettings

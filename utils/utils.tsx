@@ -7,7 +7,7 @@ export function balanceCommas(amount: number, decimals: number) {
   while (decimalString && decimalString.at(-1) === "0") {
     decimalString = decimalString.substring(0, decimalString.length - 1)
   }
-  decimalString = decimalString !== "" ? decimalString : "0"
+  decimalString = decimalString !== "" ? decimalString : "00"
   return integerString + "." + decimalString
 }
 

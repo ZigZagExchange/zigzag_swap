@@ -54,15 +54,30 @@
   opacity: 0.5;
 }
 
-/* .header > div {
-  display: flex;
-  align-items: center;
-} */
+.update_animated {
+  animation: update_animation 1s forwards !important;
+}
 
+@keyframes update_animation {
+  0% {
+    opacity: 1;
+    color: var(--turquoise);
+    text-shadow: 0 0 10px var(--turquoise_darker);
+  }
+  100% {
+    /* opacity: 0.5; */
+    opacity: initial;
+  }
+}
 .header_price {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.header_price_token {
+  display: flex;
+  gap: 0.3em;
 }
 
 .header_price_usd {
@@ -72,11 +87,13 @@
 .header_gas {
   display: flex;
   align-items: center;
-  opacity: 0.5;
+  transition: all 0.1s ease-out !important;
+
+  /* opacity: 0.5; */
 }
 
 .header:hover .header_gas {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .header:hover {
@@ -86,14 +103,13 @@
 
 .details_container {
   border-top: 1px solid var(--glass_background);
-  transition: all 0.5s ease-out;
+  transition: all 0.25s ease-out;
   max-height: 6rem;
   overflow: hidden;
 }
 
 .hidden {
   border-color: transparent;
-
   max-height: 0;
 }
 

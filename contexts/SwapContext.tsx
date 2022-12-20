@@ -81,7 +81,7 @@ function SwapProvider({ children }: Props) {
   const { network, signer, ethersProvider } = useContext(WalletContext)
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
 
-  const [estimatedGasFee, setEstimatedGasFee] = useState<number | undefined>()
+  const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0.0001)
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
   const [userInputSide, setUserInputSide] = useState<"buy" | "sell">("sell")
   const [sellInput, setSellInput] = useState<string>("")
@@ -270,12 +270,13 @@ function SwapProvider({ children }: Props) {
           )
         }
 
-        const estimatedFeeBigNumber = (feeData.lastBaseFeePerGas.add(feeData.gasPrice)).mul(estimatedGasUsed)
+        const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.add(feeData.gasPrice).mul(estimatedGasUsed)
         const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
+        console.log(Number(estimatedFee))
         setEstimatedGasFee(Number(estimatedFee))
       } catch (err: any) {
         console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
-        setEstimatedGasFee(undefined)
+        // setEstimatedGasFee(0.0001) // Some estimate
       }
     }
     getGasFees()

@@ -1,5 +1,5 @@
 import React, { useContext, createContext, useEffect, useState, useMemo } from "react"
-import { ethers } from "ethers"
+import { constants, ethers } from "ethers"
 
 import exchangeAbi from "../data/abis/exchange.json"
 
@@ -337,19 +337,33 @@ function SwapProvider({ children }: Props) {
 
   function selectSellToken(newTokenAddress: string) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
-    if (buyTokenInfo.symbol === "ETH" && newTokenInfo && newTokenInfo.name !== "weth") {
+    if (buyTokenInfo.symbol === "ETH" && newTokenInfo && newTokenInfo.symbol !== "WETH") {
       setSellInput("")
       setSellToken(newTokenAddress)
 
       const tokenAddresses = getTokens()
       let wethToken
-
       for (let i = 0; i < tokenAddresses.length; i++) {
         const tokenAddress = tokenAddresses[i]
         const tokenInfo = getTokenInfo(tokenAddress)
         if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
       }
       if (wethToken) {
+        console.log("Setting weth as buy token")
+        setBuyToken(wethToken.address)
+      }
+    } else if (newTokenInfo && newTokenInfo.symbol === "ETH") {
+      setSellInput("")
+      setSellToken(newTokenAddress)
+      const tokenAddresses = getTokens()
+      let wethToken
+      for (let i = 0; i < tokenAddresses.length; i++) {
+        const tokenAddress = tokenAddresses[i]
+        const tokenInfo = getTokenInfo(tokenAddress)
+        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+      }
+      if (wethToken) {
+        console.log("Setting weth as buy token")
         setBuyToken(wethToken.address)
       }
     } else if (newTokenAddress === buyTokenInfo.address) {

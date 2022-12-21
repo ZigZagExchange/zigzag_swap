@@ -22,121 +22,173 @@ interface Props {
 
 export default function TokenSelectModal({ selectedModal, onTokenClick, close }: Props) {
   const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
-  const { network } = useContext(WalletContext)
   const [query, setQuery] = useState<string>("")
 
   const { t } = useTranslation("swap")
 
   const selectedToken = selectedModal === "selectSellToken" ? sellTokenInfo?.address : buyTokenInfo?.address
 
-  const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {
-    const tokens: string[] = []
+  const tokenList: TokenEntry[] = []
+  if (selectedModal === "selectBuyToken") {
+    const allTokens = getTokens()
+    for (let i = 0; i < allTokens.length; i++) {
+      const tokenAddress = allTokens[i]
+      const balance = balances[tokenAddress]
+      const balanceReadable = balance ? balance.valueReadable : 0
+      const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+      const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+      tokenList.push({ tokenAddress, balance: balanceReadable, value })
+    }
+  } else if (selectedModal === "selectSellToken") {
+    const allTokens: string[] = []
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
-      if (sellTokenInfo?.address === tokenB && !tokens.includes(tokenA)) tokens.push(tokenA)
-      if (sellTokenInfo?.address === tokenA && !tokens.includes(tokenB)) tokens.push(tokenB)
+      if (sellTokenInfo?.address === tokenB && !allTokens.includes(tokenA)) allTokens.push(tokenA)
+      if (sellTokenInfo?.address === tokenA && !allTokens.includes(tokenB)) allTokens.push(tokenB)
     }
 
-    if (tokens.length === 0) return []
+    // if (allTokens.length === 0)
     // check if current buy token in possible options
-    const searchList = tokens.filter(tokenAddress => tokenAddress === buyTokenInfo?.address)
+    const searchList = allTokens.filter(tokenAddress => tokenAddress === buyTokenInfo.address)
     if (searchList.length === 0) {
       // selected token not in options -> update
-      setBuyToken(tokens[0])
+      // setBuyToken(allTokens[0]) // THIS MIGHT BE THE SOURCE OF THE BUG
     }
 
     // push sellToken as well
-    tokens.push(sellTokenInfo?.address)
-    return tokens.map((tokenAddress: string) => {
+    allTokens.push(sellTokenInfo.address)
+    for (let i = 0; i < allTokens.length; i++) {
+      const tokenAddress = allTokens[i]
       const balance = balances[tokenAddress]
       const balanceReadable = balance ? balance.valueReadable : 0
       const tokenPriceUsd = tokenPricesUSD[tokenAddress]
       const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
-      return { tokenAddress, balance: balanceReadable, value }
-    })
-  }, [balances, tokenPricesUSD, markets, sellTokenInfo])
-
-  const sellModalTokenEntryList: TokenEntry[] = useMemo(() => {
-    // if (buyTokenInfo.symbol === "ETH") {
-    //   const tokenAddresses = getTokens()
-    //   for (let i = 0; i < tokenAddresses.length; i++) {
-    //     const tokenAddress = tokenAddresses[i]
-    //     const tokenInfo = getTokenInfo(tokenAddress)
-    //     if (tokenInfo?.symbol === "WETH") {
-    //       const balance = balances[tokenAddress]
-    //       const balanceReadable = balance ? balance.valueReadable : 0
-    //       const tokenPriceUsd = tokenPricesUSD[tokenAddress]
-    //       const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
-    //       return [{ tokenAddress, balance: balanceReadable, value }]
-    //     }
-    //   }
-    // }
-
-    const newTokenEntrysList: TokenEntry[] = []
-    const possibleTokens = getTokens()
-    for (let i = 0; i < possibleTokens.length; i++) {
-      const tokenAddress = possibleTokens[i]
-
-      // Skip native currency
-      // if (buyTokenInfo.symbol !== "WETH" && tokenAddress === network?.nativeCurrency.address) continue
-
-      const balance = balances[tokenAddress]
-      const balanceReadable = balance ? balance.valueReadable : 0
-      const tokenPriceUsd = tokenPricesUSD[tokenAddress]
-      const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
-      newTokenEntrysList.push({ tokenAddress, balance: balanceReadable, value })
+      tokenList.push({ tokenAddress, balance: balanceReadable, value })
     }
-    return newTokenEntrysList
-  }, [balances, tokenPricesUSD, getTokens, selectedToken])
+  }
 
-  const sortedTokenEntrys: TokenEntry[] = useMemo(() => {
-    const tokenEntrysList = selectedModal === "selectBuyToken" ? buyModalTokenEntryList : sellModalTokenEntryList
-    const tokensWithValue: TokenEntry[] = tokenEntrysList
-      .filter(t => t.value !== 0)
-      .sort(function (a: TokenEntry, b: TokenEntry) {
-        return b.value - a.value
-      })
-    const tokensWithBalance: TokenEntry[] = tokenEntrysList
+  // const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {
+  //   const tokens: string[] = []
+  //   for (let i = 0; i < markets.length; i++) {
+  //     const [tokenA, tokenB] = markets[i].split("-")
+  //     if (sellTokenInfo?.address === tokenB && !tokens.includes(tokenA)) tokens.push(tokenA)
+  //     if (sellTokenInfo?.address === tokenA && !tokens.includes(tokenB)) tokens.push(tokenB)
+  //   }
+
+  //   if (tokens.length === 0) return []
+  //   // check if current buy token in possible options
+  //   const searchList = tokens.filter(tokenAddress => tokenAddress === buyTokenInfo?.address)
+  //   if (searchList.length === 0) {
+  //     // selected token not in options -> update
+  //     setBuyToken(tokens[0])
+  //   }
+
+  //   // push sellToken as well
+  //   tokens.push(sellTokenInfo?.address)
+  //   return tokens.map((tokenAddress: string) => {
+  //     const balance = balances[tokenAddress]
+  //     const balanceReadable = balance ? balance.valueReadable : 0
+  //     const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+  //     const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+  //     return { tokenAddress, balance: balanceReadable, value }
+  //   })
+  // }, [balances, tokenPricesUSD, markets, sellTokenInfo])
+
+  // const sellModalTokenEntryList: TokenEntry[] = useMemo(() => {
+  //   const newTokenEntrysList: TokenEntry[] = []
+  //   const possibleTokens = getTokens()
+  //   for (let i = 0; i < possibleTokens.length; i++) {
+  //     const tokenAddress = possibleTokens[i]
+
+  //     const balance = balances[tokenAddress]
+  //     const balanceReadable = balance ? balance.valueReadable : 0
+  //     const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+  //     const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+  //     newTokenEntrysList.push({ tokenAddress, balance: balanceReadable, value })
+  //   }
+  //   return newTokenEntrysList
+  // }, [balances, tokenPricesUSD, getTokens, selectedToken])
+
+  function sortTokens(tokenList: TokenEntry[]) {
+    const tokensWithValue: TokenEntry[] = tokenList.filter(t => t.value !== 0).sort((a: TokenEntry, b: TokenEntry) => b.value - a.value)
+
+    const tokensWithBalance: TokenEntry[] = tokenList
       .filter(t => t.value === 0 && t.balance !== 0)
-      .sort(function (a: TokenEntry, b: TokenEntry) {
-        return b.balance - a.balance
-      })
-    const otherTokens: TokenEntry[] = tokenEntrysList.filter(t => t.balance === 0 && t.value === 0)
+      .sort((a: TokenEntry, b: TokenEntry) => b.balance - a.balance)
+
+    const otherTokens: TokenEntry[] = tokenList.filter(t => t.balance === 0 && t.value === 0)
 
     return tokensWithValue.concat(tokensWithBalance).concat(otherTokens)
-  }, [selectedModal, buyModalTokenEntryList, sellModalTokenEntryList])
-
-  const tokenList: JSX.Element[] = useMemo(
-    () =>
-      sortedTokenEntrys.reduce((currentList, { tokenAddress, balance, value }) => {
-        const tokenInfo = getTokenInfo(tokenAddress)
-        if (tokenInfo === null) return currentList
-        if (
-          !tokenInfo.symbol.toLocaleLowerCase().includes(query.toLowerCase()) &&
-          !tokenInfo.name.toLocaleLowerCase().includes(query.toLowerCase()) &&
-          !tokenAddress.includes(query.toLowerCase())
-        )
-          return currentList
-        return [
-          ...currentList,
-          <TokenListEntry
-            key={tokenAddress}
-            symbol={tokenInfo.symbol}
-            name={tokenInfo.name}
-            selected={tokenAddress === selectedToken}
-            balance={balance ? prettyBalance(balance) : "0.0"}
-            usdValue={value ? prettyBalanceUSD(value) : "0.0"}
-            onClick={() => onTokenClick(tokenAddress)}
-          />,
-        ]
-      }, [] as JSX.Element[]),
-    [sortedTokenEntrys, query, selectedToken]
-  )
-
-  function close_modal() {
-    setQuery("")
-    close()
   }
+
+  // const sortedTokenEntrys: TokenEntry[] = useMemo(() => {
+  //   const tokenEntrysList = selectedModal === "selectBuyToken" ? buyModalTokenEntryList : sellModalTokenEntryList
+  //   const tokensWithValue: TokenEntry[] = tokenEntrysList
+  //     .filter(t => t.value !== 0)
+  //     .sort(function (a: TokenEntry, b: TokenEntry) {
+  //       return b.value - a.value
+  //     })
+  //   const tokensWithBalance: TokenEntry[] = tokenEntrysList
+  //     .filter(t => t.value === 0 && t.balance !== 0)
+  //     .sort(function (a: TokenEntry, b: TokenEntry) {
+  //       return b.balance - a.balance
+  //     })
+  //   const otherTokens: TokenEntry[] = tokenEntrysList.filter(t => t.balance === 0 && t.value === 0)
+
+  //   return tokensWithValue.concat(tokensWithBalance).concat(otherTokens)
+  // }, [selectedModal, buyModalTokenEntryList, sellModalTokenEntryList])
+
+  // const tokenListElements: JSX.Element[] = useMemo(
+  //   () =>
+  //     sortedTokenEntrys.reduce((currentList, { tokenAddress, balance, value }) => {
+  //       const tokenInfo = getTokenInfo(tokenAddress)
+  //       if (tokenInfo === null) return currentList
+  //       if (
+  //         !tokenInfo.symbol.toLocaleLowerCase().includes(query.toLowerCase()) &&
+  //         !tokenInfo.name.toLocaleLowerCase().includes(query.toLowerCase()) &&
+  //         !tokenAddress.includes(query.toLowerCase())
+  //       )
+  //         return currentList
+  //       return [
+  //         ...currentList,
+  //         <TokenListEntry
+  //           key={tokenAddress}
+  //           symbol={tokenInfo.symbol}
+  //           name={tokenInfo.name}
+  //           selected={tokenAddress === selectedToken}
+  //           balance={balance ? prettyBalance(balance) : "0.0"}
+  //           usdValue={value ? prettyBalanceUSD(value) : "0.0"}
+  //           onClick={() => onTokenClick(tokenAddress)}
+  //         />,
+  //       ]
+  //     }, [] as JSX.Element[]),
+  //   [sortedTokenEntrys, query, selectedToken]
+  // )
+
+  const tokenListElements = sortTokens(tokenList).reduce((currentList, { tokenAddress, balance, value }) => {
+    const tokenInfo = getTokenInfo(tokenAddress)
+    if (tokenInfo === null) return currentList
+
+    const matchesQuery =
+      tokenInfo.symbol.toLocaleLowerCase().includes(query.toLowerCase()) ||
+      tokenInfo.name.toLocaleLowerCase().includes(query.toLowerCase()) ||
+      tokenAddress.includes(query.toLowerCase())
+
+    if (!matchesQuery) return currentList
+
+    const tokenListEntry = (
+      <TokenListEntry
+        key={tokenAddress}
+        symbol={tokenInfo.symbol}
+        name={tokenInfo.name}
+        selected={tokenAddress === selectedToken}
+        balance={balance ? prettyBalance(balance) : "0.0"}
+        usdValue={value ? prettyBalanceUSD(value) : "0.0"}
+        onClick={() => onTokenClick(tokenAddress)}
+      />
+    )
+    return [...currentList, tokenListEntry]
+  }, [] as JSX.Element[])
 
   return (
     <>
@@ -150,7 +202,7 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
         onChange={p => setQuery(p.target.value)}
         spellCheck="false"
       />
-      <div className={styles.token_list_container}>{tokenList}</div>
+      <div className={styles.token_list_container}>{tokenListElements}</div>
     </>
   )
 }

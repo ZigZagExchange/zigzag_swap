@@ -10,8 +10,8 @@ import SwapButton from "./swapButton/SwapButton"
 import { ExchangeContext, ZZTokenInfo } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
-import { prettyBalance, prettyBalanceUSD, truncateDecimals } from "../../utils/utils"
-import { ethers } from "ethers"
+import { prettyBalance, prettyBalanceUSD } from "../../utils/utils"
+import { constants, ethers } from "ethers"
 import Separator from "./separator/Separator"
 import useTranslation from "next-translate/useTranslation"
 import { NetworkType } from "../../data/networks"
@@ -197,7 +197,7 @@ function ExplorerButton({ network, token }: { network: NetworkType | null; token
   const { t } = useTranslation("common")
 
   if (network && token) {
-    if (token.address === "0x0000000000000000000000000000000000000000") {
+    if (token.address === constants.AddressZero) {
       return <a className={styles.native_token}>{t("native_token")}</a>
     }
     return (

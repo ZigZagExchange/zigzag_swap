@@ -1,3 +1,4 @@
+import { ethers } from "ethers"
 import useTranslation from "next-translate/useTranslation"
 import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import { ExchangeContext } from "../../../../contexts/ExchangeContext"
@@ -52,10 +53,23 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
   }, [balances, tokenPricesUSD, markets, sellTokenInfo])
 
   const sellModalTokenEntryList: TokenEntry[] = useMemo(() => {
+    if (buyTokenInfo.symbol === "ETH") {
+      const tokenAddresses = getTokens()
+      for (let i = 0; i < tokenAddresses.length; i++) {
+        const tokenAddress = tokenAddresses[i]
+        if (getTokenInfo(tokenAddress)?.symbol === "WETH") {
+          const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
+          const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
+          return [{ tokenAddress, balance, value }]
+        }
+      }
+    }
+
     const newTokenEntrysList: TokenEntry[] = []
     const possibleTokens = getTokens()
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
+      if (buyTokenInfo.symbol !== "WETH" && tokenAddress === ethers.constants.AddressZero) continue
 
       const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
       const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0

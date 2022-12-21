@@ -117,6 +117,8 @@ export function parseError(error: any) {
         return "Tried to fill a bad quote, please try again."
       case "order canceled":
         return "Tried to fill a bad quote, please try again."
+      case "amount exceeds available size":
+        return "Tried to fill a bad quote, please try again."        
       case "ERC20: insufficient allowance":
         return "Insufficient allowance."
       case "ERC20: transfer amount exceeds balance":

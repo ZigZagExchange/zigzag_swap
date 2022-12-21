@@ -242,7 +242,7 @@ function ExplorerButton({ network, token }: { network: NetworkType | null; token
     }
     return (
       <a className={styles.see_in_explorer_link} href={`${network.explorerUrl}/token/${token.address}`} target="_blank" rel="noopener noreferrer">
-        See in Explorer
+        View in Explorer
       </a>
     )
   } else return null

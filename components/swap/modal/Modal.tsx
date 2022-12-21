@@ -51,7 +51,11 @@ export default function Modal({ selectedModal, onTokenClick, close }: Props) {
     )
   } else if (selectedModal === "approve") {
     return (
-      <div className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`} ref={container_ref}>
+      <div
+        className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`}
+        onClick={e => (e.target === container_ref.current ? close_modal() : null)}
+        ref={container_ref}
+      >
         <div className={styles.modal}>
           <ApproveModal close={close_modal} />
         </div>
@@ -59,7 +63,11 @@ export default function Modal({ selectedModal, onTokenClick, close }: Props) {
     )
   } else if (selectedModal === "swap") {
     return (
-      <div className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`} ref={container_ref}>
+      <div
+        className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`}
+        onClick={e => (e.target === container_ref.current ? close_modal() : null)}
+        ref={container_ref}
+      >
         <div className={styles.modal}>
           <SwapModal close={close_modal} />
         </div>
@@ -67,7 +75,11 @@ export default function Modal({ selectedModal, onTokenClick, close }: Props) {
     )
   } else if (selectedModal === "wrap") {
     return (
-      <div className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`} ref={container_ref}>
+      <div
+        className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`}
+        onClick={e => (e.target === container_ref.current ? close_modal() : null)}
+        ref={container_ref}
+      >
         <div className={styles.modal}>
           <WrapModal close={close_modal} />
         </div>
@@ -75,7 +87,11 @@ export default function Modal({ selectedModal, onTokenClick, close }: Props) {
     )
   } else if (selectedModal === "unwrap") {
     return (
-      <div className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`} ref={container_ref}>
+      <div
+        className={`${styles.container} ${!selectedModal ? styles.hidden : ""}`}
+        onClick={e => (e.target === container_ref.current ? close_modal() : null)}
+        ref={container_ref}
+      >
         <div className={styles.modal}>
           <UnwrapModal close={close_modal} />
         </div>

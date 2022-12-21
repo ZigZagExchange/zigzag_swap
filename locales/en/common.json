@@ -1,5 +1,6 @@
 {
   "connect_wallet": "Connect Wallet",
   "view_in_explorer": "View in Explorer",
+  "native_token": "Native Token",
   "disconnect": "Disconnect"
 }

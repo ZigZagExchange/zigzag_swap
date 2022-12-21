@@ -5,20 +5,19 @@ import { ethers, utils } from "ethers"
 import input_styles from "../Input.module.css"
 import TokenSelector from "../tokenSelector/TokenSelector"
 import { SwapContext } from "../../../contexts/SwapContext"
-import { ZZTokenInfo } from "../../../contexts/ExchangeContext"
+import { ExchangeContext, ZZTokenInfo } from "../../../contexts/ExchangeContext"
 import { balanceCommas, truncateDecimals } from "../../../utils/utils"
 
 import { ValidationState } from "../Swap"
 import { WalletContext } from "../../../contexts/WalletContext"
 
 interface Props {
-  sellTokenInfo: ZZTokenInfo | null
-  balance: ethers.BigNumber | null
   validationStateSell: ValidationState
   openSellTokenSelectModal: () => void
 }
 
-export default function SellInput({ sellTokenInfo, balance, validationStateSell, openSellTokenSelectModal }: Props) {
+export default function SellInput({ validationStateSell, openSellTokenSelectModal }: Props) {
+  const { balances, sellTokenInfo } = useContext(ExchangeContext)
   const { sellInput, setSellInput } = useContext(SwapContext)
   const { userAddress } = useContext(WalletContext)
 
@@ -29,8 +28,9 @@ export default function SellInput({ sellTokenInfo, balance, validationStateSell,
   }
 
   function maximize() {
+    const balance = balances[sellTokenInfo.address]
     if (!sellTokenInfo || !balance) return
-    let tokenBalance: string = utils.formatUnits(balance, sellTokenInfo.decimals)
+    let tokenBalance: string = utils.formatUnits(balance.value, sellTokenInfo.decimals)
     if (sellTokenInfo.address === ethers.constants.AddressZero) {
       tokenBalance = String(Number(tokenBalance) - 0.005)
     }

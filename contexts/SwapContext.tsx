@@ -47,6 +47,9 @@ export type SwapContextType = {
 
   isFrozen: boolean
   setIsFrozen: React.Dispatch<React.SetStateAction<boolean>>
+
+  selectSellToken: (newTokenAddress: string) => void
+  selectBuyToken: (newTokenAddress: string) => void
 }
 
 export type TransactionStatus = "awaitingWallet" | "processing" | "processed" | null
@@ -75,11 +78,15 @@ export const SwapContext = createContext<SwapContextType>({
 
   isFrozen: false,
   setIsFrozen: () => {},
+
+  selectSellToken: (newTokenAddress: string) => {},
+  selectBuyToken: (newTokenAddress: string) => {},
 })
 
 function SwapProvider({ children }: Props) {
   const { network, signer, ethersProvider } = useContext(WalletContext)
-  const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress } = useContext(ExchangeContext)
+  const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress, setBuyToken, setSellToken, getTokenInfo, getTokens } =
+    useContext(ExchangeContext)
 
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0.0001)
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
@@ -328,18 +335,45 @@ function SwapProvider({ children }: Props) {
     setOrderBook(goodOrders)
   }
 
-  const switchTokens = () => {
-    if (userInputSide === "sell") {
-      setUserInputSide("buy")
+  function selectSellToken(newTokenAddress: string) {
+    const newTokenInfo = getTokenInfo(newTokenAddress)
+    if (buyTokenInfo.symbol === "ETH" && newTokenInfo && newTokenInfo.name !== "weth") {
+      setSellInput("")
+      setSellToken(newTokenAddress)
 
-      setBuyInput(sellInput)
-      setSellInput(buyInput)
+      const tokenAddresses = getTokens()
+      let wethToken
+
+      for (let i = 0; i < tokenAddresses.length; i++) {
+        const tokenAddress = tokenAddresses[i]
+        const tokenInfo = getTokenInfo(tokenAddress)
+        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+      }
+      if (wethToken) {
+        setBuyToken(wethToken.address)
+      }
+    } else if (newTokenAddress === buyTokenInfo.address) {
+      switchTokens()
     } else {
-      setUserInputSide("sell")
-
-      setBuyInput(sellInput)
-      setSellInput(buyInput)
+      setSellInput("")
+      setSellToken(newTokenAddress)
     }
+  }
+
+  function selectBuyToken(newTokenAddress: string) {
+    if (newTokenAddress === sellTokenInfo.address) {
+      switchTokens()
+    } else {
+      setBuyToken(newTokenAddress)
+    }
+  }
+
+  const switchTokens = () => {
+    userInputSide === "sell" ? setUserInputSide("buy") : setUserInputSide("sell")
+    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
+    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
+    setBuyInput(sellInput)
+    setSellInput(buyInput)
   }
 
   const _setSellInput = (newInput: string) => {
@@ -375,6 +409,9 @@ function SwapProvider({ children }: Props) {
         setTransactionError,
         isFrozen,
         setIsFrozen,
+
+        selectSellToken,
+        selectBuyToken,
       }}
     >
       {children}

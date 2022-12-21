@@ -11,11 +11,9 @@ import { ExchangeContext, ZZTokenInfo } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
 import { SwapContext } from "../../contexts/SwapContext"
 import { prettyBalance, prettyBalanceUSD, truncateDecimals } from "../../utils/utils"
-import { constants, ethers } from "ethers"
+import { ethers } from "ethers"
 import Separator from "./separator/Separator"
-import DownArrow from "../DownArrow"
 import useTranslation from "next-translate/useTranslation"
-import Link from "next/link"
 import { NetworkType } from "../../data/networks"
 
 export enum ValidationState {
@@ -31,19 +29,18 @@ export enum ValidationState {
 function Swap() {
   console.log("SWAP RENDER")
   const { network, userAddress } = useContext(WalletContext)
-  const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, setBuyToken, setSellToken } = useContext(ExchangeContext)
-  const { sellAmount, buyAmount, swapPrice, switchTokens, setSellInput } = useContext(SwapContext)
+  const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD } = useContext(ExchangeContext)
+  const { sellAmount, buyAmount, swapPrice, selectSellToken, selectBuyToken } = useContext(SwapContext)
 
   const [modal, setModal] = useState<ModalMode>(null)
 
   const { t } = useTranslation("swap")
 
   const getBalanceReadable = (tokenAddress: string | null) => {
-    if (tokenAddress && balances[tokenAddress]) {
-      return prettyBalance(balances[tokenAddress].valueReadable)
-    } else {
-      return "0.0"
-    }
+    if (tokenAddress === null) return "0.0"
+    const tokenBalance = balances[tokenAddress]
+    if (tokenBalance === undefined) return "0.0"
+    return prettyBalance(tokenBalance.valueReadable)
   }
 
   const validationStateSell = useMemo((): ValidationState => {
@@ -51,7 +48,8 @@ function Swap() {
     if (!sellTokenInfo) return ValidationState.InternalError
     if (!swapPrice) return ValidationState.MissingLiquidity
 
-    const balance = balances[sellTokenInfo.address] ? balances[sellTokenInfo.address].value : ethers.constants.Zero
+    const sellTokenBalance = balances[sellTokenInfo.address]
+    const balance = sellTokenBalance ? sellTokenBalance.value : ethers.constants.Zero
     if (balance === null) return ValidationState.InsufficientBalance
     if (sellAmount.gt(balance)) return ValidationState.InsufficientBalance
 
@@ -70,59 +68,17 @@ function Swap() {
     return ValidationState.OK
   }, [userAddress, buyTokenInfo])
 
-  const getErrorMessage = (validationState: ValidationState) => {
-    if (!userAddress) return
-
-    switch (validationState) {
-      case ValidationState.ExceedsAllowance:
-        return "Amount exceeds allowance."
-      case ValidationState.InsufficientBalance:
-        return "Amount exceeds balance."
-      case ValidationState.InternalError:
-        return "Internal error."
-      case ValidationState.IsNaN:
-        return "Amount cannot be NaN."
-      case ValidationState.IsNegative:
-        return "Amount cannot be negative."
-      case ValidationState.MissingLiquidity:
-        return "Not enough liquidity"
-      default:
-        return
-    }
-  }
-
-  function _switchTokens() {
-    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
-    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
-    switchTokens()
-  }
-
   const handleTokenClick = (newTokenAddress: string) => {
     if (modal === "selectSellToken") {
-      if (newTokenAddress === buyTokenInfo?.address) {
-        _switchTokens()
-      } else {
-        setSellInput("")
-        setSellToken(newTokenAddress)
-      }
+      selectSellToken(newTokenAddress)
     } else if (modal === "selectBuyToken") {
-      if (newTokenAddress === sellTokenInfo?.address) {
-        _switchTokens()
-      } else {
-        setBuyToken(newTokenAddress)
-      }
+      selectBuyToken(newTokenAddress)
     }
     setModal(null)
   }
 
-  const buyTokenSymbol = buyTokenInfo?.symbol ? buyTokenInfo?.symbol : "Token"
-  const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
-
-  const buyTokenAddress = buyTokenInfo?.address ? buyTokenInfo?.address : null
-  const sellTokenAddress = sellTokenInfo?.address ? sellTokenInfo?.address : null
-
-  const buyTokenUsdPrice = buyTokenAddress && tokenPricesUSD[buyTokenAddress] ? tokenPricesUSD[buyTokenAddress] : undefined
-  const sellTokenUsdPrice = sellTokenAddress && tokenPricesUSD[sellTokenAddress] ? tokenPricesUSD[sellTokenAddress] : undefined
+  const buyTokenUsdPrice = tokenPricesUSD[buyTokenInfo.address]
+  const sellTokenUsdPrice = tokenPricesUSD[sellTokenInfo.address]
 
   // Estimated sell token value
   const sellTokenEstimatedValue: any = useMemo(() => {
@@ -152,6 +108,26 @@ function Swap() {
     return
   }, [sellTokenInfo, buyTokenInfo, sellAmount, buyAmount, sellTokenUsdPrice, buyTokenUsdPrice])
 
+  const getErrorMessage = (validationState: ValidationState) => {
+    if (!userAddress) return
+    switch (validationState) {
+      case ValidationState.ExceedsAllowance:
+        return "Amount exceeds allowance."
+      case ValidationState.InsufficientBalance:
+        return "Amount exceeds balance."
+      case ValidationState.InternalError:
+        return "Internal error."
+      case ValidationState.IsNaN:
+        return "Amount cannot be NaN."
+      case ValidationState.IsNegative:
+        return "Amount cannot be negative."
+      case ValidationState.MissingLiquidity:
+        return "Not enough liquidity"
+      default:
+        return
+    }
+  }
+
   // Error messages
   // const sellErrorMessage = getErrorMessage(validationStateSell)
   // const sellErrorElement = <div className={styles.error_element}>{sellErrorMessage}</div>
@@ -165,18 +141,13 @@ function Swap() {
 
         <div className={styles.from_container}>
           <div className={styles.from_header}>
-            <div className={styles.from_title}> From</div>
+            <div className={styles.from_title}>{t("from")}</div>
             <div className={styles.from_balance}>
-              {getBalanceReadable(sellTokenAddress)} {sellTokenSymbol}
+              {getBalanceReadable(sellTokenInfo.address)} {buyTokenInfo.symbol}
             </div>
           </div>
           <div className={styles.from_input_container}>
-            <SellInput
-              sellTokenInfo={sellTokenInfo}
-              balance={sellTokenAddress && balances[sellTokenAddress] ? balances[sellTokenAddress].value : ethers.constants.Zero}
-              validationStateSell={validationStateSell}
-              openSellTokenSelectModal={() => setModal("selectSellToken")}
-            />
+            <SellInput validationStateSell={validationStateSell} openSellTokenSelectModal={() => setModal("selectSellToken")} />
           </div>
           <div className={styles.below_input_container}>
             <ExplorerButton network={network} token={sellTokenInfo} />
@@ -184,21 +155,17 @@ function Swap() {
           </div>
         </div>
 
-        <Separator onClick={_switchTokens} />
+        <Separator />
 
         <div className={styles.to_container}>
           <div className={styles.to_header}>
-            <div className={styles.to_title}> To</div>
+            <div className={styles.to_title}>{t("to")}</div>
             <div className={styles.to_balance}>
-              {getBalanceReadable(buyTokenAddress)} {buyTokenSymbol}
+              {getBalanceReadable(buyTokenInfo.address)} {sellTokenInfo.symbol}
             </div>
           </div>
           <div className={styles.to_input_container}>
-            <BuyInput
-              buyTokenInfo={buyTokenInfo}
-              validationStateBuy={validationStateBuy}
-              openBuyTokenSelectModal={() => setModal("selectBuyToken")}
-            />
+            <BuyInput validationStateBuy={validationStateBuy} openBuyTokenSelectModal={() => setModal("selectBuyToken")} />
           </div>
           <div className={styles.below_input_container}>
             <ExplorerButton network={network} token={buyTokenInfo} />
@@ -206,16 +173,7 @@ function Swap() {
           </div>
         </div>
 
-        <TransactionSettings
-          buySymbol={buyTokenSymbol}
-          sellSymbol={sellTokenSymbol}
-          priceBuy={`${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`}
-          priceSell={`${prettyBalance(swapPrice)}`}
-          priceBuyUsd={buyTokenUsdPrice}
-          priceSellUsd={sellTokenUsdPrice}
-          nativeCurrencyUsd={tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0}
-          nativeCurrencySymbol={network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"}
-        />
+        <TransactionSettings />
       </div>
 
       <SwapButton
@@ -236,13 +194,15 @@ function Swap() {
 export default Swap
 
 function ExplorerButton({ network, token }: { network: NetworkType | null; token: ZZTokenInfo | null }) {
+  const { t } = useTranslation("common")
+
   if (network && token) {
     if (token.address === "0x0000000000000000000000000000000000000000") {
-      return <a className={styles.native_token}>Native Token</a>
+      return <a className={styles.native_token}>{t("native_token")}</a>
     }
     return (
       <a className={styles.see_in_explorer_link} href={`${network.explorerUrl}/token/${token.address}`} target="_blank" rel="noopener noreferrer">
-        View in Explorer
+        {t("view_in_explorer")}
       </a>
     )
   } else return null

@@ -6,30 +6,24 @@ import { SwapContext } from "../../../contexts/SwapContext"
 import { WalletContext } from "../../../contexts/WalletContext"
 import useTranslation from "next-translate/useTranslation"
 import DownArrow from "../../DownArrow"
+import { ExchangeContext } from "../../../contexts/ExchangeContext"
+import { constants } from "ethers"
 
 interface Props {
-  buySymbol: string
-  sellSymbol: string
-  priceBuy: string
-  priceSell: string
-  priceBuyUsd: number | undefined
-  priceSellUsd: number | undefined
-  nativeCurrencyUsd: number
-  nativeCurrencySymbol: string
+  // buySymbol: string
+  // sellSymbol: string
+  // priceBuy: string
+  // priceSell: string
+  // priceBuyUsd: number | undefined
+  // priceSellUsd: number | undefined
+  // nativeCurrencyUsd: number
+  // nativeCurrencySymbol: string
 }
 
-function TransactionSettings({
-  buySymbol,
-  sellSymbol,
-  priceBuy,
-  priceSell,
-  priceBuyUsd,
-  priceSellUsd,
-  nativeCurrencyUsd,
-  nativeCurrencySymbol,
-}: Props) {
-  const { userAddress } = useContext(WalletContext)
-  const { estimatedGasFee } = useContext(SwapContext)
+function TransactionSettings() {
+  const { tokenPricesUSD, buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
+  const { network, userAddress } = useContext(WalletContext)
+  const { estimatedGasFee, swapPrice } = useContext(SwapContext)
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -40,33 +34,15 @@ function TransactionSettings({
   const priceSellRef = useRef<HTMLDivElement>(null)
   const priceBuyRef = useRef<HTMLDivElement>(null)
 
+  const priceBuy = `${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`
+  const priceSell = `${prettyBalance(swapPrice)}`
+  const priceBuyUsd = tokenPricesUSD[buyTokenInfo.address]
+  const priceSellUsd = tokenPricesUSD[sellTokenInfo.address]
+
+  const nativeCurrencyUsd = tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0
+  const nativeCurrencySymbol = network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"
+
   const { t } = useTranslation("swap")
-
-  // let buy_price_element
-  // if (priceBuyUsd !== undefined) {
-  //   buy_price_element = (
-  //     <div className={styles.buy_price_info}>
-  //       {/* <div>{t("token_buy_price", { tokenSymbol: buySymbol })}</div> */}
-  //       <div className={styles.token_amount}>
-  //         <div>{`1 ${buySymbol} = ${priceBuy} ${sellSymbol}`}</div>
-  //         <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceBuyUsd)}`}</div>
-  //       </div>
-  //     </div>
-  //   )
-  // }
-
-  // let sell_price_element
-  // if (priceSellUsd !== undefined) {
-  //   sell_price_element = (
-  //     <div className={styles.sell_price_info}>
-  //       <div>{t("token_sell_price", { tokenSymbol: sellSymbol })}</div>
-  //       <div className={styles.token_amount}>
-  //         <div>{`${priceSell} ${buySymbol}`}</div>
-  //         <div className={styles.usd_estimate}>{`~$${prettyBalanceUSD(priceSellUsd)}`}</div>
-  //       </div>
-  //     </div>
-  //   )
-  // }
 
   let estimatedGasFeeUsd
   if (estimatedGasFee !== undefined) {
@@ -93,7 +69,7 @@ function TransactionSettings({
       priceSell.classList.remove(styles.update_animated)
       setTimeout(() => priceSell.classList.add(styles.update_animated), 10)
     }
-  }, [priceSell, buySymbol])
+  }, [priceSell, buyTokenInfo])
 
   useEffect(() => {
     const headerPrice = headerPriceRef.current
@@ -114,7 +90,7 @@ function TransactionSettings({
       <div className={styles.header} onClick={() => setIsOpen(v => !v)}>
         <div className={styles.header_price}>
           <div className={styles.header_price_token}>
-            1 {buySymbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellSymbol}
+            1 {buyTokenInfo.symbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellTokenInfo.symbol}
           </div>
           <div className={styles.header_price_usd}>{priceBuyUsd ? `$${prettyBalanceUSD(priceBuyUsd)}` : ""}</div>
         </div>
@@ -128,15 +104,15 @@ function TransactionSettings({
       <div className={`${styles.details_container} ${isOpen ? "" : styles.hidden}`}>
         <div className={styles.details}>
           <div className={styles.detail}>
-            <div> {t("token_sell_price", { tokenSymbol: sellSymbol })}</div>
+            <div> {t("token_sell_price", { tokenSymbol: sellTokenInfo.symbol })}</div>
             <div ref={priceSellRef}>
-              {priceSell} {buySymbol} {priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}
+              {priceSell} {buyTokenInfo.symbol} {priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}
             </div>
           </div>
           <div className={styles.detail}>
-            <div> {t("token_buy_price", { tokenSymbol: buySymbol })}</div>
+            <div> {t("token_buy_price", { tokenSymbol: buyTokenInfo.symbol })}</div>
             <div ref={priceBuyRef}>
-              {priceBuy} {sellSymbol} {priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}
+              {priceBuy} {sellTokenInfo.symbol} {priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}
             </div>
           </div>
           <div className={styles.detail}>

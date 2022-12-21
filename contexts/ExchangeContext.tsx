@@ -4,6 +4,7 @@ import { ethers } from "ethers"
 import erc20Abi from "../data/abis/erc20.json"
 
 import { WalletContext } from "./WalletContext"
+import { Map } from "typescript"
 
 const _defaultBuyToken = (): ZZTokenInfo => {
   return {
@@ -63,20 +64,16 @@ export type ZZTokenInfo = {
   name: string
 }
 
-export type TokenBalanceObject = {
-  [key: string]: {
-    value: ethers.BigNumber
-    valueReadable: number
-  }
-}
+// export type TokenBalanceObject = {
+//   [key: string]: {
+//     value: ethers.BigNumber
+//     valueReadable: number
+//   }
+// }
 
-export type TokenAllowanceObject = {
-  [key: string]: ethers.BigNumber
-}
-
-export type TokenPriceObject = {
-  [key: string]: number
-}
+export type TokenBalanceObject = Record<string, { value: ethers.BigNumber; valueReadable: number } | undefined>
+export type TokenAllowanceObject = Record<string, ethers.BigNumber | undefined>
+export type TokenPriceObject = Record<string, number | undefined>
 
 export type ExchangeContextType = {
   buyTokenInfo: ZZTokenInfo

@@ -2,6 +2,7 @@ import { ethers } from "ethers"
 import useTranslation from "next-translate/useTranslation"
 import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import { ExchangeContext } from "../../../../contexts/ExchangeContext"
+import { WalletContext } from "../../../../contexts/WalletContext"
 import { prettyBalance, prettyBalanceUSD } from "../../../../utils/utils"
 import { ModalMode } from "../../modal/Modal"
 import TokenListEntry from "./tokenListEntry/TokenListEntry"
@@ -21,6 +22,7 @@ interface Props {
 
 export default function TokenSelectModal({ selectedModal, onTokenClick, close }: Props) {
   const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
+  const { network } = useContext(WalletContext)
   const [query, setQuery] = useState<string>("")
 
   const { t } = useTranslation("swap")
@@ -46,34 +48,43 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
     // push sellToken as well
     tokens.push(sellTokenInfo?.address)
     return tokens.map((tokenAddress: string) => {
-      const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
-      const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
-      return { tokenAddress, balance, value }
+      const balance = balances[tokenAddress]
+      const balanceReadable = balance ? balance.valueReadable : 0
+      const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+      const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+      return { tokenAddress, balance: balanceReadable, value }
     })
   }, [balances, tokenPricesUSD, markets, sellTokenInfo])
 
   const sellModalTokenEntryList: TokenEntry[] = useMemo(() => {
-    if (buyTokenInfo.symbol === "ETH") {
-      const tokenAddresses = getTokens()
-      for (let i = 0; i < tokenAddresses.length; i++) {
-        const tokenAddress = tokenAddresses[i]
-        if (getTokenInfo(tokenAddress)?.symbol === "WETH") {
-          const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
-          const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
-          return [{ tokenAddress, balance, value }]
-        }
-      }
-    }
+    // if (buyTokenInfo.symbol === "ETH") {
+    //   const tokenAddresses = getTokens()
+    //   for (let i = 0; i < tokenAddresses.length; i++) {
+    //     const tokenAddress = tokenAddresses[i]
+    //     const tokenInfo = getTokenInfo(tokenAddress)
+    //     if (tokenInfo?.symbol === "WETH") {
+    //       const balance = balances[tokenAddress]
+    //       const balanceReadable = balance ? balance.valueReadable : 0
+    //       const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+    //       const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+    //       return [{ tokenAddress, balance: balanceReadable, value }]
+    //     }
+    //   }
+    // }
 
     const newTokenEntrysList: TokenEntry[] = []
     const possibleTokens = getTokens()
     for (let i = 0; i < possibleTokens.length; i++) {
       const tokenAddress = possibleTokens[i]
-      if (buyTokenInfo.symbol !== "WETH" && tokenAddress === ethers.constants.AddressZero) continue
 
-      const balance = balances[tokenAddress] ? balances[tokenAddress].valueReadable : 0
-      const value = balance && tokenPricesUSD[tokenAddress] ? balance * tokenPricesUSD[tokenAddress] : 0
-      newTokenEntrysList.push({ tokenAddress, balance, value })
+      // Skip native currency
+      // if (buyTokenInfo.symbol !== "WETH" && tokenAddress === network?.nativeCurrency.address) continue
+
+      const balance = balances[tokenAddress]
+      const balanceReadable = balance ? balance.valueReadable : 0
+      const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+      const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+      newTokenEntrysList.push({ tokenAddress, balance: balanceReadable, value })
     }
     return newTokenEntrysList
   }, [balances, tokenPricesUSD, getTokens, selectedToken])

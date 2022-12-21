@@ -57,6 +57,6 @@
 
 @media (width <= 500px) {
   .symbol {
-    display: none;
+    /* display: none; */
   }
 }

@@ -18,7 +18,7 @@ const Home: NextPage = () => {
         <meta property="og:description" content="The first decentralised casino powered by Zero-Knowledge proofs." />
         <meta property="og:url" content="https://swap.zigzag.exchange/" />
         <meta property="og:image" content={`https://swap.zigzag.exchange/favicon.ico`} />
-        <meta content="#e92277" data-react-helmet="true" name="theme-color" />
+        <meta content="#00cfbe" data-react-helmet="true" name="theme-color" />
 
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:url" content="https://swap.zigzag.exchange/" />

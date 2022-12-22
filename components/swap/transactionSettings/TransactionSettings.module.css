@@ -48,6 +48,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.5rem;
+  user-select: none;
 }
 
 .gas_fee {
@@ -155,7 +156,7 @@
   .header_price_usd {
     display: none;
   }
-  /* .price_placeholder {
-
-  } */
+  .price_placeholder {
+    height: 1.1em;
+  }
 }

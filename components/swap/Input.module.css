@@ -3,8 +3,11 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border-radius: 4px;
   position: relative;
+  /* height: 50px; */
+  height: 4rem;
 }
 
 .input {
@@ -14,7 +17,7 @@
   border: none !important;
   text-align: right;
   padding: 10px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   width: 100%;
 }
 
@@ -39,6 +42,7 @@
   color: white;
   border-radius: 4px;
   padding: 0 15px;
+  height: 100%;
   font-size: inherit;
   font-family: inherit;
   transition: background-color 0.1s ease-out;
@@ -54,6 +58,6 @@
 
 @media (width<=500px) {
   .input {
-    /* font-size: 1rem; */
+    font-size: 1.2rem;
   }
 }

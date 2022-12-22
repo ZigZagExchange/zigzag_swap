@@ -1,12 +1,15 @@
 .button {
-  padding: 10px;
+  padding: 5px;
   margin: 0;
   width: max-content;
   font-weight: normal;
   /* width: 150px; */
   height: fit-content;
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 5px;
+  height: 100%;
 }
 
 .modal_container {
@@ -48,15 +51,19 @@
 }
 
 .icon_container {
-  width: 2rem;
-  height: 2rem;
+  width: 3rem;
+  height: 3rem;
   /* border-radius: 50%; */
   background: "white";
   margin-right: 0.5rem;
 }
 
 @media (width <= 500px) {
-  .symbol {
-    /* display: none; */
+  .icon_container {
+    width: 2.5rem;
+    height: 2.5rem;
+    /* border-radius: 50%; */
+    background: "white";
+    margin-right: 0.5rem;
   }
 }

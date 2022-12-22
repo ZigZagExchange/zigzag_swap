@@ -1,0 +1,17 @@
+<svg  version="1.1" viewBox="0 0 27.537 27.537" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <linearGradient id="linearGradient5100" x1="73.887" x2="90.099" y1="162.82" y2="182.07" gradientTransform="matrix(.92313 0 0 .92313 .3713 12.412)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#02e7d7" offset="0"/>
+   <stop stop-color="#1997e0" offset="1"/>
+  </linearGradient>
+  <linearGradient id="linearGradient4585" x1="36.011" x2="54.803" y1="1.2178" y2="18.66" gradientTransform="matrix(1.1075 0 0 1.1075 -36.518 2.8174)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#000058" offset="0"/>
+   <stop stop-color="#010020" offset="1"/>
+  </linearGradient>
+ </defs>
+ <circle cx="13.768" cy="13.768" r="13.768" fill="url(#linearGradient4585)" style="paint-order:markers fill stroke"/>
+ <g transform="translate(-62.52 -157.59)">
+  <path d="m71.673 167.05 3.3796 1.7673-5.0022 3.2659c-1.0961 0.78035-1.0743 2.578 0.2067 3.3176l10.506 4.9919c1.0546 0.60885 2.2327 0.048 2.9142-1.1586l-12.02-5.5445 8.0843-5.1448-10.843-5.2252c0.47474-0.82227 1.1283-1.9594 3.9317-0.62848l7.9054 3.8054c1.7121 0.80066 1.6773 2.7664 0.48551 3.7699l-4.8621 3.0724 6.242 2.9305" fill="none" stroke="url(#linearGradient5100)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2212" style="paint-order:markers fill stroke"/>
+  <circle cx="69.967" cy="166.15" r=".60515" fill="#01e2dd" style="paint-order:markers fill stroke"/>
+ </g>
+</svg>

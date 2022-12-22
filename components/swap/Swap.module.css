@@ -1,5 +1,5 @@
 .container {
-  width: max(500px, 20vw);
+  width: max(500px, 25vw);
   align-self: center;
   justify-content: center;
   flex: 1;

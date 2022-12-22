@@ -22,7 +22,6 @@ interface Props {
 function Layout(props: Props) {
   const { userAddress, network, ethersProvider } = useContext(WalletContext)
   const [headerWarning, setHeaderWarning] = useState<JSX.Element | null>(null)
-
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
   const router = useRouter()

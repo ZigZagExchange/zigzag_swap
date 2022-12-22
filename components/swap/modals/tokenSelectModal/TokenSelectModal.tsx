@@ -29,7 +29,7 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
   const selectedToken = selectedModal === "selectSellToken" ? sellTokenInfo?.address : buyTokenInfo?.address
 
   const tokenList: TokenEntry[] = []
-  if (selectedModal === "selectBuyToken") {
+  if (selectedModal === "selectSellToken") {
     const allTokens = getTokens()
     console.log(allTokens)
     for (let i = 0; i < allTokens.length; i++) {
@@ -40,7 +40,7 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
       const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
       tokenList.push({ tokenAddress, balance: balanceReadable, value })
     }
-  } else if (selectedModal === "selectSellToken") {
+  } else if (selectedModal === "selectBuyToken") {
     const allTokens: string[] = []
     console.log(markets)
     for (let i = 0; i < markets.length; i++) {
@@ -71,15 +71,15 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
     // allTokens.push(sellTokenInfo.address)
 
     // Add ETH
-    const eth = getTokenInfo(constants.AddressZero)
-    if (eth && !tokenList.find(v => v.tokenAddress === constants.AddressZero)) {
-      const tokenAddress = eth.address
-      const balance = balances[tokenAddress]
-      const balanceReadable = balance ? balance.valueReadable : 0
-      const tokenPriceUsd = tokenPricesUSD[tokenAddress]
-      const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
-      tokenList.push({ tokenAddress, balance: balanceReadable, value })
-    }
+    // const eth = getTokenInfo(constants.AddressZero)
+    // if (eth && !tokenList.find(v => v.tokenAddress === constants.AddressZero)) {
+    //   const tokenAddress = eth.address
+    //   const balance = balances[tokenAddress]
+    //   const balanceReadable = balance ? balance.valueReadable : 0
+    //   const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+    //   const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+    //   tokenList.push({ tokenAddress, balance: balanceReadable, value })
+    // }
   }
 
   // const buyModalTokenEntryList: TokenEntry[] = useMemo(() => {

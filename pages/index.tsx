@@ -15,7 +15,10 @@ const Home: NextPage = () => {
 
         <meta property="og:type" content="website" />
         <meta property="og:title" content="ZigZag Exchange" />
-        <meta property="og:description" content="The first decentralised casino powered by Zero-Knowledge proofs." />
+        <meta
+          property="og:description"
+          content="ZigZag is a native, easy-to-use, reliable, fully secure and low fee Decentralized Exchange built on ZK Rollups."
+        />
         <meta property="og:url" content="https://swap.zigzag.exchange/" />
         <meta property="og:image" content={`https://swap.zigzag.exchange/favicon.ico`} />
         <meta content="#00cfbe" data-react-helmet="true" name="theme-color" />

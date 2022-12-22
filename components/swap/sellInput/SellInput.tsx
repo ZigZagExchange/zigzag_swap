@@ -18,7 +18,7 @@ interface Props {
 
 export default function SellInput({ validationStateSell, openSellTokenSelectModal }: Props) {
   const { balances, sellTokenInfo } = useContext(ExchangeContext)
-  const { sellInput, setSellInput } = useContext(SwapContext)
+  const { sellInput, setSellInput, tokensChanged } = useContext(SwapContext)
   const { userAddress } = useContext(WalletContext)
 
   function safeSetSellAmount(newAmount: string) {
@@ -50,7 +50,7 @@ export default function SellInput({ validationStateSell, openSellTokenSelectModa
       <input
         className={input_styles.input}
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
-        value={sellInput}
+        value={tokensChanged ? "" : sellInput}
         type="string"
         placeholder={"0"}
         onKeyDown={e => {

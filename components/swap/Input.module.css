@@ -7,7 +7,7 @@
   border-radius: 4px;
   position: relative;
   /* height: 50px; */
-  height: 4rem;
+  height: 3rem;
 }
 
 .input {
@@ -17,8 +17,9 @@
   border: none !important;
   text-align: right;
   padding: 10px;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   width: 100%;
+  overflow: hidden;
 }
 
 .error {

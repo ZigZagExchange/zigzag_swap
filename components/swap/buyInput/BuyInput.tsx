@@ -16,7 +16,7 @@ interface Props {
 
 export default function BuyInput({ validationStateBuy, openBuyTokenSelectModal }: Props) {
   const { buyTokenInfo } = useContext(ExchangeContext)
-  const { buyInput, setBuyInput } = useContext(SwapContext)
+  const { buyInput, setBuyInput, tokensChanged } = useContext(SwapContext)
 
   function safeSetBuyAmount(newAmount: string) {
     newAmount = newAmount.replace(",", ".")
@@ -32,7 +32,7 @@ export default function BuyInput({ validationStateBuy, openBuyTokenSelectModal }
         onInput={p => safeSetBuyAmount(p.currentTarget.value)}
         // onFocus={() => setIsFocused(true)}
         // onBlur={() => setIsFocused(false)}
-        value={buyInput}
+        value={tokensChanged ? "" : buyInput}
         type="string"
         placeholder={"0"}
         onKeyDown={e => {

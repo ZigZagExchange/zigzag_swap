@@ -113,32 +113,6 @@ function Swap() {
     return
   }, [sellTokenInfo, buyTokenInfo, sellAmount, buyAmount, sellTokenUsdPrice, buyTokenUsdPrice])
 
-  // const getErrorMessage = (validationState: ValidationState) => {
-  //   if (!userAddress) return
-  //   switch (validationState) {
-  //     case ValidationState.ExceedsAllowance:
-  //       return "Amount exceeds allowance."
-  //     case ValidationState.InsufficientBalance:
-  //       return "Amount exceeds balance."
-  //     case ValidationState.InternalError:
-  //       return "Internal error."
-  //     case ValidationState.IsNaN:
-  //       return "Amount cannot be NaN."
-  //     case ValidationState.IsNegative:
-  //       return "Amount cannot be negative."
-  //     case ValidationState.MissingLiquidity:
-  //       return "Not enough liquidity"
-  //     default:
-  //       return
-  //   }
-  // }
-
-  // Error messages
-  // const sellErrorMessage = getErrorMessage(validationStateSell)
-  // const sellErrorElement = <div className={styles.error_element}>{sellErrorMessage}</div>
-  // const buyErrorMessage = getErrorMessage(validationStateBuy)
-  // const buyErrorElement = <div className={styles.error_element}>{buyErrorMessage}</div>
-
   return (
     <div className={styles.container}>
       <div className={styles.from_to_container}>

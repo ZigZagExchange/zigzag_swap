@@ -9,14 +9,14 @@
   outline: none;
   padding-top: 5px;
   border-radius: 4px;
-}
 
-.container {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 5px;
+  transition: opacity 0.1s ease-out;
 }
+
 .container > * {
   width: 100%;
 }
@@ -58,4 +58,9 @@
 
 .container button:hover > * {
   opacity: 1;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
 }

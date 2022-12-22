@@ -34,8 +34,11 @@ function TransactionSettings() {
   const priceSellRef = useRef<HTMLDivElement>(null)
   const priceBuyRef = useRef<HTMLDivElement>(null)
 
-  const priceBuy = `${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}`
-  const priceSell = `${prettyBalance(swapPrice)}`
+  const priceBuy =
+    swapPrice !== undefined ? `${swapPrice !== 0 && Number.isFinite(swapPrice) ? prettyBalance(1 / swapPrice) : prettyBalance(0)}` : undefined
+
+  console.log("priceBuy", priceBuy)
+  const priceSell = swapPrice !== undefined ? `${prettyBalance(swapPrice)}` : undefined
   const priceBuyUsd = tokenPricesUSD[buyTokenInfo.address]
   const priceSellUsd = tokenPricesUSD[sellTokenInfo.address]
 

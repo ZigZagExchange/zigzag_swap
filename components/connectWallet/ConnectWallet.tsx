@@ -12,16 +12,20 @@ import useTranslation from "next-translate/useTranslation"
 
 function ConnectWallet() {
   const { userAddress, username, network, connect, disconnect } = useContext(WalletContext)
-  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false)
+  const [isOpen, setIsOpen] = useState<boolean>(false)
 
   const { t } = useTranslation("common")
 
-  function openProfile() {
-    setIsProfileOpen(true)
+  function open() {
+    setIsOpen(true)
   }
 
-  function closeProfile() {
-    setIsProfileOpen(false)
+  function close() {
+    setIsOpen(false)
+  }
+
+  function toggle() {
+    setIsOpen(v => !v)
   }
 
   if (!userAddress) {
@@ -49,7 +53,7 @@ function ConnectWallet() {
     }
 
     return (
-      <div className={styles.container} onMouseEnter={openProfile} onMouseLeave={closeProfile} onClick={isProfileOpen ? closeProfile : openProfile}>
+      <div className={styles.container} onMouseEnter={open} onMouseLeave={close} onClick={toggle}>
         <div className={styles.profile_button}>
           <div className={styles.profile_image_container}>
             <Jazzicon diameter={30} seed={jsNumberForAddress(userAddress)} />
@@ -60,14 +64,13 @@ function ConnectWallet() {
           </div>
         </div>
         <div className={styles.profile_anchor}>
-          {isProfileOpen ? (
-            <ConnectButtonDropdown
-              close={closeProfile}
-              disconnect={disconnect}
-              networkId={network?.networkId ? network?.networkId : 0}
-              userAddress={userAddress}
-            />
-          ) : null}
+          <ConnectButtonDropdown
+            isOpen={isOpen}
+            close={close}
+            disconnect={disconnect}
+            networkId={network?.networkId ? network?.networkId : 0}
+            userAddress={userAddress}
+          />
         </div>
       </div>
     )

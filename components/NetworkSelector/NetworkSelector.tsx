@@ -29,7 +29,7 @@ function NetworkSelector() {
       onMouseLeave={() => {
         setShowDropdown(false)
       }}
-      onClick={() => setShowDropdown(false)}
+      onClick={() => setShowDropdown(v => !v)}
     >
       <div
         className={`${styles.selected} ${showDropdown ? styles.active_selected : ""} ${

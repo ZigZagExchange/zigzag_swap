@@ -143,7 +143,7 @@ function Swap() {
           <div className={styles.from_header}>
             <div className={styles.from_title}>{t("from")}</div>
             <div className={styles.from_balance}>
-              {getBalanceReadable(sellTokenInfo.address)} {buyTokenInfo.symbol}
+              {getBalanceReadable(sellTokenInfo.address)} {sellTokenInfo.symbol}
             </div>
           </div>
           <div className={styles.from_input_container}>
@@ -161,7 +161,7 @@ function Swap() {
           <div className={styles.to_header}>
             <div className={styles.to_title}>{t("to")}</div>
             <div className={styles.to_balance}>
-              {getBalanceReadable(buyTokenInfo.address)} {sellTokenInfo.symbol}
+              {getBalanceReadable(buyTokenInfo.address)} {buyTokenInfo.symbol}
             </div>
           </div>
           <div className={styles.to_input_container}>

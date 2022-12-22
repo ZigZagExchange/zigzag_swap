@@ -18,6 +18,7 @@
   backdrop-filter: blur(20px);
   /* border: 1px solid red; */
   border-radius: 12px;
+  user-select: none;
 }
 
 .connect_button {
@@ -136,7 +137,6 @@
   align-items: center;
 
   /* font-weight: bold; */
-  user-select: none;
   color: white;
 }
 .username {

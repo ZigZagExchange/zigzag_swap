@@ -5,13 +5,14 @@ import { NETWORKS } from "../../data/networks"
 import useTranslation from "next-translate/useTranslation"
 
 interface Props {
+  isOpen: boolean
   close: () => void
   disconnect: () => void
   networkId: number
   userAddress: string
 }
 
-function ConnectButtonDropdown(props: Props) {
+function ConnectButtonDropdown({ isOpen, close, disconnect, networkId, userAddress }: Props) {
   const container_ref = useRef<HTMLDivElement>(null)
   const { t } = useTranslation("common")
   useEffect(() => {
@@ -21,10 +22,10 @@ function ConnectButtonDropdown(props: Props) {
   }, [])
 
   return (
-    <div ref={container_ref} className={styles.container}>
+    <div ref={container_ref} className={`${styles.container} ${!isOpen ? styles.hidden : ""}`}>
       <>
         <a
-          href={props.networkId && props.userAddress ? `${NETWORKS[props.networkId].explorerUrl}address/${props.userAddress}` : undefined}
+          href={networkId && userAddress ? `${NETWORKS[networkId].explorerUrl}address/${userAddress}` : undefined}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -33,7 +34,7 @@ function ConnectButtonDropdown(props: Props) {
           </button>
         </a>
         <a>
-          <button onClick={props.disconnect}>
+          <button onClick={disconnect}>
             {LOGOUT_ICON} <div className={styles.button_text}>{t("disconnect")}</div>
           </button>
         </a>

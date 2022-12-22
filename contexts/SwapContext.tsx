@@ -25,7 +25,7 @@ export type ZZOrder = {
 
 export type SwapContextType = {
   quoteOrder: ZZOrder | null
-  swapPrice: number
+  swapPrice: number | undefined
   estimatedGasFee: number | undefined
   sellAmount: ethers.BigNumber
   buyAmount: ethers.BigNumber
@@ -56,7 +56,7 @@ export type TransactionStatus = "awaitingWallet" | "processing" | "processed" | 
 
 export const SwapContext = createContext<SwapContextType>({
   quoteOrder: null,
-  swapPrice: 0,
+  swapPrice: undefined,
   estimatedGasFee: undefined,
   sellAmount: ethers.constants.Zero,
   buyAmount: ethers.constants.Zero,
@@ -126,16 +126,27 @@ function SwapProvider({ children }: Props) {
     return null
   }, [network, signer])
 
-  const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
+  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
+  const [swapPrice, setSwapPrice] = useState<number>()
+
+  useEffect(() => {
+    console.log("quoteOrder,swapPrice recomputed")
+
     let newQuoteOrder: ZZOrder | null = null
     let newSwapPrice: number = 0
     if (!buyTokenInfo) {
       console.warn("buyTokenInfo is null")
-      return [newQuoteOrder, newSwapPrice]
+      setQuoteOrder(newQuoteOrder)
+      setSwapPrice(newSwapPrice)
+      return
+      // return [newQuoteOrder, newSwapPrice]
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
-      return [newQuoteOrder, newSwapPrice]
+      setQuoteOrder(newQuoteOrder)
+      setSwapPrice(newSwapPrice)
+      return
+      // return [newQuoteOrder, newSwapPrice]
     }
 
     if (
@@ -153,7 +164,10 @@ function SwapProvider({ children }: Props) {
         },
         signature: "0x0",
       }
-      return [fakeWrapUnwrapOrder, 1]
+      setQuoteOrder(fakeWrapUnwrapOrder)
+      setSwapPrice(1)
+      return
+      // return [fakeWrapUnwrapOrder, 1]
     }
 
     const minTimeStamp: number = Date.now() / 1000 + 12
@@ -177,8 +191,65 @@ function SwapProvider({ children }: Props) {
         newQuoteOrder = orderBook[i]
       }
     }
-    return [newQuoteOrder, newSwapPrice]
+    setQuoteOrder(newQuoteOrder)
+    setSwapPrice(newSwapPrice)
+    // return [newQuoteOrder, newSwapPrice]
   }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
+
+  // const [quoteOrder, swapPrice] = useMemo((): [ZZOrder | null, number] => {
+  //   console.log("quoteOrder,swapPrice recomputed")
+  //   let newQuoteOrder: ZZOrder | null = null
+  //   let newSwapPrice: number = 0
+  //   if (!buyTokenInfo) {
+  //     console.warn("buyTokenInfo is null")
+  //     return [newQuoteOrder, newSwapPrice]
+  //   }
+  //   if (!sellTokenInfo) {
+  //     console.warn("sellTokenInfo is null")
+  //     return [newQuoteOrder, newSwapPrice]
+  //   }
+
+  //   if (
+  //     (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
+  //     (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
+  //   ) {
+  //     const fakeWrapUnwrapOrder: ZZOrder = {
+  //       order: {
+  //         user: "0x0",
+  //         buyToken: "0x0",
+  //         sellToken: "0x0",
+  //         buyAmount: "1",
+  //         sellAmount: "1",
+  //         expirationTimeSeconds: "99999999999999999",
+  //       },
+  //       signature: "0x0",
+  //     }
+  //     return [fakeWrapUnwrapOrder, 1]
+  //   }
+
+  //   const minTimeStamp: number = Date.now() / 1000 + 12
+  //   for (let i = 0; i < orderBook.length; i++) {
+  //     const { order } = orderBook[i]
+  //     if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
+
+  //     const parsedBuyInput = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
+  //     const quoteSellAmount = ethers.BigNumber.from(order.sellAmount)
+  //     if (userInputSide === "buy" && quoteSellAmount.lt(parsedBuyInput)) continue
+
+  //     const parsedSellInput = getBigNumberFromInput(sellInput, sellTokenInfo.decimals)
+  //     const quoteBuyAmount = ethers.BigNumber.from(order.buyAmount)
+  //     if (userInputSide === "sell" && quoteBuyAmount.lt(parsedSellInput)) continue
+
+  //     const quoteSellAmountFormated = Number(ethers.utils.formatUnits(quoteSellAmount, buyTokenInfo.decimals))
+  //     const quoteBuyAmountFormated = Number(ethers.utils.formatUnits(quoteBuyAmount, sellTokenInfo.decimals))
+  //     const thisPrice = (quoteSellAmountFormated * (1 - takerFee)) / (quoteBuyAmountFormated * (1 - makerFee))
+  //     if (thisPrice > newSwapPrice) {
+  //       newSwapPrice = thisPrice
+  //       newQuoteOrder = orderBook[i]
+  //     }
+  //   }
+  //   return [newQuoteOrder, newSwapPrice]
+  // }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   const [buyAmount, sellAmount] = useMemo((): [ethers.BigNumber, ethers.BigNumber] => {
     let newBuyAmount: ethers.BigNumber = ethers.constants.Zero
@@ -283,7 +354,7 @@ function SwapProvider({ children }: Props) {
         console.log(Number(estimatedFee))
         setEstimatedGasFee(Number(estimatedFee))
       } catch (err: any) {
-        console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
+        // console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
         // setEstimatedGasFee(0.0001) // Some estimate
       }
     }
@@ -299,6 +370,8 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo, isFrozen])
 
   async function getOrderBook() {
+    setSwapPrice(undefined)
+    setQuoteOrder(null)
     console.log("Getting orderbook....")
     if (!network) {
       console.warn("getOrderBook: Missing network")
@@ -337,7 +410,10 @@ function SwapProvider({ children }: Props) {
 
   function selectSellToken(newTokenAddress: string) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
-    if (buyTokenInfo.symbol === "ETH" && newTokenInfo && newTokenInfo.symbol !== "WETH") {
+    if (!newTokenInfo) return
+
+    if (buyTokenInfo.symbol === "ETH" && newTokenInfo.symbol !== "WETH") {
+      // If buying ETH, and new token isn't WETH, buy WETH instead
       setSellInput("")
       setSellToken(newTokenAddress)
 
@@ -352,7 +428,8 @@ function SwapProvider({ children }: Props) {
         console.log("Setting weth as buy token")
         setBuyToken(wethToken.address)
       }
-    } else if (newTokenInfo && newTokenInfo.symbol === "ETH") {
+    } else if (newTokenInfo.symbol === "ETH") {
+      // If selling ETH, buy WETH
       setSellInput("")
       setSellToken(newTokenAddress)
       const tokenAddresses = getTokens()
@@ -362,10 +439,7 @@ function SwapProvider({ children }: Props) {
         const tokenInfo = getTokenInfo(tokenAddress)
         if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
       }
-      if (wethToken) {
-        console.log("Setting weth as buy token")
-        setBuyToken(wethToken.address)
-      }
+      if (wethToken) setBuyToken(wethToken.address)
     } else if (newTokenAddress === buyTokenInfo.address) {
       switchTokens()
     } else {
@@ -375,8 +449,36 @@ function SwapProvider({ children }: Props) {
   }
 
   function selectBuyToken(newTokenAddress: string) {
+    const newTokenInfo = getTokenInfo(newTokenAddress)
+    if (!newTokenInfo) return
+
     if (newTokenAddress === sellTokenInfo.address) {
+      // If new token equal to the sell token, switch sell and buy tokens
       switchTokens()
+    } else if (newTokenInfo.symbol === "ETH") {
+      // If buying ETH, sell WETH
+      setBuyInput("")
+      setBuyToken(newTokenAddress)
+      const tokenAddresses = getTokens()
+      let wethToken
+      for (let i = 0; i < tokenAddresses.length; i++) {
+        const tokenAddress = tokenAddresses[i]
+        const tokenInfo = getTokenInfo(tokenAddress)
+        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+      }
+      if (wethToken) setSellToken(wethToken.address)
+    } else if (sellTokenInfo.symbol === "ETH") {
+      // If selling ETH, buy WETH
+      setBuyInput("")
+      setBuyToken(newTokenAddress)
+      const tokenAddresses = getTokens()
+      let wethToken
+      for (let i = 0; i < tokenAddresses.length; i++) {
+        const tokenAddress = tokenAddresses[i]
+        const tokenInfo = getTokenInfo(tokenAddress)
+        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+      }
+      if (wethToken) setSellToken(wethToken.address)
     } else {
       setBuyToken(newTokenAddress)
     }

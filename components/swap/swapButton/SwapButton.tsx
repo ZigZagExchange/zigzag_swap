@@ -8,22 +8,24 @@ import { WalletContext } from "../../../contexts/WalletContext"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
 import { SwapContext } from "../../../contexts/SwapContext"
 
-import { ValidationState } from "../Swap"
+import { SellValidationState, BuyValidationState } from "../Swap"
 
 import styles from "./SwapButton.module.css"
 import { truncateDecimals } from "../../../utils/utils"
 
-enum SwapMode {
+enum ButtonMode {
   Disabled,
   Swap,
   Approve,
-  Deposit,
-  Withdraw,
+  Wrap,
+  Unwrap,
+  Connect,
+  WrongNetwork,
 }
 
 interface Props {
-  validationStateBuy: ValidationState
-  validationStateSell: ValidationState
+  validationStateSell: SellValidationState
+  validationStateBuy: BuyValidationState
   openSwapModal: () => void
   openApproveModal: () => void
   openWrapModal: () => void
@@ -42,9 +44,9 @@ export default function SwapButton({
 }: Props) {
   const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, takerFee, makerFee, updateAllowances, updateBalances } = useContext(ExchangeContext)
   const { network, signer, userAddress, connect } = useContext(WalletContext)
-  const { sellAmount, quoteOrder, setTransactionStatus, setTransactionError, setIsFrozen } = useContext(SwapContext)
+  const { sellAmount, quoteOrder, setTransactionStatus, setTransactionError, setIsFrozen, tokensChanged } = useContext(SwapContext)
 
-  const [swapMode, setSwapMode] = useState<SwapMode>(SwapMode.Disabled)
+  const [buttonMode, setButtonMode] = useState<ButtonMode>(ButtonMode.Disabled)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -75,74 +77,31 @@ export default function SwapButton({
     return null
   }, [network, signer])
 
-  const buttonText: JSX.Element = useMemo(() => {
-    if (!userAddress) return <div>Connect wallet</div>
-
-    if (!buyTokenInfo || !sellTokenInfo) {
-      setSwapMode(SwapMode.Disabled)
-      return <div>Error</div>
-    }
-
-    if (validationStateSell === ValidationState.InsufficientBalance) {
-      setSwapMode(SwapMode.Disabled)
-      return <div>Insufficient {sellTokenInfo.symbol} balance</div>
-    }
-
-    if (validationStateSell === ValidationState.ExceedsAllowance) {
-      setSwapMode(SwapMode.Approve)
-      return <div>Approve {sellTokenInfo.symbol}</div>
-    }
-
-    if (validationStateSell !== ValidationState.OK) {
-      setSwapMode(SwapMode.Disabled)
-      return <div>Error on the sell side</div>
-    }
-    if (validationStateBuy !== ValidationState.OK) {
-      setSwapMode(SwapMode.Disabled)
-      return <div>Error on the buy side</div>
-    }
-
-    if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
-      setSwapMode(SwapMode.Deposit)
-      return <div>Wrap ETH to WETH</div>
-    }
-
-    if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
-      setSwapMode(SwapMode.Withdraw)
-      return <div>Unwrap WETH to ETH</div>
-    }
-
-    setSwapMode(SwapMode.Swap)
-    return <div>Swap</div>
-  }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
-
   function handleSwapButton() {
-    if (!userAddress) {
-      connect()
-      return
-    }
-
-    switch (swapMode) {
-      case SwapMode.Approve:
+    switch (buttonMode) {
+      case ButtonMode.Connect:
+        connect()
+        break
+      case ButtonMode.Approve:
         sendApprove()
         break
-      case SwapMode.Swap:
+      case ButtonMode.Swap:
         sendSwap()
         break
-      case SwapMode.Deposit:
-        sendDeposit()
+      case ButtonMode.Wrap:
+        sendWrap()
         break
-      case SwapMode.Withdraw:
-        sendWithdraw()
+      case ButtonMode.Unwrap:
+        sendUnwrap()
         break
-      case SwapMode.Disabled:
+      case ButtonMode.Disabled:
         console.error("handleSwapButton: swap mode disabled")
         break
     }
   }
 
   async function sendSwap() {
-    if (swapMode !== SwapMode.Swap) return
+    if (buttonMode !== ButtonMode.Swap) return
     console.log("starting sendSwap")
 
     if (!exchangeContract) {
@@ -249,7 +208,7 @@ export default function SwapButton({
   }
 
   async function sendApprove() {
-    if (swapMode !== SwapMode.Approve) return
+    if (buttonMode !== ButtonMode.Approve) return
     console.log("starting sendApprove")
 
     if (!exchangeAddress) {
@@ -298,9 +257,9 @@ export default function SwapButton({
     }
   }
 
-  async function sendDeposit() {
-    if (swapMode !== SwapMode.Deposit) return
-    console.log("starting sendDeposit")
+  async function sendWrap() {
+    if (buttonMode !== ButtonMode.Wrap) return
+    console.log("starting sendWrap")
 
     if (!wethContract) {
       console.warn("sendDeposit: missing wethContract")
@@ -360,9 +319,9 @@ export default function SwapButton({
     }
   }
 
-  async function sendWithdraw() {
-    if (swapMode !== SwapMode.Withdraw) return
-    console.log("starting sendWithdraw")
+  async function sendUnwrap() {
+    if (buttonMode !== ButtonMode.Unwrap) return
+    console.log("starting sendUnwrap")
 
     if (!wethContract) {
       console.warn("sendWithdraw: missing wethContract")
@@ -418,19 +377,82 @@ export default function SwapButton({
     }
   }
 
-  if (userAddress === null) {
-    return (
-      <button className={styles.container} onClick={() => connect()}>
-        Connect Wallet
-      </button>
-    )
-  }
+  const buttonText: JSX.Element = useMemo(() => {
+    if (!userAddress) {
+      setButtonMode(ButtonMode.Connect)
+      return <div>Connect Wallet</div>
+    }
+    if (!network) {
+      setButtonMode(ButtonMode.WrongNetwork)
+      return <div>Wrong Network</div>
+    }
+
+    if (validationStateSell === SellValidationState.InsufficientBalance) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Insufficient {sellTokenInfo.symbol} balance</div>
+    }
+
+    if (validationStateSell === SellValidationState.ExceedsAllowance) {
+      setButtonMode(ButtonMode.Approve)
+      return <div>Approve {sellTokenInfo.symbol}</div>
+    }
+
+    if (validationStateSell === SellValidationState.InternalError) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Sell-side internal error</div>
+    }
+
+    if (validationStateSell === SellValidationState.IsNaN) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Sell input is NaN</div>
+    }
+
+    if (validationStateSell === SellValidationState.IsNegative) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Sell input is negative</div>
+    }
+
+    if (validationStateSell === SellValidationState.MissingLiquidity) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Not enough liquidity</div>
+    }
+
+    if (validationStateBuy === BuyValidationState.InternalError) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Buy-side internal error</div>
+    }
+
+    if (buyTokenInfo.address === network.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
+      setButtonMode(ButtonMode.Wrap)
+      return <div>Wrap ETH to WETH</div>
+    }
+
+    if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network.wethContractAddress) {
+      setButtonMode(ButtonMode.Unwrap)
+      return <div>Unwrap WETH to ETH</div>
+    }
+
+    setButtonMode(ButtonMode.Swap)
+    return <div>Swap</div>
+  }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
+
+  // if (userAddress === null) {
+  //   return (
+  //     <button className={styles.container} onClick={() => connect()}>
+  //       Connect Wallet
+  //     </button>
+  //   )
+  // }
+
+  const buttonDisabled =
+    buttonMode === ButtonMode.Disabled || // Simply disabled
+    buttonMode === ButtonMode.WrongNetwork || // Wrong network
+    ((buttonMode === ButtonMode.Swap || buttonMode === ButtonMode.Wrap || buttonMode === ButtonMode.Unwrap) && sellAmount.eq(ethers.constants.Zero)) // Zero inputs
+
+  const buttonError = buttonMode === ButtonMode.WrongNetwork || buttonMode === ButtonMode.Disabled
+
   return (
-    <button
-      className={styles.container}
-      onClick={handleSwapButton}
-      disabled={signer === null || swapMode === SwapMode.Disabled || sellAmount.eq(ethers.constants.Zero)}
-    >
+    <button className={`${styles.container} ${buttonError ? styles.error : ""}`} onClick={handleSwapButton} disabled={buttonDisabled}>
       {buttonText}
     </button>
   )

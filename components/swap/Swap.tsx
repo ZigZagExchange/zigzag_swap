@@ -16,7 +16,7 @@ import Separator from "./separator/Separator"
 import useTranslation from "next-translate/useTranslation"
 import { NetworkType } from "../../data/networks"
 
-export enum ValidationState {
+export enum SellValidationState {
   OK,
   IsNaN,
   IsNegative,
@@ -24,6 +24,11 @@ export enum ValidationState {
   ExceedsAllowance,
   InternalError,
   MissingLiquidity,
+}
+
+export enum BuyValidationState {
+  OK,
+  InternalError,
 }
 
 function Swap() {
@@ -43,29 +48,29 @@ function Swap() {
     return prettyBalance(tokenBalance.valueReadable)
   }
 
-  const validationStateSell = useMemo((): ValidationState => {
-    if (!userAddress) return ValidationState.OK
-    if (!sellTokenInfo) return ValidationState.InternalError
-    if (!swapPrice) return ValidationState.MissingLiquidity
+  const validationStateSell = useMemo((): SellValidationState => {
+    if (!userAddress) return SellValidationState.OK
+    if (!sellTokenInfo) return SellValidationState.InternalError
+    if (!swapPrice) return SellValidationState.MissingLiquidity
 
     const sellTokenBalance = balances[sellTokenInfo.address]
     const balance = sellTokenBalance ? sellTokenBalance.value : ethers.constants.Zero
-    if (balance === null) return ValidationState.InsufficientBalance
-    if (sellAmount.gt(balance)) return ValidationState.InsufficientBalance
+    if (balance === null) return SellValidationState.InsufficientBalance
+    if (sellAmount.gt(balance)) return SellValidationState.InsufficientBalance
 
     const allowance = allowances[sellTokenInfo.address] ? allowances[sellTokenInfo.address] : ethers.constants.Zero
     if (allowance !== null && allowance !== undefined && sellAmount.gt(allowance)) {
-      return ValidationState.ExceedsAllowance
+      return SellValidationState.ExceedsAllowance
     }
 
-    return ValidationState.OK
+    return SellValidationState.OK
   }, [userAddress, swapPrice, sellAmount, allowances, balances, sellTokenInfo])
 
-  const validationStateBuy = useMemo((): ValidationState => {
-    if (!userAddress) return ValidationState.OK
-    if (!buyTokenInfo) return ValidationState.InternalError
+  const validationStateBuy = useMemo((): BuyValidationState => {
+    if (!userAddress) return BuyValidationState.OK
+    if (!buyTokenInfo) return BuyValidationState.InternalError
 
-    return ValidationState.OK
+    return BuyValidationState.OK
   }, [userAddress, buyTokenInfo])
 
   const handleTokenClick = (newTokenAddress: string) => {
@@ -108,25 +113,25 @@ function Swap() {
     return
   }, [sellTokenInfo, buyTokenInfo, sellAmount, buyAmount, sellTokenUsdPrice, buyTokenUsdPrice])
 
-  const getErrorMessage = (validationState: ValidationState) => {
-    if (!userAddress) return
-    switch (validationState) {
-      case ValidationState.ExceedsAllowance:
-        return "Amount exceeds allowance."
-      case ValidationState.InsufficientBalance:
-        return "Amount exceeds balance."
-      case ValidationState.InternalError:
-        return "Internal error."
-      case ValidationState.IsNaN:
-        return "Amount cannot be NaN."
-      case ValidationState.IsNegative:
-        return "Amount cannot be negative."
-      case ValidationState.MissingLiquidity:
-        return "Not enough liquidity"
-      default:
-        return
-    }
-  }
+  // const getErrorMessage = (validationState: ValidationState) => {
+  //   if (!userAddress) return
+  //   switch (validationState) {
+  //     case ValidationState.ExceedsAllowance:
+  //       return "Amount exceeds allowance."
+  //     case ValidationState.InsufficientBalance:
+  //       return "Amount exceeds balance."
+  //     case ValidationState.InternalError:
+  //       return "Internal error."
+  //     case ValidationState.IsNaN:
+  //       return "Amount cannot be NaN."
+  //     case ValidationState.IsNegative:
+  //       return "Amount cannot be negative."
+  //     case ValidationState.MissingLiquidity:
+  //       return "Not enough liquidity"
+  //     default:
+  //       return
+  //   }
+  // }
 
   // Error messages
   // const sellErrorMessage = getErrorMessage(validationStateSell)

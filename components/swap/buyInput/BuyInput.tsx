@@ -7,10 +7,10 @@ import TokenSelector from "../tokenSelector/TokenSelector"
 import { SwapContext } from "../../../contexts/SwapContext"
 import { ExchangeContext, ZZTokenInfo } from "../../../contexts/ExchangeContext"
 import { truncateDecimals } from "../../../utils/utils"
-import { ValidationState } from "../Swap"
+import { BuyValidationState } from "../Swap"
 
 interface Props {
-  validationStateBuy: ValidationState
+  validationStateBuy: BuyValidationState
   openBuyTokenSelectModal: () => void
 }
 
@@ -25,7 +25,7 @@ export default function BuyInput({ validationStateBuy, openBuyTokenSelectModal }
   }
 
   return (
-    <div className={`${input_styles.container} ${validationStateBuy !== ValidationState.OK ? input_styles.error : ""}`}>
+    <div className={`${input_styles.container} ${validationStateBuy !== BuyValidationState.OK ? input_styles.error : ""}`}>
       <TokenSelector selectedTokenSymbol={buyTokenInfo.symbol} openTokenSelectModal={openBuyTokenSelectModal} />
       <input
         className={input_styles.input}

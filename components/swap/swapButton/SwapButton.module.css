@@ -21,13 +21,6 @@
   background: var(--zz_gradient_dark);
 }
 
-@media (width <= 500px) {
-  .container {
-    /* border-radius: 0; */
-    margin: 0 10px;
-  }
-}
-
 .container:not(:disabled):hover {
   cursor: pointer;
   background-color: var(--turquoise_dark);
@@ -45,4 +38,19 @@
 
 .container:disabled * {
   opacity: 0.5;
+}
+
+.container.error {
+  /* opacity: 1 !important;
+  border-color: rgba(255, 0, 0, 0.253);
+  border: none;
+  background: linear-gradient(-45deg, rgba(255, 0, 0, 0.562), rgba(255, 0, 0, 0.253)); */
+  /* box-shadow: 0 0 10px rgba(255, 0, 0, 0.562); */
+}
+
+@media (width <= 500px) {
+  .container {
+    /* border-radius: 0; */
+    margin: 0 10px;
+  }
 }

@@ -8,11 +8,11 @@ import { SwapContext } from "../../../contexts/SwapContext"
 import { ExchangeContext, ZZTokenInfo } from "../../../contexts/ExchangeContext"
 import { balanceCommas, truncateDecimals } from "../../../utils/utils"
 
-import { ValidationState } from "../Swap"
+import { SellValidationState } from "../Swap"
 import { WalletContext } from "../../../contexts/WalletContext"
 
 interface Props {
-  validationStateSell: ValidationState
+  validationStateSell: SellValidationState
   openSellTokenSelectModal: () => void
 }
 
@@ -39,7 +39,10 @@ export default function SellInput({ validationStateSell, openSellTokenSelectModa
 
   const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
   return (
-    <div className={`${input_styles.container} ${userAddress && validationStateSell !== ValidationState.OK ? input_styles.error : ""}`}>
+    <div
+      className={input_styles.container}
+      // className={`${input_styles.container} ${userAddress && validationStateSell !== SellValidationState.OK ? input_styles.error : ""}`}
+    >
       <TokenSelector selectedTokenSymbol={sellTokenSymbol} openTokenSelectModal={openSellTokenSelectModal} />
       <button className={input_styles.max_button} onClick={maximize}>
         MAX
@@ -47,8 +50,6 @@ export default function SellInput({ validationStateSell, openSellTokenSelectModa
       <input
         className={input_styles.input}
         onInput={p => safeSetSellAmount(p.currentTarget.value)}
-        // onFocus={() => setIsFocused(true)}
-        // onBlur={() => setIsFocused(false)}
         value={sellInput}
         type="string"
         placeholder={"0"}

@@ -123,6 +123,28 @@
   justify-content: space-between;
 }
 
+.price_placeholder {
+  background: linear-gradient(-15deg, var(--turquoise_darker) 15%, var(--turquoise_dark) 50%, var(--turquoise_darker) 85%);
+  /* background-size: 100% 100%; */
+  /* background-repeat: repeat; */
+  opacity: 0.1;
+  filter: blur(2px);
+  height: 1.3em;
+  width: 15.625em;
+  border-radius: 4px;
+  align-self: center;
+  animation: placeholder_animation 2s linear infinite;
+}
+
+@keyframes placeholder_animation {
+  from {
+    background-position: 0;
+  }
+  to {
+    background-position: -15.625em;
+  }
+}
+
 @media (width <= 500px) {
   .header_price,
   .header_gas,
@@ -133,4 +155,7 @@
   .header_price_usd {
     display: none;
   }
+  /* .price_placeholder {
+
+  } */
 }

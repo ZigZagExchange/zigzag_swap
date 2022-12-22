@@ -25,7 +25,7 @@ export type ZZOrder = {
 
 export type SwapContextType = {
   quoteOrder: ZZOrder | null
-  swapPrice: number | undefined
+  swapPrice: number
   estimatedGasFee: number | undefined
   sellAmount: ethers.BigNumber
   buyAmount: ethers.BigNumber
@@ -50,13 +50,15 @@ export type SwapContextType = {
 
   selectSellToken: (newTokenAddress: string) => void
   selectBuyToken: (newTokenAddress: string) => void
+
+  tokensChanged: boolean
 }
 
 export type TransactionStatus = "awaitingWallet" | "processing" | "processed" | null
 
 export const SwapContext = createContext<SwapContextType>({
   quoteOrder: null,
-  swapPrice: undefined,
+  swapPrice: 0,
   estimatedGasFee: undefined,
   sellAmount: ethers.constants.Zero,
   buyAmount: ethers.constants.Zero,
@@ -81,6 +83,8 @@ export const SwapContext = createContext<SwapContextType>({
 
   selectSellToken: (newTokenAddress: string) => {},
   selectBuyToken: (newTokenAddress: string) => {},
+
+  tokensChanged: false,
 })
 
 function SwapProvider({ children }: Props) {
@@ -88,6 +92,8 @@ function SwapProvider({ children }: Props) {
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress, setBuyToken, setSellToken, getTokenInfo, getTokens } =
     useContext(ExchangeContext)
 
+  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
+  const [swapPrice, setSwapPrice] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0.0001)
   const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
   const [userInputSide, setUserInputSide] = useState<"buy" | "sell">("sell")
@@ -96,6 +102,7 @@ function SwapProvider({ children }: Props) {
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>(null)
   const [transactionError, setTransactionError] = useState<any | null>(null)
   const [isFrozen, setIsFrozen] = useState<boolean>(false)
+  const [tokensChanged, setTokensChanged] = useState<boolean>(false)
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -125,9 +132,6 @@ function SwapProvider({ children }: Props) {
     }
     return null
   }, [network, signer])
-
-  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
-  const [swapPrice, setSwapPrice] = useState<number>()
 
   useEffect(() => {
     console.log("quoteOrder,swapPrice recomputed")
@@ -370,8 +374,8 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo, isFrozen])
 
   async function getOrderBook() {
-    setSwapPrice(undefined)
-    setQuoteOrder(null)
+    // setSwapPrice(undefined)
+    // setQuoteOrder(null)
     console.log("Getting orderbook....")
     if (!network) {
       console.warn("getOrderBook: Missing network")
@@ -406,14 +410,17 @@ function SwapProvider({ children }: Props) {
     const minTimeStamp: number = Date.now() / 1000 + 10
     const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
     setOrderBook(goodOrders)
+    setTokensChanged(false)
   }
 
   function selectSellToken(newTokenAddress: string) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
     if (!newTokenInfo) return
+    if (newTokenInfo.address === sellTokenInfo.address) return
 
     if (buyTokenInfo.symbol === "ETH" && newTokenInfo.symbol !== "WETH") {
       // If buying ETH, and new token isn't WETH, buy WETH instead
+      setTokensChanged(true)
       setSellInput("")
       setSellToken(newTokenAddress)
 
@@ -430,6 +437,7 @@ function SwapProvider({ children }: Props) {
       }
     } else if (newTokenInfo.symbol === "ETH") {
       // If selling ETH, buy WETH
+      setTokensChanged(true)
       setSellInput("")
       setSellToken(newTokenAddress)
       const tokenAddresses = getTokens()
@@ -443,6 +451,7 @@ function SwapProvider({ children }: Props) {
     } else if (newTokenAddress === buyTokenInfo.address) {
       switchTokens()
     } else {
+      setTokensChanged(true)
       setSellInput("")
       setSellToken(newTokenAddress)
     }
@@ -451,6 +460,7 @@ function SwapProvider({ children }: Props) {
   function selectBuyToken(newTokenAddress: string) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
     if (!newTokenInfo) return
+    if (newTokenInfo.address === buyTokenInfo.address) return
 
     if (newTokenAddress === sellTokenInfo.address) {
       // If new token equal to the sell token, switch sell and buy tokens
@@ -485,6 +495,7 @@ function SwapProvider({ children }: Props) {
   }
 
   const switchTokens = () => {
+    setTokensChanged(true)
     userInputSide === "sell" ? setUserInputSide("buy") : setUserInputSide("sell")
     if (buyTokenInfo) setSellToken(buyTokenInfo.address)
     if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
@@ -528,6 +539,8 @@ function SwapProvider({ children }: Props) {
 
         selectSellToken,
         selectBuyToken,
+
+        tokensChanged,
       }}
     >
       {children}

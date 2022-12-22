@@ -27,7 +27,7 @@
   left: 50%;
   transform: translateY(calc(-50% + 1px)) translateX(-50%);
   background-color: var(--turquoise);
-  background: var(--zz_gradient);
+  background: var(--zz_gradient_dark);
 
   border-radius: 4px;
   /* border-radius: ; */

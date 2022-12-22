@@ -23,7 +23,7 @@ interface Props {
 function TransactionSettings() {
   const { tokenPricesUSD, buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
   const { network, userAddress } = useContext(WalletContext)
-  const { estimatedGasFee, swapPrice } = useContext(SwapContext)
+  const { estimatedGasFee, swapPrice, tokensChanged } = useContext(SwapContext)
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -91,12 +91,19 @@ function TransactionSettings() {
   return (
     <div className={styles.container}>
       <div className={styles.header} onClick={() => setIsOpen(v => !v)}>
-        <div className={styles.header_price}>
-          <div className={styles.header_price_token}>
-            1 {buyTokenInfo.symbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellTokenInfo.symbol}
-          </div>
-          <div className={styles.header_price_usd}>{priceBuyUsd ? `$${prettyBalanceUSD(priceBuyUsd)}` : ""}</div>
-        </div>
+        {/* <PricePlaceholder /> */}
+        {tokensChanged ? (
+          <PricePlaceholder />
+        ) : (
+          <>
+            <div className={styles.header_price}>
+              <div className={styles.header_price_token}>
+                1 {buyTokenInfo.symbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellTokenInfo.symbol}
+              </div>
+              <div className={styles.header_price_usd}>{priceBuyUsd ? `$${prettyBalanceUSD(priceBuyUsd)}` : ""}</div>
+            </div>
+          </>
+        )}
         <div className={styles.header_gas} ref={headerGasRef}>
           {gas_icon}
           <div className={styles.usd_estimate}>{`$${estimatedGasFeeUsd}`}</div>
@@ -109,13 +116,21 @@ function TransactionSettings() {
           <div className={styles.detail}>
             <div> {t("token_sell_price", { tokenSymbol: sellTokenInfo.symbol })}</div>
             <div ref={priceSellRef}>
-              {priceSell} {buyTokenInfo.symbol} {priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}
+              {tokensChanged ? (
+                <PricePlaceholder />
+              ) : (
+                `${priceSell} ${buyTokenInfo.symbol} ${priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}`
+              )}
             </div>
           </div>
           <div className={styles.detail}>
             <div> {t("token_buy_price", { tokenSymbol: buyTokenInfo.symbol })}</div>
             <div ref={priceBuyRef}>
-              {priceBuy} {sellTokenInfo.symbol} {priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}
+              {tokensChanged ? (
+                <PricePlaceholder />
+              ) : (
+                `${priceBuy} ${sellTokenInfo.symbol} ${priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}`
+              )}
             </div>
           </div>
           <div className={styles.detail}>
@@ -143,3 +158,7 @@ const gas_icon = (
     <path d="M4 8.16113H8" stroke="white"></path>
   </svg>
 )
+
+function PricePlaceholder() {
+  return <div className={styles.price_placeholder} />
+}

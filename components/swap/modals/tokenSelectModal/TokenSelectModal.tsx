@@ -1,4 +1,4 @@
-import { ethers } from "ethers"
+import { constants, ethers } from "ethers"
 import useTranslation from "next-translate/useTranslation"
 import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import { ExchangeContext } from "../../../../contexts/ExchangeContext"
@@ -31,6 +31,7 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
   const tokenList: TokenEntry[] = []
   if (selectedModal === "selectBuyToken") {
     const allTokens = getTokens()
+    console.log(allTokens)
     for (let i = 0; i < allTokens.length; i++) {
       const tokenAddress = allTokens[i]
       const balance = balances[tokenAddress]
@@ -41,24 +42,38 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
     }
   } else if (selectedModal === "selectSellToken") {
     const allTokens: string[] = []
+    console.log(markets)
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
-      if (sellTokenInfo?.address === tokenB && !allTokens.includes(tokenA)) allTokens.push(tokenA)
-      if (sellTokenInfo?.address === tokenA && !allTokens.includes(tokenB)) allTokens.push(tokenB)
+      // if (tokenA === constants.AddressZero || tokenB === constants.AddressZero) continue // Skip ETH markets
+      if (sellTokenInfo.address === tokenB && !allTokens.includes(tokenA)) allTokens.push(tokenA)
+      if (sellTokenInfo.address === tokenA && !allTokens.includes(tokenB)) allTokens.push(tokenB)
+    }
+
+    for (let i = 0; i < allTokens.length; i++) {
+      const tokenAddress = allTokens[i]
+      const balance = balances[tokenAddress]
+      const balanceReadable = balance ? balance.valueReadable : 0
+      const tokenPriceUsd = tokenPricesUSD[tokenAddress]
+      const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
+      tokenList.push({ tokenAddress, balance: balanceReadable, value })
     }
 
     // if (allTokens.length === 0)
     // check if current buy token in possible options
-    const searchList = allTokens.filter(tokenAddress => tokenAddress === buyTokenInfo.address)
-    if (searchList.length === 0) {
-      // selected token not in options -> update
-      // setBuyToken(allTokens[0]) // THIS MIGHT BE THE SOURCE OF THE BUG
-    }
+    // const searchList = allTokens.filter(tokenAddress => tokenAddress === buyTokenInfo.address)
+    // if (searchList.length === 0) {
+    // selected token not in options -> update
+    // setBuyToken(allTokens[0]) // THIS MIGHT BE THE SOURCE OF THE BUG
+    // }
 
     // push sellToken as well
-    allTokens.push(sellTokenInfo.address)
-    for (let i = 0; i < allTokens.length; i++) {
-      const tokenAddress = allTokens[i]
+    // allTokens.push(sellTokenInfo.address)
+
+    // Add ETH
+    const eth = getTokenInfo(constants.AddressZero)
+    if (eth && !tokenList.find(v => v.tokenAddress === constants.AddressZero)) {
+      const tokenAddress = eth.address
       const balance = balances[tokenAddress]
       const balanceReadable = balance ? balance.valueReadable : 0
       const tokenPriceUsd = tokenPricesUSD[tokenAddress]

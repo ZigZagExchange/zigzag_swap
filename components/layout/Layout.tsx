@@ -47,13 +47,13 @@ function Layout(props: Props) {
 
   let headerLeft = (
     <nav className={styles.header_left}>
-      <Link href="/">
-        <a className={`${styles.nav_link}`}>
-          <span className={`${styles.icon}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <Image src={logo} alt="logo" width="30" height={"50"} />
-          </span>
-        </a>
-      </Link>
+      {/* <Link href="/"> */}
+      {/* <a className={`${styles.nav_link}`}> */}
+      <span className={`${styles.icon}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <Image src={logo} alt="logo" width="30" height={"50"} />
+      </span>
+      {/* </a> */}
+      {/* </Link> */}
       {/* <Link href="/swap">
         <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/swap" ? styles.active_nav_link : ""}`}>Swap</a>
       </Link>

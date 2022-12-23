@@ -28,7 +28,7 @@ export default function WrapModal({ close }: Props) {
     message = "Token swapped."
   }
 
-  if (buyTokenInfo)
+  if (buyTokenInfo && sellTokenInfo)
     return (
       <div className={styles.container}>
         <div className={styles.title}>

@@ -76,7 +76,7 @@ export type TokenAllowanceObject = Record<string, ethers.BigNumber | undefined>
 export type TokenPriceObject = Record<string, number | undefined>
 
 export type ExchangeContextType = {
-  sellTokenInfo: ZZTokenInfo
+  sellTokenInfo: ZZTokenInfo | null
   buyTokenInfo: ZZTokenInfo | null
   exchangeAddress: string
   balances: TokenBalanceObject
@@ -96,7 +96,7 @@ export type ExchangeContextType = {
   getTokenInfo: (token: string) => ZZTokenInfo | null
 
   setBuyToken: (token: string | null) => void
-  setSellToken: (token: string) => void
+  setSellToken: (token: string | null) => void
 }
 
 export const ExchangeContext = createContext<ExchangeContextType>({
@@ -120,7 +120,7 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   getTokenInfo: (token: string) => null,
 
   setBuyToken: (token: string | null) => {},
-  setSellToken: (token: string) => {},
+  setSellToken: (token: string | null) => {},
 })
 
 function ExchangeProvider({ children }: Props) {
@@ -128,7 +128,7 @@ function ExchangeProvider({ children }: Props) {
   const [tokenInfos, setTokenInfos] = useState<ZZTokenInfo[]>([])
   const [makerFee, setMakerFee] = useState<number>(0)
   const [takerFee, setTakerFee] = useState<number>(0)
-  const [sellTokenInfo, setSellTokenInfo] = useState<ZZTokenInfo>(_defaultSellToken())
+  const [sellTokenInfo, setSellTokenInfo] = useState<ZZTokenInfo | null>(_defaultSellToken())
   const [buyTokenInfo, setBuyTokenInfo] = useState<ZZTokenInfo | null>(_defaultBuyToken())
   const [exchangeAddress, setExchangeAddress] = useState<string>("")
   const [domainInfo, setDomainInfo] = useState<EIP712DomainInfo | null>(null)
@@ -370,7 +370,11 @@ function ExchangeProvider({ children }: Props) {
     }
   }
 
-  const setSellToken = (tokenAddress: string) => {
+  const setSellToken = (tokenAddress: string | null) => {
+    if (!tokenAddress) {
+      setSellTokenInfo(null)
+      return
+    }
     const newSellTokenInfo = getTokenInfo(tokenAddress)
     if (!newSellTokenInfo) {
       console.warn(`setSellToken: no tokenInfo for ${tokenAddress}`)

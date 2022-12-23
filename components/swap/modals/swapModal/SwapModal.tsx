@@ -33,7 +33,7 @@ export default function SwapModal({ close }: Props) {
     message = "Token swapped."
   }
 
-  if (buyTokenInfo)
+  if (buyTokenInfo && sellTokenInfo)
     return (
       <div className={styles.container}>
         <div className={styles.title}>

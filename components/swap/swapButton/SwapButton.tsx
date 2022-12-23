@@ -261,7 +261,11 @@ export default function SwapButton({
     if (buttonMode !== ButtonMode.Wrap) return
     console.log("starting sendWrap")
     if (!buyTokenInfo) {
-      console.warn("sendWithdraw: missing buyTokenInfo")
+      console.warn("sendDeposit: missing buyTokenInfo")
+      return
+    }
+    if (!sellTokenInfo) {
+      console.warn("sendDeposit: missing sellTokenInfo")
       return
     }
 
@@ -336,6 +340,10 @@ export default function SwapButton({
       console.warn("sendWithdraw: missing buyTokenInfo")
       return
     }
+    if (!sellTokenInfo) {
+      console.warn("sendWithdraw: missing sellTokenInfo")
+      return
+    }
 
     const sellBalanceParsed = balances[sellTokenInfo.address]?.value
 
@@ -396,6 +404,10 @@ export default function SwapButton({
       return <div>Wrong Network</div>
     }
 
+    if (!sellTokenInfo) {
+      setButtonMode(ButtonMode.Disabled)
+      return <div>Select a token</div>
+    }
     if (!buyTokenInfo) {
       setButtonMode(ButtonMode.Disabled)
       return <div>Select a token</div>

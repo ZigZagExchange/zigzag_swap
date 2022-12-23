@@ -40,7 +40,7 @@ function TransactionSettings() {
   console.log("priceBuy", priceBuy)
   const priceSell = swapPrice !== undefined ? `${prettyBalance(swapPrice)}` : undefined
   const priceBuyUsd = buyTokenInfo ? tokenPricesUSD[buyTokenInfo.address] : undefined
-  const priceSellUsd = tokenPricesUSD[sellTokenInfo.address]
+  const priceSellUsd = sellTokenInfo ? tokenPricesUSD[sellTokenInfo.address] : undefined
 
   const nativeCurrencyUsd = tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0
   const nativeCurrencySymbol = network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"
@@ -91,7 +91,7 @@ function TransactionSettings() {
   return (
     <div className={styles.container}>
       <div className={styles.header} onClick={() => setIsOpen(v => !v)}>
-        {buyTokenInfo ? (
+        {buyTokenInfo && sellTokenInfo ? (
           tokensChanged ? (
             <PricePlaceholder />
           ) : (
@@ -117,7 +117,7 @@ function TransactionSettings() {
       <div className={`${styles.details_container} ${isOpen ? "" : styles.hidden}`}>
         <div className={styles.details}>
           <div className={styles.detail}>
-            {buyTokenInfo ? (
+            {buyTokenInfo && sellTokenInfo ? (
               <>
                 <div> {t("token_sell_price", { tokenSymbol: sellTokenInfo.symbol })}</div>
                 <div ref={priceSellRef}>
@@ -133,7 +133,7 @@ function TransactionSettings() {
             )}
           </div>
           <div className={styles.detail}>
-            {buyTokenInfo ? (
+            {buyTokenInfo && sellTokenInfo ? (
               <>
                 <div> {t("token_buy_price", { tokenSymbol: buyTokenInfo.symbol })}</div>
                 <div ref={priceBuyRef}>

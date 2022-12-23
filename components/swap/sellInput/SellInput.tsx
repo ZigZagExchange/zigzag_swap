@@ -26,6 +26,7 @@ export default function SellInput({ openSellTokenSelectModal }: Props) {
   }
 
   function maximize() {
+    if (!sellTokenInfo) return
     const balance = balances[sellTokenInfo.address]
     if (!sellTokenInfo || !balance) return
     let tokenBalance: string = utils.formatUnits(balance.value, sellTokenInfo.decimals)

@@ -23,7 +23,7 @@ export default function ApproveModal({ close }: Props) {
   } else {
     message = "Token approved."
   }
-
+  if (!sellTokenInfo) return <div>No Sell Token</div>
   return (
     <div className={styles.container}>
       <div className={styles.title}>Approving {sellTokenInfo.symbol}</div>

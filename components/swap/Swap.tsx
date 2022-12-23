@@ -82,12 +82,13 @@ function Swap() {
     setModal(null)
   }
 
-  const sellTokenUsdPrice = tokenPricesUSD[sellTokenInfo.address]
+  const sellTokenUsdPrice = sellTokenInfo ? tokenPricesUSD[sellTokenInfo.address] : undefined
   const buyTokenUsdPrice = buyTokenInfo ? tokenPricesUSD[buyTokenInfo.address] : undefined
 
   // Estimated sell token value
   const sellTokenEstimatedValue = useMemo(() => {
     if (sellTokenUsdPrice !== undefined) {
+      if (!sellTokenInfo) return
       const sellAmountFormated = Number(ethers.utils.formatUnits(sellAmount, sellTokenInfo.decimals))
       if (sellAmountFormated === 0) return
       return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(sellAmountFormated * sellTokenUsdPrice)}`}</div>
@@ -103,6 +104,7 @@ function Swap() {
 
       let percent
       if (sellTokenUsdPrice !== undefined) {
+        if (!sellTokenInfo) return
         const sellAmountFormated = Number(ethers.utils.formatUnits(sellAmount, sellTokenInfo.decimals))
         if (sellAmountFormated === 0) {
           return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice)}`}</div>
@@ -122,9 +124,7 @@ function Swap() {
         <div className={styles.from_container}>
           <div className={styles.from_header}>
             <div className={styles.from_title}>{t("from")}</div>
-            <div className={styles.from_balance}>
-              {getBalanceReadable(sellTokenInfo.address)} {sellTokenInfo.symbol}
-            </div>
+            <div className={styles.from_balance}>{sellTokenInfo ? `${getBalanceReadable(sellTokenInfo.address)} ${sellTokenInfo.symbol}` : null}</div>
           </div>
           <div className={styles.from_input_container}>
             <SellInput openSellTokenSelectModal={() => setModal("selectSellToken")} />

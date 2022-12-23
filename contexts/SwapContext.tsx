@@ -311,6 +311,10 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: missing buyTokenInfo")
         return
       }
+      if (!sellTokenInfo) {
+        console.warn("getGasFees: missing sellTokenInfo")
+        return
+      }
 
       let estimatedGasUsed = ethers.constants.Zero
       try {
@@ -380,6 +384,8 @@ function SwapProvider({ children }: Props) {
   async function getOrderBook() {
     // setSwapPrice(undefined)
     // setQuoteOrder(null)
+    setTokensChanged(false)
+
     console.log("Getting orderbook....")
     if (!network) {
       console.warn("getOrderBook: Missing network")
@@ -420,7 +426,7 @@ function SwapProvider({ children }: Props) {
   function selectSellToken(newTokenAddress: string) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
     if (!newTokenInfo) return
-    if (newTokenInfo.address === sellTokenInfo.address) return
+    if (sellTokenInfo && newTokenInfo.address === sellTokenInfo.address) return
 
     // if (buyTokenInfo.symbol === "ETH" && newTokenInfo.symbol !== "WETH") {
     //   // If buying ETH, and new token isn't WETH, buy WETH instead
@@ -468,6 +474,7 @@ function SwapProvider({ children }: Props) {
           }
         }
         if (newTokenHasMarketWithBuyToken) {
+          setSellToken(newTokenAddress)
           setSellInput(sellInput)
         } else {
           setTokensChanged(true)
@@ -487,34 +494,35 @@ function SwapProvider({ children }: Props) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
     if (!newTokenInfo) return
     if (buyTokenInfo && newTokenInfo.address === buyTokenInfo.address) return
+    console.log("Selecting new buy token:", newTokenInfo)
+    if (sellTokenInfo) {
+      console.log("Current sell token:", sellTokenInfo)
+      if (newTokenAddress === sellTokenInfo.address) {
+        console.log("They're the same, so switching them.")
+        switchTokens()
+      } else {
+        // Check if new sell token has a market with the current sellToken
+        let newTokenHasMarketWithSellToken = false
+        for (let i = 0; i < markets.length; i++) {
+          const [tokenA, tokenB] = markets[i].split("-")
+          const isTokenA = newTokenAddress === tokenA && sellTokenInfo.address === tokenB
+          const isTokenB = sellTokenInfo.address === tokenA && newTokenAddress === tokenB
+          if (isTokenA || isTokenB) {
+            newTokenHasMarketWithSellToken = true
+          }
+        }
+        console.log("Has market with current sell token:", newTokenHasMarketWithSellToken)
 
-    if (newTokenAddress === sellTokenInfo.address) {
-      // If new token equal to the sell token, switch sell and buy tokens
-      switchTokens()
-      // } else if (newTokenInfo.symbol === "ETH") {
-      //   // If buying ETH, sell WETH
-      //   setBuyInput("")
-      //   setBuyToken(newTokenAddress)
-      //   const tokenAddresses = getTokens()
-      //   let wethToken
-      //   for (let i = 0; i < tokenAddresses.length; i++) {
-      //     const tokenAddress = tokenAddresses[i]
-      //     const tokenInfo = getTokenInfo(tokenAddress)
-      //     if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
-      //   }
-      //   if (wethToken) setSellToken(wethToken.address)
-      // } else if (sellTokenInfo.symbol === "ETH") {
-      //   // If selling ETH, buy WETH
-      //   setBuyInput("")
-      //   setBuyToken(newTokenAddress)
-      //   const tokenAddresses = getTokens()
-      //   let wethToken
-      //   for (let i = 0; i < tokenAddresses.length; i++) {
-      //     const tokenAddress = tokenAddresses[i]
-      //     const tokenInfo = getTokenInfo(tokenAddress)
-      //     if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
-      //   }
-      //   if (wethToken) setSellToken(wethToken.address)
+        if (newTokenHasMarketWithSellToken) {
+          setBuyToken(newTokenAddress)
+          setBuyInput(buyInput)
+        } else {
+          setTokensChanged(true)
+          setBuyInput("")
+          setBuyToken(newTokenAddress)
+          setSellToken(null)
+        }
+      }
     } else {
       setTokensChanged(true)
       setBuyToken(newTokenAddress)
@@ -524,8 +532,16 @@ function SwapProvider({ children }: Props) {
   const switchTokens = () => {
     setTokensChanged(true)
     userInputSide === "sell" ? setUserInputSide("buy") : setUserInputSide("sell")
-    if (buyTokenInfo) setSellToken(buyTokenInfo.address)
-    if (sellTokenInfo) setBuyToken(sellTokenInfo.address)
+    if (sellTokenInfo && !buyTokenInfo) {
+      setBuyToken(sellTokenInfo.address)
+      setSellToken(null)
+    } else if (buyTokenInfo && !sellTokenInfo) {
+      setSellToken(buyTokenInfo.address)
+      setBuyToken(null)
+    } else if (buyTokenInfo && sellTokenInfo) {
+      setSellToken(buyTokenInfo.address)
+      setBuyToken(sellTokenInfo.address)
+    }
     setBuyInput(sellInput)
     setSellInput(buyInput)
   }

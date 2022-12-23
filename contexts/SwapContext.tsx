@@ -384,7 +384,6 @@ function SwapProvider({ children }: Props) {
   async function getOrderBook() {
     // setSwapPrice(undefined)
     // setQuoteOrder(null)
-    setTokensChanged(false)
 
     console.log("Getting orderbook....")
     if (!network) {
@@ -408,12 +407,14 @@ function SwapProvider({ children }: Props) {
       )
       if (response.status !== 200) {
         console.error("Failed to fetch order book.")
+        setTokensChanged(false)
         return
       }
 
       orders = await response.json()
     } catch (err: any) {
       console.error(`Error fetching token price: ${err}`)
+      setTokensChanged(false)
       return
     }
 

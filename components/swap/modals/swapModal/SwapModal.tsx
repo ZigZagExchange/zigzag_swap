@@ -64,5 +64,5 @@ export default function SwapModal({ close }: Props) {
         <div className={styles.text}>{errorMessage ? errorMessage : message}</div>
       </div>
     )
-  else return <></>
+  else return <div>Error: buyTokenInfo is missing</div>
 }

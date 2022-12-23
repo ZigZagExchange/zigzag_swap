@@ -89,7 +89,7 @@ export const SwapContext = createContext<SwapContextType>({
 
 function SwapProvider({ children }: Props) {
   const { network, signer, ethersProvider } = useContext(WalletContext)
-  const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress, setBuyToken, setSellToken, getTokenInfo, getTokens } =
+  const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress, setBuyToken, setSellToken, getTokenInfo, getTokens, markets } =
     useContext(ExchangeContext)
 
   const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
@@ -307,6 +307,10 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: missing quoteOrder")
         return
       }
+      if (!buyTokenInfo) {
+        console.warn("getGasFees: missing buyTokenInfo")
+        return
+      }
 
       let estimatedGasUsed = ethers.constants.Zero
       try {
@@ -418,41 +422,63 @@ function SwapProvider({ children }: Props) {
     if (!newTokenInfo) return
     if (newTokenInfo.address === sellTokenInfo.address) return
 
-    if (buyTokenInfo.symbol === "ETH" && newTokenInfo.symbol !== "WETH") {
-      // If buying ETH, and new token isn't WETH, buy WETH instead
-      setTokensChanged(true)
-      setSellInput("")
-      setSellToken(newTokenAddress)
+    // if (buyTokenInfo.symbol === "ETH" && newTokenInfo.symbol !== "WETH") {
+    //   // If buying ETH, and new token isn't WETH, buy WETH instead
+    //   setTokensChanged(true)
+    //   setSellInput("")
+    //   setSellToken(newTokenAddress)
 
-      const tokenAddresses = getTokens()
-      let wethToken
-      for (let i = 0; i < tokenAddresses.length; i++) {
-        const tokenAddress = tokenAddresses[i]
-        const tokenInfo = getTokenInfo(tokenAddress)
-        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+    //   const tokenAddresses = getTokens()
+    //   let wethToken
+    //   for (let i = 0; i < tokenAddresses.length; i++) {
+    //     const tokenAddress = tokenAddresses[i]
+    //     const tokenInfo = getTokenInfo(tokenAddress)
+    //     if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+    //   }
+    //   if (wethToken) {
+    //     console.log("Setting weth as buy token")
+    //     setBuyToken(wethToken.address)
+    //   }
+    // } else if (newTokenInfo.symbol === "ETH") {
+    //   // If selling ETH, buy WETH
+    //   setTokensChanged(true)
+    //   setSellInput("")
+    //   setSellToken(newTokenAddress)
+    //   const tokenAddresses = getTokens()
+    //   let wethToken
+    //   for (let i = 0; i < tokenAddresses.length; i++) {
+    //     const tokenAddress = tokenAddresses[i]
+    //     const tokenInfo = getTokenInfo(tokenAddress)
+    //     if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+    //   }
+    //   if (wethToken) setBuyToken(wethToken.address)
+    // } else
+    if (buyTokenInfo) {
+      if (newTokenAddress === buyTokenInfo.address) {
+        switchTokens()
+      } else {
+        // Check if new sell token has a market with the current buyToken
+        let newTokenHasMarketWithBuyToken = false
+        for (let i = 0; i < markets.length; i++) {
+          const [tokenA, tokenB] = markets[i].split("-")
+          const isTokenA = newTokenAddress === tokenA && buyTokenInfo.address === tokenB
+          const isTokenB = buyTokenInfo.address === tokenA && newTokenAddress === tokenB
+          if (isTokenA || isTokenB) {
+            newTokenHasMarketWithBuyToken = true
+          }
+        }
+        if (newTokenHasMarketWithBuyToken) {
+          setSellInput(sellInput)
+        } else {
+          setTokensChanged(true)
+          setSellInput("")
+          setSellToken(newTokenAddress)
+          setBuyToken(null)
+        }
       }
-      if (wethToken) {
-        console.log("Setting weth as buy token")
-        setBuyToken(wethToken.address)
-      }
-    } else if (newTokenInfo.symbol === "ETH") {
-      // If selling ETH, buy WETH
-      setTokensChanged(true)
-      setSellInput("")
-      setSellToken(newTokenAddress)
-      const tokenAddresses = getTokens()
-      let wethToken
-      for (let i = 0; i < tokenAddresses.length; i++) {
-        const tokenAddress = tokenAddresses[i]
-        const tokenInfo = getTokenInfo(tokenAddress)
-        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
-      }
-      if (wethToken) setBuyToken(wethToken.address)
-    } else if (newTokenAddress === buyTokenInfo.address) {
-      switchTokens()
     } else {
       setTokensChanged(true)
-      setSellInput("")
+      // setSellInput("")
       setSellToken(newTokenAddress)
     }
   }
@@ -460,36 +486,37 @@ function SwapProvider({ children }: Props) {
   function selectBuyToken(newTokenAddress: string) {
     const newTokenInfo = getTokenInfo(newTokenAddress)
     if (!newTokenInfo) return
-    if (newTokenInfo.address === buyTokenInfo.address) return
+    if (buyTokenInfo && newTokenInfo.address === buyTokenInfo.address) return
 
     if (newTokenAddress === sellTokenInfo.address) {
       // If new token equal to the sell token, switch sell and buy tokens
       switchTokens()
-    } else if (newTokenInfo.symbol === "ETH") {
-      // If buying ETH, sell WETH
-      setBuyInput("")
-      setBuyToken(newTokenAddress)
-      const tokenAddresses = getTokens()
-      let wethToken
-      for (let i = 0; i < tokenAddresses.length; i++) {
-        const tokenAddress = tokenAddresses[i]
-        const tokenInfo = getTokenInfo(tokenAddress)
-        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
-      }
-      if (wethToken) setSellToken(wethToken.address)
-    } else if (sellTokenInfo.symbol === "ETH") {
-      // If selling ETH, buy WETH
-      setBuyInput("")
-      setBuyToken(newTokenAddress)
-      const tokenAddresses = getTokens()
-      let wethToken
-      for (let i = 0; i < tokenAddresses.length; i++) {
-        const tokenAddress = tokenAddresses[i]
-        const tokenInfo = getTokenInfo(tokenAddress)
-        if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
-      }
-      if (wethToken) setSellToken(wethToken.address)
+      // } else if (newTokenInfo.symbol === "ETH") {
+      //   // If buying ETH, sell WETH
+      //   setBuyInput("")
+      //   setBuyToken(newTokenAddress)
+      //   const tokenAddresses = getTokens()
+      //   let wethToken
+      //   for (let i = 0; i < tokenAddresses.length; i++) {
+      //     const tokenAddress = tokenAddresses[i]
+      //     const tokenInfo = getTokenInfo(tokenAddress)
+      //     if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+      //   }
+      //   if (wethToken) setSellToken(wethToken.address)
+      // } else if (sellTokenInfo.symbol === "ETH") {
+      //   // If selling ETH, buy WETH
+      //   setBuyInput("")
+      //   setBuyToken(newTokenAddress)
+      //   const tokenAddresses = getTokens()
+      //   let wethToken
+      //   for (let i = 0; i < tokenAddresses.length; i++) {
+      //     const tokenAddress = tokenAddresses[i]
+      //     const tokenInfo = getTokenInfo(tokenAddress)
+      //     if (tokenInfo?.symbol === "WETH") wethToken = tokenInfo
+      //   }
+      //   if (wethToken) setSellToken(wethToken.address)
     } else {
+      setTokensChanged(true)
       setBuyToken(newTokenAddress)
     }
   }

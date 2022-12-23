@@ -42,7 +42,6 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
     }
   } else if (selectedModal === "selectBuyToken") {
     const allTokens: string[] = []
-    console.log(markets)
     for (let i = 0; i < markets.length; i++) {
       const [tokenA, tokenB] = markets[i].split("-")
       // if (tokenA === constants.AddressZero || tokenB === constants.AddressZero) continue // Skip ETH markets

@@ -1,22 +1,20 @@
-import React, { useState, useContext, useEffect } from "react"
+import { useContext } from "react"
 
 import { ethers, utils } from "ethers"
 
 import input_styles from "../Input.module.css"
 import TokenSelector from "../tokenSelector/TokenSelector"
 import { SwapContext } from "../../../contexts/SwapContext"
-import { ExchangeContext, ZZTokenInfo } from "../../../contexts/ExchangeContext"
-import { balanceCommas, truncateDecimals } from "../../../utils/utils"
+import { ExchangeContext } from "../../../contexts/ExchangeContext"
+import { truncateDecimals } from "../../../utils/utils"
 
-import { SellValidationState } from "../Swap"
 import { WalletContext } from "../../../contexts/WalletContext"
 
 interface Props {
-  validationStateSell: SellValidationState
   openSellTokenSelectModal: () => void
 }
 
-export default function SellInput({ validationStateSell, openSellTokenSelectModal }: Props) {
+export default function SellInput({ openSellTokenSelectModal }: Props) {
   const { balances, sellTokenInfo } = useContext(ExchangeContext)
   const { sellInput, setSellInput, tokensChanged } = useContext(SwapContext)
   const { userAddress } = useContext(WalletContext)
@@ -37,13 +35,9 @@ export default function SellInput({ validationStateSell, openSellTokenSelectModa
     setSellInput(tokenBalance)
   }
 
-  const sellTokenSymbol = sellTokenInfo?.symbol ? sellTokenInfo?.symbol : "Token"
   return (
-    <div
-      className={input_styles.container}
-      // className={`${input_styles.container} ${userAddress && validationStateSell !== SellValidationState.OK ? input_styles.error : ""}`}
-    >
-      <TokenSelector selectedTokenSymbol={sellTokenSymbol} openTokenSelectModal={openSellTokenSelectModal} />
+    <div className={input_styles.container}>
+      <TokenSelector selectedToken={sellTokenInfo} openTokenSelectModal={openSellTokenSelectModal} />
       <button className={input_styles.max_button} onClick={maximize}>
         MAX
       </button>

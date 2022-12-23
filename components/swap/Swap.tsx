@@ -82,11 +82,11 @@ function Swap() {
     setModal(null)
   }
 
-  const buyTokenUsdPrice = tokenPricesUSD[buyTokenInfo.address]
   const sellTokenUsdPrice = tokenPricesUSD[sellTokenInfo.address]
+  const buyTokenUsdPrice = buyTokenInfo ? tokenPricesUSD[buyTokenInfo.address] : undefined
 
   // Estimated sell token value
-  const sellTokenEstimatedValue: any = useMemo(() => {
+  const sellTokenEstimatedValue = useMemo(() => {
     if (sellTokenUsdPrice !== undefined) {
       const sellAmountFormated = Number(ethers.utils.formatUnits(sellAmount, sellTokenInfo.decimals))
       if (sellAmountFormated === 0) return
@@ -95,7 +95,8 @@ function Swap() {
   }, [sellTokenInfo, sellAmount, sellTokenUsdPrice])
 
   // Estimated buy token value
-  const buyTokenEstimatedValue: any = useMemo(() => {
+  const buyTokenEstimatedValue = useMemo(() => {
+    if (!buyTokenInfo) return
     if (buyTokenUsdPrice !== undefined) {
       const buyAmountFormated = Number(ethers.utils.formatUnits(buyAmount, buyTokenInfo.decimals))
       if (buyAmountFormated === 0) return
@@ -126,7 +127,7 @@ function Swap() {
             </div>
           </div>
           <div className={styles.from_input_container}>
-            <SellInput validationStateSell={validationStateSell} openSellTokenSelectModal={() => setModal("selectSellToken")} />
+            <SellInput openSellTokenSelectModal={() => setModal("selectSellToken")} />
           </div>
           <div className={styles.below_input_container}>
             <ExplorerButton network={network} token={sellTokenInfo} />
@@ -139,12 +140,10 @@ function Swap() {
         <div className={styles.to_container}>
           <div className={styles.to_header}>
             <div className={styles.to_title}>{t("to")}</div>
-            <div className={styles.to_balance}>
-              {getBalanceReadable(buyTokenInfo.address)} {buyTokenInfo.symbol}
-            </div>
+            <div className={styles.to_balance}>{buyTokenInfo ? `${getBalanceReadable(buyTokenInfo.address)} ${buyTokenInfo.symbol}` : null}</div>
           </div>
           <div className={styles.to_input_container}>
-            <BuyInput validationStateBuy={validationStateBuy} openBuyTokenSelectModal={() => setModal("selectBuyToken")} />
+            <BuyInput openBuyTokenSelectModal={() => setModal("selectBuyToken")} />
           </div>
           <div className={styles.below_input_container}>
             <ExplorerButton network={network} token={buyTokenInfo} />

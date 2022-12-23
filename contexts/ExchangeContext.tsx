@@ -76,8 +76,8 @@ export type TokenAllowanceObject = Record<string, ethers.BigNumber | undefined>
 export type TokenPriceObject = Record<string, number | undefined>
 
 export type ExchangeContextType = {
-  buyTokenInfo: ZZTokenInfo
   sellTokenInfo: ZZTokenInfo
+  buyTokenInfo: ZZTokenInfo | null
   exchangeAddress: string
   balances: TokenBalanceObject
   allowances: TokenAllowanceObject
@@ -95,13 +95,13 @@ export type ExchangeContextType = {
   getTokens: () => string[]
   getTokenInfo: (token: string) => ZZTokenInfo | null
 
-  setBuyToken: (token: string) => void
+  setBuyToken: (token: string | null) => void
   setSellToken: (token: string) => void
 }
 
 export const ExchangeContext = createContext<ExchangeContextType>({
-  buyTokenInfo: _defaultBuyToken(),
   sellTokenInfo: _defaultSellToken(),
+  buyTokenInfo: _defaultBuyToken(),
   exchangeAddress: "",
   balances: {},
   allowances: {},
@@ -119,7 +119,7 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   getTokens: () => [],
   getTokenInfo: (token: string) => null,
 
-  setBuyToken: (token: string) => {},
+  setBuyToken: (token: string | null) => {},
   setSellToken: (token: string) => {},
 })
 
@@ -128,8 +128,8 @@ function ExchangeProvider({ children }: Props) {
   const [tokenInfos, setTokenInfos] = useState<ZZTokenInfo[]>([])
   const [makerFee, setMakerFee] = useState<number>(0)
   const [takerFee, setTakerFee] = useState<number>(0)
-  const [buyTokenInfo, setBuyTokenInfo] = useState<ZZTokenInfo>(_defaultBuyToken())
   const [sellTokenInfo, setSellTokenInfo] = useState<ZZTokenInfo>(_defaultSellToken())
+  const [buyTokenInfo, setBuyTokenInfo] = useState<ZZTokenInfo | null>(_defaultBuyToken())
   const [exchangeAddress, setExchangeAddress] = useState<string>("")
   const [domainInfo, setDomainInfo] = useState<EIP712DomainInfo | null>(null)
   const [typeInfo, setTypeInfo] = useState<EIP712TypeInfo | null>(null)
@@ -357,7 +357,11 @@ function ExchangeProvider({ children }: Props) {
     return tokenInfos.map(tokeninfo => tokeninfo.address)
   }
 
-  const setBuyToken = (tokenAddress: string) => {
+  const setBuyToken = (tokenAddress: string | null) => {
+    if (!tokenAddress) {
+      setBuyTokenInfo(null)
+      return
+    }
     const newBuyTokenInfo = getTokenInfo(tokenAddress)
     if (!newBuyTokenInfo) {
       console.warn(`setBuyToken: no tokenInfo for ${tokenAddress}`)

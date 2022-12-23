@@ -55,6 +55,7 @@
   background: var(--zz_gradient);
   cursor: pointer;
   opacity: 1;
+  color: black;
 }
 
 @media (width<=500px) {

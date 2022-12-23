@@ -39,7 +39,7 @@ function TransactionSettings() {
 
   console.log("priceBuy", priceBuy)
   const priceSell = swapPrice !== undefined ? `${prettyBalance(swapPrice)}` : undefined
-  const priceBuyUsd = tokenPricesUSD[buyTokenInfo.address]
+  const priceBuyUsd = buyTokenInfo ? tokenPricesUSD[buyTokenInfo.address] : undefined
   const priceSellUsd = tokenPricesUSD[sellTokenInfo.address]
 
   const nativeCurrencyUsd = tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0
@@ -91,18 +91,21 @@ function TransactionSettings() {
   return (
     <div className={styles.container}>
       <div className={styles.header} onClick={() => setIsOpen(v => !v)}>
-        {/* <PricePlaceholder /> */}
-        {tokensChanged ? (
-          <PricePlaceholder />
-        ) : (
-          <>
-            <div className={styles.header_price}>
-              <div className={styles.header_price_token}>
-                1 {buyTokenInfo.symbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellTokenInfo.symbol}
+        {buyTokenInfo ? (
+          tokensChanged ? (
+            <PricePlaceholder />
+          ) : (
+            <>
+              <div className={styles.header_price}>
+                <div className={styles.header_price_token}>
+                  1 {buyTokenInfo.symbol} = <div ref={headerPriceRef}>{priceBuy}</div> {sellTokenInfo.symbol}
+                </div>
+                <div className={styles.header_price_usd}>{priceBuyUsd ? `$${prettyBalanceUSD(priceBuyUsd)}` : ""}</div>
               </div>
-              <div className={styles.header_price_usd}>{priceBuyUsd ? `$${prettyBalanceUSD(priceBuyUsd)}` : ""}</div>
-            </div>
-          </>
+            </>
+          )
+        ) : (
+          <div />
         )}
         <div className={styles.header_gas} ref={headerGasRef}>
           {gas_icon}
@@ -114,24 +117,36 @@ function TransactionSettings() {
       <div className={`${styles.details_container} ${isOpen ? "" : styles.hidden}`}>
         <div className={styles.details}>
           <div className={styles.detail}>
-            <div> {t("token_sell_price", { tokenSymbol: sellTokenInfo.symbol })}</div>
-            <div ref={priceSellRef}>
-              {tokensChanged ? (
-                <PricePlaceholder />
-              ) : (
-                `${priceSell} ${buyTokenInfo.symbol} ${priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}`
-              )}
-            </div>
+            {buyTokenInfo ? (
+              <>
+                <div> {t("token_sell_price", { tokenSymbol: sellTokenInfo.symbol })}</div>
+                <div ref={priceSellRef}>
+                  {tokensChanged || !buyTokenInfo ? (
+                    <PricePlaceholder />
+                  ) : (
+                    `${priceSell} ${buyTokenInfo.symbol} ${priceSellUsd ? `~$${prettyBalanceUSD(priceSellUsd)}` : ""}`
+                  )}
+                </div>
+              </>
+            ) : (
+              <div />
+            )}
           </div>
           <div className={styles.detail}>
-            <div> {t("token_buy_price", { tokenSymbol: buyTokenInfo.symbol })}</div>
-            <div ref={priceBuyRef}>
-              {tokensChanged ? (
-                <PricePlaceholder />
-              ) : (
-                `${priceBuy} ${sellTokenInfo.symbol} ${priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}`
-              )}
-            </div>
+            {buyTokenInfo ? (
+              <>
+                <div> {t("token_buy_price", { tokenSymbol: buyTokenInfo.symbol })}</div>
+                <div ref={priceBuyRef}>
+                  {tokensChanged ? (
+                    <PricePlaceholder />
+                  ) : (
+                    `${priceBuy} ${sellTokenInfo.symbol} ${priceBuyUsd ? `~$${prettyBalanceUSD(priceBuyUsd)}` : ""}`
+                  )}
+                </div>
+              </>
+            ) : (
+              <div />
+            )}
           </div>
           <div className={styles.detail}>
             <div>{t("gas_fee")}</div>

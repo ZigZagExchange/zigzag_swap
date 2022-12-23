@@ -14,8 +14,8 @@ interface Props {
 }
 
 export default function WrapModal({ close }: Props) {
-  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
-  const { transactionStatus, transactionError, sellAmount, buyAmount, quoteOrder } = useContext(SwapContext)
+  const { buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
+  const { transactionStatus, transactionError, sellAmount, buyAmount } = useContext(SwapContext)
 
   const errorMessage = transactionError ? parseError(transactionError) : undefined
 
@@ -27,6 +27,7 @@ export default function WrapModal({ close }: Props) {
   } else {
     message = "Token swapped."
   }
+
   if (buyTokenInfo)
     return (
       <div className={styles.container}>
@@ -55,5 +56,5 @@ export default function WrapModal({ close }: Props) {
         <div className={styles.text}>{errorMessage ? errorMessage : message}</div>
       </div>
     )
-  else <div>Error: buyTokenInfo is missing</div>
+  else return <div>Error: buyTokenInfo is missing</div>
 }

@@ -113,14 +113,14 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   tokenPricesUSD: {},
   markets: [],
 
-  updateBalances: async (tokens: string[] | null) => {},
-  updateAllowances: async (tokens: string[] | null) => {},
+  updateBalances: async (tokens: string[] | null) => { },
+  updateAllowances: async (tokens: string[] | null) => { },
 
   getTokens: () => [],
   getTokenInfo: (token: string) => null,
 
-  setBuyToken: (token: string | null) => {},
-  setSellToken: (token: string | null) => {},
+  setBuyToken: (token: string | null) => { },
+  setSellToken: (token: string | null) => { },
 })
 
 function ExchangeProvider({ children }: Props) {
@@ -210,9 +210,30 @@ function ExchangeProvider({ children }: Props) {
       return
     }
 
-    const parsedMarkets = result.markets.filter(m => m.verified).map(m => `${m.buyToken.toLowerCase()}-${m.sellToken.toLowerCase()}`)
+    const parsedMarkets = [
+      `${ethers.constants.AddressZero}-${network.wethContractAddress}`,
+      `${network.wethContractAddress}-${ethers.constants.AddressZero}`
+    ]
+
+    result.markets.forEach(market => {
+      if (!market.verified) return
+
+      const parsedBuyToken = market.buyToken.toLowerCase()
+      const parsedSellToken = market.sellToken.toLowerCase()
+      parsedMarkets.push(`${parsedBuyToken}-${parsedSellToken}`)
+
+      // add ETH version of market
+      if (network.wethContractAddress === parsedBuyToken) {
+        parsedMarkets.push(`${ethers.constants.AddressZero}-${parsedSellToken}`)
+      } else if (network.wethContractAddress === parsedSellToken) {
+        parsedMarkets.push(`${parsedBuyToken}-${ethers.constants.AddressZero}`)
+      }
+    })
+
     if (network.wethContractAddress) {
+      // add wrap/unwrap
       parsedMarkets.push(`${ethers.constants.AddressZero}-${network.wethContractAddress}`)
+      parsedMarkets.push(`${network.wethContractAddress}-${ethers.constants.AddressZero}`)
     }
     setMarkets(parsedMarkets)
 

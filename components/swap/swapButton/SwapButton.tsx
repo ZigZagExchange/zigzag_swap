@@ -1,17 +1,16 @@
 import React, { useContext, useMemo, useState } from "react"
-import { ethers } from "ethers"
+import { BigNumber, ethers } from "ethers"
 
 import erc20Abi from "../../../data/abis/erc20.json"
-import exchangeAbi from "../../../data/abis/exchange.json"
+import exchangeAbi from "../../../data/abis/ZigZagExchange.json"
 
 import { WalletContext } from "../../../contexts/WalletContext"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
-import { SwapContext } from "../../../contexts/SwapContext"
+import { SwapContext, ZZOrder } from "../../../contexts/SwapContext"
 
 import { SellValidationState, BuyValidationState } from "../Swap"
 
 import styles from "./SwapButton.module.css"
-import { truncateDecimals } from "../../../utils/utils"
 
 enum ButtonMode {
   Disabled,
@@ -42,9 +41,9 @@ export default function SwapButton({
   openUnwrapModal,
   closeModal,
 }: Props) {
-  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, takerFee, makerFee, updateAllowances, updateBalances } = useContext(ExchangeContext)
+  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, makerFee, takerFee, updateAllowances, updateBalances } = useContext(ExchangeContext)
   const { network, signer, userAddress, connect } = useContext(WalletContext)
-  const { sellAmount, quoteOrder, setTransactionStatus, setTransactionError, setIsFrozen, tokensChanged } = useContext(SwapContext)
+  const { sellAmount, buyAmount, quoteOrder, userInputSide, setTransactionStatus, setTransactionError, setIsFrozen } = useContext(SwapContext)
 
   const [buttonMode, setButtonMode] = useState<ButtonMode>(ButtonMode.Disabled)
 
@@ -77,6 +76,127 @@ export default function SwapButton({
     return null
   }, [network, signer])
 
+  async function sendFillOrder(sellAmount: BigNumber | null, buyAmount: BigNumber | null, order: ZZOrder, isNativeTokenSwap: boolean, sendETH: boolean) {
+    console.log(`Executing sendFillOrder for sellAmount: ${sellAmount}, buyAmount: ${buyAmount}, isNativeTokenSwap: ${isNativeTokenSwap}, sendETH: ${sendETH}, order: `, order)
+    if (!exchangeContract) {
+      console.warn("sendFillOrder: missing exchangeContract")
+      return
+    }
+    if (!quoteOrder) {
+      console.warn("sendFillOrder: missing quoteOrder")
+      return
+    }
+
+    setTransactionStatus("awaitingWallet")
+    openSwapModal()
+    let tx: any
+    if (sellAmount) {
+      if (isNativeTokenSwap) {
+        if (sendETH) {
+          console.log("execute swap - exactInput - ETH -> ERC20")
+          tx = await exchangeContract.fillOrderExactInputETH([
+              quoteOrder.order.user,
+              quoteOrder.order.sellToken,
+              quoteOrder.order.buyToken,
+              quoteOrder.order.sellAmount,
+              quoteOrder.order.buyAmount,
+              quoteOrder.order.expirationTimeSeconds,
+            ],
+            quoteOrder.signature,
+            sellAmount.toString(),
+            false,
+            { value: sellAmount.toString() }
+          )
+        } else {
+          console.log("execute swap - exactInput - ERC20 -> ETH")
+          tx = await exchangeContract.fillOrderExactInputETH([
+              quoteOrder.order.user,
+              quoteOrder.order.sellToken,
+              quoteOrder.order.buyToken,
+              quoteOrder.order.sellAmount,
+              quoteOrder.order.buyAmount,
+              quoteOrder.order.expirationTimeSeconds,
+            ],
+            quoteOrder.signature,
+            sellAmount.toString(),
+            false
+          ) 
+        } 
+      } else {
+        console.log("execute swap - exactInput - ERC20 -> ERC20")
+        tx = await exchangeContract.fillOrderExactInput([
+            quoteOrder.order.user,
+            quoteOrder.order.sellToken,
+            quoteOrder.order.buyToken,
+            quoteOrder.order.sellAmount,
+            quoteOrder.order.buyAmount,
+            quoteOrder.order.expirationTimeSeconds,
+          ],
+          quoteOrder.signature,
+          sellAmount.toString(),
+          false
+        )
+      }
+    } else if (buyAmount) {
+      if (isNativeTokenSwap) {
+        if (sendETH) {
+          console.log("execute swap - exactOutput - ETH -> ERC20")
+          sellAmount = (buyAmount.mul(10000).div(10000-5)).mul(quoteOrder.order.buyAmount).div(quoteOrder.order.sellAmount)
+          tx = await exchangeContract.fillOrderExactOutputETH([
+              quoteOrder.order.user,
+              quoteOrder.order.sellToken,
+              quoteOrder.order.buyToken,
+              quoteOrder.order.sellAmount,
+              quoteOrder.order.buyAmount,
+              quoteOrder.order.expirationTimeSeconds,
+            ],
+            quoteOrder.signature,
+            buyAmount.toString(),
+            false
+            ,
+            { value: sellAmount.toString() }
+          )
+        } else {
+          console.log("execute swap - exactOutput - ERC20 -> ETH")
+          tx = await exchangeContract.fillOrderExactOutputETH([
+              quoteOrder.order.user,
+              quoteOrder.order.sellToken,
+              quoteOrder.order.buyToken,
+              quoteOrder.order.sellAmount,
+              quoteOrder.order.buyAmount,
+              quoteOrder.order.expirationTimeSeconds,
+            ],
+            quoteOrder.signature,
+            buyAmount.toString(),
+            false
+          )
+        }        
+      } else {
+        console.log("execute swap - exactOutput - ERC20 -> ERC20")
+        tx = await exchangeContract.fillOrderExactOutput([
+            quoteOrder.order.user,
+            quoteOrder.order.sellToken,
+            quoteOrder.order.buyToken,
+            quoteOrder.order.sellAmount,
+            quoteOrder.order.buyAmount,
+            quoteOrder.order.expirationTimeSeconds,
+          ],
+          quoteOrder.signature,
+          buyAmount.toString(),
+          false
+        )
+      }
+    } else {
+      throw new Error("sendFillOrder: no sell or buy amount")
+    }
+
+    setTransactionStatus("processing")
+    console.log("sendSwap: swap submitted: ", tx)
+    await tx.wait()
+    setTransactionStatus("processed")
+    console.log("sendSwap: tx processed")
+  }
+
   function handleSwapButton() {
     switch (buttonMode) {
       case ButtonMode.Connect:
@@ -103,16 +223,11 @@ export default function SwapButton({
   async function sendSwap() {
     if (buttonMode !== ButtonMode.Swap) return
     console.log("starting sendSwap")
-
-    if (!exchangeContract) {
-      console.warn("sendSwap: missing exchangeContract")
-      return
-    }
-
     if (!quoteOrder) {
       console.warn("sendSwap: missing quoteOrder")
       return
     }
+
     try {
       setIsFrozen(true)
 
@@ -148,45 +263,38 @@ export default function SwapButton({
         throw new Error("sendSwap: sell amount exceeds quote buy amount")
       }
 
-      let sellAmountForSwap: ethers.BigNumber
-      const delta = sellAmount.mul("100000").div(sellBalanceParsed).toNumber()
-      if (delta > 99990) {
-        // prevent dust issues
-        // 99.9 %
-        sellAmountForSwap = sellBalanceParsed
-      } else {
-        sellAmountForSwap = sellAmount
+      let isNativeTokenSwap = false
+      if (buyTokenInfo.address === ethers.constants.AddressZero) {
+        if (quoteOrder.order.sellToken !== wethContract?.address) {
+          console.warn("sendSwap: native swap with no matching weth order")
+          throw new Error("sendSwap: native swap with no matching weth order")
+        }
+        isNativeTokenSwap = true
+      } else if (sellTokenInfo.address === ethers.constants.AddressZero) {
+        if (quoteOrder.order.buyToken !== wethContract?.address) {
+          console.warn("sendSwap: native swap with no matching weth order")
+          throw new Error("sendSwap: native swap with no matching weth order")
+        }
+        isNativeTokenSwap = true
       }
 
-      const quoteSellAmount = ethers.BigNumber.from(quoteOrder.order.sellAmount)
-      const quoteBuyAmount = ethers.BigNumber.from(quoteOrder.order.buyAmount)
-      // const quoteSellAmountWithFee = quoteSellAmount.add(quoteSellAmount.mul(makerFee * 10000).div(10000))
-      // const quoteBuyAmountWithFee = quoteBuyAmount.add(quoteBuyAmount.mul(takerFee * 10000).div(10000))
-      // const buyAmountForSwap: ethers.BigNumber = sellAmountForSwap.mul(quoteSellAmountWithFee).div(quoteBuyAmountWithFee)
-      const buyAmountForSwap: ethers.BigNumber = sellAmountForSwap.mul(quoteSellAmount).div(quoteBuyAmount)
+      const sendETH = isNativeTokenSwap && sellTokenInfo.address === ethers.constants.AddressZero
+      
+      if (userInputSide === "sell") {
+        let sellAmountForSwap: ethers.BigNumber
+        const delta = sellAmount.mul("100000").div(sellBalanceParsed).toNumber()
+        if (delta > 99990) {
+          // prevent dust issues
+          // 99.9 %
+          sellAmountForSwap = sellBalanceParsed
+        } else {
+          sellAmountForSwap = sellAmount
+        }
 
-      setTransactionStatus("awaitingWallet")
-      openSwapModal()
-      console.log({ ...quoteOrder.order, signature: quoteOrder.signature, buyAmountForSwap: buyAmountForSwap.toString() })
-      const tx = await exchangeContract.fillOrder(
-        [
-          quoteOrder.order.user,
-          quoteOrder.order.sellToken,
-          quoteOrder.order.buyToken,
-          quoteOrder.order.sellAmount,
-          // "109933904566720371",
-          quoteOrder.order.buyAmount,
-          quoteOrder.order.expirationTimeSeconds,
-        ],
-        quoteOrder.signature,
-        buyAmountForSwap.toString(),
-        false
-      )
-      setTransactionStatus("processing")
-      console.log("sendSwap: swap submitted: ", tx)
-      await tx.wait()
-      setTransactionStatus("processed")
-      console.log("sendSwap: tx processed")
+        await sendFillOrder(sellAmountForSwap, null, quoteOrder, isNativeTokenSwap, sendETH)
+      } else {
+        await sendFillOrder(null, buyAmount, quoteOrder, isNativeTokenSwap, sendETH)
+      }
 
       updateBalances([buyTokenInfo.address, sellTokenInfo.address])
       setTimeout(updateBalances, 3000, [buyTokenInfo.address, sellTokenInfo.address])
@@ -461,14 +569,6 @@ export default function SwapButton({
     setButtonMode(ButtonMode.Swap)
     return <div>Swap</div>
   }, [validationStateBuy, validationStateSell, buyTokenInfo, sellTokenInfo, userAddress, network])
-
-  // if (userAddress === null) {
-  //   return (
-  //     <button className={styles.container} onClick={() => connect()}>
-  //       Connect Wallet
-  //     </button>
-  //   )
-  // }
 
   const buttonDisabled =
     buttonMode === ButtonMode.Disabled || // Simply disabled

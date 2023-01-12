@@ -1,8 +1,6 @@
-import { constants, ethers } from "ethers"
 import useTranslation from "next-translate/useTranslation"
-import { useContext, useEffect, useMemo, useRef, useState } from "react"
+import { useContext, useState } from "react"
 import { ExchangeContext } from "../../../../contexts/ExchangeContext"
-import { WalletContext } from "../../../../contexts/WalletContext"
 import { prettyBalance, prettyBalanceUSD } from "../../../../utils/utils"
 import { ModalMode } from "../../modal/Modal"
 import TokenListEntry from "./tokenListEntry/TokenListEntry"
@@ -21,7 +19,7 @@ interface Props {
 }
 
 export default function TokenSelectModal({ selectedModal, onTokenClick, close }: Props) {
-  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
+  const { balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo } = useContext(ExchangeContext)
   const [query, setQuery] = useState<string>("")
 
   const { t } = useTranslation("swap")
@@ -49,22 +47,6 @@ export default function TokenSelectModal({ selectedModal, onTokenClick, close }:
       const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
       tokenList.push({ tokenAddress, balance: balanceReadable, value })
     }
-
-    // const allTokens: string[] = []
-    // for (let i = 0; i < markets.length; i++) {
-    //   const [tokenA, tokenB] = markets[i].split("-")
-    //   if (sellTokenInfo.address === tokenB && !allTokens.includes(tokenA)) allTokens.push(tokenA)
-    //   if (sellTokenInfo.address === tokenA && !allTokens.includes(tokenB)) allTokens.push(tokenB)
-    // }
-
-    // for (let i = 0; i < allTokens.length; i++) {
-    //   const tokenAddress = allTokens[i]
-    //   const balance = balances[tokenAddress]
-    //   const balanceReadable = balance ? balance.valueReadable : 0
-    //   const tokenPriceUsd = tokenPricesUSD[tokenAddress]
-    //   const value = balance && tokenPriceUsd ? balanceReadable * tokenPriceUsd : 0
-    //   tokenList.push({ tokenAddress, balance: balanceReadable, value })
-    // }
   }
 
   function sortTokens(tokenList: TokenEntry[]) {

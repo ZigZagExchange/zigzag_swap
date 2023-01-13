@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from "react"
 
 import { ethers } from "ethers"
 
+import { Resolution } from "@unstoppabledomains/resolution"
 import Onboard, { WalletState } from "../node_modules/@web3-onboard/core/dist"
 import injectedModule from "@web3-onboard/injected-wallets"
 import walletConnectModule from "@web3-onboard/walletconnect/dist"
@@ -39,12 +40,12 @@ export const WalletContext = createContext<WalletContextType>({
   network: _getDefaultNetwork(),
   isLoading: false,
 
-  connect: () => {},
-  disconnect: () => {},
+  connect: () => { },
+  disconnect: () => { },
   switchNetwork: async (network: number) => {
     return false
   },
-  updateWalletBalance: (tokenAddressList: string[]) => {},
+  updateWalletBalance: (tokenAddressList: string[]) => { },
 })
 
 const wallets = [
@@ -87,7 +88,7 @@ const onboard = Onboard({
 })
 
 function WalletProvider({ children }: Props) {
-  const [username, setUsername] = useState<string | null>(null)
+  const [username, setUserName] = useState<string | null>(null)
   const [network, setNetwork] = useState<NetworkType | null>(_getDefaultNetwork())
   const [ethersProvider, setEthersProvider] = useState<ethers.providers.BaseProvider>(_getDefaultProvider())
   const [signer, setSigner] = useState<ethers.Signer | null>(null)
@@ -137,11 +138,27 @@ function WalletProvider({ children }: Props) {
     }
   }
 
+  useEffect(() => {
+    const fetchName = async (address: string) => {
+      const povider = new ethers.providers.JsonRpcProvider("https://mainnet.infura.io/v3/6a61248b8b314845ab82371de83ea99f")
+      const name = await povider.lookupAddress(address)
+      if (name) {
+        setUserName(name)
+        return
+      }
+      const resolution = new Resolution()
+      const result = await resolution.reverse(address)
+      if (result) {
+        setUserName(result)
+      }
+    }
+    if (!userAddress) return
+    fetchName(userAddress)
+  }, [userAddress])
+
   const updateWallet = (wallet: WalletState) => {
     const { accounts, chains, provider } = wallet
     setUserAddress(accounts[0].address.toLowerCase())
-    // console.log(accounts[0])
-    if (accounts[0].ens?.name) setUsername(accounts[0].ens?.name)
 
     const network = parseInt(chains[0].id, 16)
     setNetwork(NETWORKS[network])
@@ -167,6 +184,7 @@ function WalletProvider({ children }: Props) {
     if (!primaryWallet) return
     await onboard.disconnectWallet({ label: primaryWallet.label })
     setUserAddress(null)
+    setUserName(null)
     setNetwork(_getDefaultNetwork())
     setEthersProvider(_getDefaultProvider())
   }

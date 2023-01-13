@@ -2,34 +2,25 @@ import { useContext, useEffect, useRef, useState } from "react"
 
 import { prettyBalance, prettyBalanceUSD } from "../../../utils/utils"
 import styles from "./TransactionSettings.module.css"
-import { SwapContext } from "../../../contexts/SwapContext"
+import { RouteMarket, SwapContext } from "../../../contexts/SwapContext"
 import { WalletContext } from "../../../contexts/WalletContext"
 import useTranslation from "next-translate/useTranslation"
 import DownArrow from "../../DownArrow"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
 import { constants } from "ethers"
 
-interface Props {
-  // buySymbol: string
-  // sellSymbol: string
-  // priceBuy: string
-  // priceSell: string
-  // priceBuyUsd: number | undefined
-  // priceSellUsd: number | undefined
-  // nativeCurrencyUsd: number
-  // nativeCurrencySymbol: string
-}
-
 function TransactionSettings() {
-  const { tokenPricesUSD, buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
-  const { network, userAddress } = useContext(WalletContext)
-  const { estimatedGasFee, swapPrice, tokensChanged } = useContext(SwapContext)
+  const { tokenPricesUSD, buyTokenInfo, sellTokenInfo, getTokenInfo } = useContext(ExchangeContext)
+  const { network } = useContext(WalletContext)
+  const { estimatedGasFee, swapPrice, tokensChanged, swapRoute } = useContext(SwapContext)
 
   const [isOpen, setIsOpen] = useState(false)
+  const [routeString, setRoute] = useState<string>("")
 
   const headerPriceRef = useRef<HTMLDivElement>(null)
   const headerGasRef = useRef<HTMLDivElement>(null)
   const gasFeeDetailRef = useRef<HTMLDivElement>(null)
+  const routeDetailRef = useRef<HTMLDivElement>(null)
 
   const priceSellRef = useRef<HTMLDivElement>(null)
   const priceBuyRef = useRef<HTMLDivElement>(null)
@@ -87,6 +78,32 @@ function TransactionSettings() {
       setTimeout(() => priceBuy.classList.add(styles.update_animated), 10)
     }
   }, [priceBuy])
+
+  useEffect(() => {
+    const routeDetails = routeDetailRef.current
+    if (routeDetails) {
+      routeDetails.classList.remove(styles.update_animated)
+      setTimeout(() => routeDetails.classList.add(styles.update_animated), 10)
+    }
+  }, [routeString])
+
+  useEffect(() => {
+    let newRoute: string = ""
+    if (!buyTokenInfo || !sellTokenInfo) {
+      setRoute(newRoute)
+      return
+    }
+    newRoute = `${buyTokenInfo?.symbol} >`
+
+    swapRoute.forEach(route => {
+      const routeBuyTokenInfo = getTokenInfo(route.buyTokenAddress)
+      if (routeBuyTokenInfo) {
+        newRoute += ` ${routeBuyTokenInfo.symbol} >`
+      }
+    })
+    newRoute += ` ${sellTokenInfo?.symbol}`
+    setRoute(newRoute)
+  }, [swapRoute])
 
   return (
     <div className={styles.container}>
@@ -152,6 +169,12 @@ function TransactionSettings() {
             <div>{t("gas_fee")}</div>
             <div ref={gasFeeDetailRef}>
               {estimatedGasFee} {nativeCurrencySymbol}
+            </div>
+          </div>
+          <div className={styles.detail}>
+            <div>{t("route")}</div>
+            <div ref={routeDetailRef}>
+              {routeString}
             </div>
           </div>
         </div>

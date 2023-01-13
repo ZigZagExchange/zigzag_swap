@@ -2,7 +2,7 @@ import { utils } from "ethers"
 import Image from "next/image"
 import { useContext, useEffect } from "react"
 import { ExchangeContext, ZZTokenInfo } from "../../../../contexts/ExchangeContext"
-import { SwapContext } from "../../../../contexts/SwapContext"
+import { SwapContext, ZZOrder } from "../../../../contexts/SwapContext"
 import useCountdown from "../../../../hooks/useCountdown"
 import { parseError, prettyBalance } from "../../../../utils/utils"
 import TransactionProgress from "../../../transactionProgress/TransactionProgress"
@@ -14,9 +14,16 @@ interface Props {
 }
 
 export default function SwapModal({ close }: Props) {
-  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
-  const { transactionStatus, transactionError, sellAmount, buyAmount, quoteOrder } = useContext(SwapContext)
-  const countdown = useCountdown(quoteOrder?.order.expirationTimeSeconds ? Number(quoteOrder?.order.expirationTimeSeconds) - 3 : undefined)
+  const { buyTokenInfo, sellTokenInfo, getTokenInfo } = useContext(ExchangeContext)
+  const { transactionStatus, transactionError, sellAmount, buyAmount, quoteOrderRoutingArray, swapRoute } = useContext(SwapContext)
+
+  let minCountdown: number | undefined = undefined
+  quoteOrderRoutingArray.forEach((quoteOrder: ZZOrder) => {
+    if (!minCountdown || Number(quoteOrder.order.expirationTimeSeconds) < minCountdown) {
+      minCountdown = Number(quoteOrder.order.expirationTimeSeconds)
+    }
+  })
+  const countdown = useCountdown(minCountdown)
 
   const errorMessage = transactionError ? parseError(transactionError) : undefined
 
@@ -33,7 +40,64 @@ export default function SwapModal({ close }: Props) {
     message = "Token swapped."
   }
 
-  if (buyTokenInfo && sellTokenInfo)
+  if (buyTokenInfo && sellTokenInfo) {
+    const routeElementList: JSX.Element[] = []
+    routeElementList.push((
+      <div className={styles.sell_token}>
+        {prettyBalance(utils.formatUnits(sellAmount, sellTokenInfo.decimals))}{" "}
+        <div className={styles.token_symbol}>
+          <Image
+            src={`/tokenIcons/${sellTokenInfo.symbol.toLocaleLowerCase()}.svg`}
+            alt={sellTokenInfo.symbol}
+            width="100%"
+            height="100%"
+            layout="intrinsic"
+          />
+        </div>
+      </div>
+    ), (
+      <div className={styles.arrow}>{rightArrow}</div>
+    ))
+    let stepSellAmount = sellAmount
+    for (let i = 0; i < swapRoute.length - 1; i++) {
+      const quoteOrder = quoteOrderRoutingArray[i]
+      stepSellAmount = stepSellAmount.mul(quoteOrder.order.sellAmount).div(quoteOrder.order.buyAmount)
+      const routeBuyTokenInfo = getTokenInfo(swapRoute[i].sellTokenAddress)
+      if (routeBuyTokenInfo) {
+        routeElementList.push((
+          <div className={styles.sell_token}>
+            {prettyBalance(utils.formatUnits(stepSellAmount, routeBuyTokenInfo.decimals))}{" "}
+            <div className={styles.token_symbol}>
+              <Image
+                src={`/tokenIcons/${routeBuyTokenInfo.symbol.toLocaleLowerCase()}.svg`}
+                alt={routeBuyTokenInfo.symbol}
+                width="100%"
+                height="100%"
+                layout="intrinsic"
+              />
+            </div>
+          </div>
+        ), (
+          <div className={styles.arrow}>{rightArrow}</div>
+        ))
+      }
+    }
+
+    routeElementList.push((
+      <div className={styles.sell_token}>
+        {prettyBalance(utils.formatUnits(buyAmount, buyTokenInfo.decimals))}{" "}
+        <div className={styles.token_symbol}>
+          <Image
+            src={`/tokenIcons/${buyTokenInfo.symbol.toLocaleLowerCase()}.svg`}
+            alt={buyTokenInfo.symbol}
+            width="100%"
+            height="100%"
+            layout="intrinsic"
+          />
+        </div>
+      </div>
+    ))
+
     return (
       <div className={styles.container}>
         <div className={styles.title}>
@@ -47,22 +111,12 @@ export default function SwapModal({ close }: Props) {
           />
         </div>
         <div className={styles.buy_sell_tokens}>
-          <div className={styles.sell_token}>
-            {prettyBalance(utils.formatUnits(sellAmount, sellTokenInfo.decimals))}{" "}
-            <div className={styles.token_symbol}>
-              <Image src={`/tokenIcons/${sellTokenInfo.symbol.toLocaleLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
-            </div>
-          </div>
-          <div className={styles.arrow}>{rightArrow}</div>
-          <div className={styles.buy_token}>
-            {prettyBalance(utils.formatUnits(buyAmount, buyTokenInfo.decimals))}
-            <div className={styles.token_symbol}>
-              <Image src={`/tokenIcons/${buyTokenInfo.symbol.toLocaleLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
-            </div>
-          </div>
+          {Object.values(routeElementList)}
         </div>
         <div className={styles.text}>{errorMessage ? errorMessage : message}</div>
       </div>
     )
-  else return <div>Error: buyTokenInfo is missing</div>
+  } else {
+    return <div>Error: buyTokenInfo is missing</div>
+  }
 }

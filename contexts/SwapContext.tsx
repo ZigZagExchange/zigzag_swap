@@ -11,6 +11,11 @@ interface Props {
   children: React.ReactNode
 }
 
+export type RouteMarket = {
+  buyTokenAddress: string
+  sellTokenAddress: string
+}
+
 export type ZZOrder = {
   order: {
     user: string
@@ -24,7 +29,7 @@ export type ZZOrder = {
 }
 
 export type SwapContextType = {
-  quoteOrder: ZZOrder | null
+  quoteOrderRoutingArray: ZZOrder[]
   swapPrice: number
   estimatedGasFee: number | undefined
   sellAmount: ethers.BigNumber
@@ -38,7 +43,7 @@ export type SwapContextType = {
 
   switchTokens: () => void
 
-  orderBook: ZZOrder[]
+  orderBook: { [key: string]: ZZOrder[] }
 
   transactionStatus: TransactionStatus
   setTransactionStatus: React.Dispatch<React.SetStateAction<TransactionStatus>>
@@ -53,12 +58,14 @@ export type SwapContextType = {
   selectBuyToken: (newTokenAddress: string) => void
 
   tokensChanged: boolean
+
+  swapRoute: RouteMarket[]
 }
 
 export type TransactionStatus = "awaitingWallet" | "processing" | "processed" | null
 
 export const SwapContext = createContext<SwapContextType>({
-  quoteOrder: null,
+  quoteOrderRoutingArray: [],
   swapPrice: 0,
   estimatedGasFee: undefined,
   sellAmount: ethers.constants.Zero,
@@ -72,7 +79,7 @@ export const SwapContext = createContext<SwapContextType>({
 
   switchTokens: () => { },
 
-  orderBook: [],
+  orderBook: {},
 
   transactionStatus: null,
   setTransactionStatus: () => { },
@@ -87,6 +94,8 @@ export const SwapContext = createContext<SwapContextType>({
   selectBuyToken: (newTokenAddress: string) => { },
 
   tokensChanged: false,
+
+  swapRoute: [],
 })
 
 function SwapProvider({ children }: Props) {
@@ -94,10 +103,10 @@ function SwapProvider({ children }: Props) {
   const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress, markets, setBuyToken, setSellToken, getTokenInfo, getTokens } =
     useContext(ExchangeContext)
 
-  const [quoteOrder, setQuoteOrder] = useState<ZZOrder | null>(null)
+  const [quoteOrderRoutingArray, setQuoteOrderRoutingArray] = useState<ZZOrder[]>([])
   const [swapPrice, setSwapPrice] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0.0001)
-  const [orderBook, setOrderBook] = useState<ZZOrder[]>([])
+  const [orderBook, setOrderBook] = useState<{[key: string]: ZZOrder[]}>({})
   const [userInputSide, setUserInputSide] = useState<"buy" | "sell">("sell")
   const [sellInput, setSellInput] = useState<string>("")
   const [buyInput, setBuyInput] = useState<string>("")
@@ -105,6 +114,8 @@ function SwapProvider({ children }: Props) {
   const [transactionError, setTransactionError] = useState<any | null>(null)
   const [isFrozen, setIsFrozen] = useState<boolean>(false)
   const [tokensChanged, setTokensChanged] = useState<boolean>(false)
+  const [possibleSwapRoute, setPossibleSwapRoute] = useState<RouteMarket[][]>([])
+  const [swapRoute, setSwapRoute] = useState<RouteMarket[]>([])
 
   const exchangeContract: ethers.Contract | null = useMemo(() => {
     if (exchangeAddress && signer) {
@@ -136,28 +147,27 @@ function SwapProvider({ children }: Props) {
   }, [network, signer])
 
   useEffect(() => {
-    console.log("quoteOrder,swapPrice recomputed")
+    console.log("quoteOrderRoutingArray,swapPrice recomputed")
 
-    let newQuoteOrder: ZZOrder | null = null
+    let newQuoteOrderArray: ZZOrder[] = []
     let newSwapPrice: number = 0
     if (!buyTokenInfo) {
       console.warn("buyTokenInfo is null")
-      setQuoteOrder(newQuoteOrder)
+      setQuoteOrderRoutingArray(newQuoteOrderArray)
       setSwapPrice(newSwapPrice)
+      setPossibleSwapRoute([])
       return
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
-      setQuoteOrder(newQuoteOrder)
+      setQuoteOrderRoutingArray(newQuoteOrderArray)
       setSwapPrice(newSwapPrice)
+      setPossibleSwapRoute([])
       return
     }
 
-    if (
-      (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
-      (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
-    ) {
-      const fakeWrapUnwrapOrder: ZZOrder = {
+    if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
+      const fakeWrapOrder: ZZOrder[] = [{
         order: {
           user: "0x0",
           buyToken: "0x0",
@@ -167,47 +177,98 @@ function SwapProvider({ children }: Props) {
           expirationTimeSeconds: "99999999999999999",
         },
         signature: "0x0",
-      }
-      setQuoteOrder(fakeWrapUnwrapOrder)
+      }]
+      setQuoteOrderRoutingArray(fakeWrapOrder)
+      setPossibleSwapRoute([[{buyTokenAddress: ethers.constants.AddressZero, sellTokenAddress: network?.wethContractAddress}]])
       setSwapPrice(1)
       return
     }
 
-    const minTimeStamp: number = Date.now() / 1000 + 12
-    for (let i = 0; i < orderBook.length; i++) {
-      const { order } = orderBook[i]
-      if (minTimeStamp > Number(order.expirationTimeSeconds)) continue
-
-      const parsedBuyInput = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
-      const quoteSellAmount = ethers.BigNumber.from(order.sellAmount)
-      if (userInputSide === "buy" && quoteSellAmount.lt(parsedBuyInput)) continue
-
-      const parsedSellInput = getBigNumberFromInput(sellInput, sellTokenInfo.decimals)
-      const quoteBuyAmount = ethers.BigNumber.from(order.buyAmount)
-      if (userInputSide === "sell" && quoteBuyAmount.lt(parsedSellInput)) continue
-
-      const quoteSellAmountFormated = Number(ethers.utils.formatUnits(quoteSellAmount, buyTokenInfo.decimals))
-      const quoteBuyAmountFormated = Number(ethers.utils.formatUnits(quoteBuyAmount, sellTokenInfo.decimals))
-      const thisPrice = (quoteSellAmountFormated * (1 - takerFee)) / (quoteBuyAmountFormated * (1 - makerFee))
-      if (thisPrice > newSwapPrice) {
-        newSwapPrice = thisPrice
-        newQuoteOrder = orderBook[i]
-      }
+    if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
+      const fakeUnwrapOrder: ZZOrder[] = [{
+        order: {
+          user: "0x0",
+          buyToken: "0x0",
+          sellToken: "0x0",
+          buyAmount: "1",
+          sellAmount: "1",
+          expirationTimeSeconds: "99999999999999999",
+        },
+        signature: "0x0",
+      }]
+      setQuoteOrderRoutingArray(fakeUnwrapOrder)
+      setPossibleSwapRoute([[{ buyTokenAddress: network?.wethContractAddress, sellTokenAddress: ethers.constants.AddressZero}]])
+      setSwapPrice(1)
+      return
     }
-    setQuoteOrder(newQuoteOrder)
+    
+    let bestSwapRoute: RouteMarket[] = []
+    const userBuyInputParsed = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
+    const minTimeStamp: number = Date.now() / 1000 + 5
+    possibleSwapRoute.forEach((route: RouteMarket[]) => {
+      let routeSwapPrice = 0
+      const routeQuoteOrderArray: ZZOrder[] = []
+      let stepBuyAmount = userBuyInputParsed
+      route.forEach((market: RouteMarket) => {
+        let marketSwapPrice = 0
+        let marketQuoteOrder: ZZOrder | undefined
+        const key = `${market.buyTokenAddress}-${market.sellTokenAddress}`
+        const currentOrderBook = orderBook[key]
+        if(!currentOrderBook) return
+
+        for (let i = 0; i < currentOrderBook.length; i++) {
+          const { order } = currentOrderBook[i]
+          if (minTimeStamp > Number(order.expirationTimeSeconds)) return
+
+          const quoteSellAmount = ethers.BigNumber.from(order.sellAmount)
+          const quoteBuyAmount = ethers.BigNumber.from(order.buyAmount)
+          if (userInputSide === "buy" && quoteSellAmount.lt(stepBuyAmount)) return
+          
+          const quoteSellTokenInfo = getTokenInfo(order.sellToken)
+          const quoteBuyTokenInfo = getTokenInfo(order.buyToken)
+          if (!quoteSellTokenInfo || !quoteBuyTokenInfo) return
+          const quoteSellAmountFormated = Number(ethers.utils.formatUnits(quoteSellAmount, quoteSellTokenInfo.decimals))
+          const quoteBuyAmountFormated = Number(ethers.utils.formatUnits(quoteBuyAmount, quoteBuyTokenInfo.decimals))
+          const thisPrice = (quoteSellAmountFormated * (1 - takerFee)) / (quoteBuyAmountFormated * (1 - makerFee))
+          if (thisPrice > marketSwapPrice) {
+            marketSwapPrice = thisPrice
+            marketQuoteOrder = currentOrderBook[i]
+          }
+        }
+        routeSwapPrice = routeSwapPrice ? routeSwapPrice * marketSwapPrice : marketSwapPrice
+        if (marketQuoteOrder) {
+          routeQuoteOrderArray.push(marketQuoteOrder)
+          stepBuyAmount.mul(marketQuoteOrder.order.buyAmount).div(marketQuoteOrder.order.sellAmount)
+        }
+      })
+
+      if (routeSwapPrice > newSwapPrice) {
+        newSwapPrice = routeSwapPrice
+        newQuoteOrderArray = routeQuoteOrderArray
+        bestSwapRoute = route
+      }
+    })
+    setSwapRoute(bestSwapRoute)
+    setQuoteOrderRoutingArray(newQuoteOrderArray)
     setSwapPrice(newSwapPrice)
   }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
 
   const [buyAmount, sellAmount] = useMemo((): [ethers.BigNumber, ethers.BigNumber] => {
     let newBuyAmount: ethers.BigNumber = ethers.constants.Zero
     let newSellAmount: ethers.BigNumber = ethers.constants.Zero
-    if (!sellTokenInfo || !buyTokenInfo || !quoteOrder) return [newBuyAmount, newSellAmount]
-    const quoteSellAmount = ethers.BigNumber.from(quoteOrder.order.sellAmount)
-    const quoteBuyAmount = ethers.BigNumber.from(quoteOrder.order.buyAmount)
+    if (!sellTokenInfo || !buyTokenInfo || quoteOrderRoutingArray.length === 0) return [newBuyAmount, newSellAmount]
+    
 
     if (userInputSide === "buy") {
       newBuyAmount = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
-      newSellAmount = newBuyAmount.mul(quoteBuyAmount).div(quoteSellAmount)
+
+      newSellAmount = newBuyAmount
+      quoteOrderRoutingArray.forEach((quoteOrder: ZZOrder) => {
+        const quoteSellAmount = ethers.BigNumber.from(quoteOrder.order.sellAmount)
+        const quoteBuyAmount = ethers.BigNumber.from(quoteOrder.order.buyAmount)
+
+        newSellAmount = newSellAmount.mul(quoteBuyAmount).div(quoteSellAmount)
+      })
 
       if (newSellAmount.eq(0)) {
         setSellInput("")
@@ -219,7 +280,14 @@ function SwapProvider({ children }: Props) {
       return [newBuyAmount, newSellAmount]
     } else {
       newSellAmount = getBigNumberFromInput(sellInput, sellTokenInfo.decimals)
-      newBuyAmount = newSellAmount.mul(quoteSellAmount).div(quoteBuyAmount)
+
+      newBuyAmount = newSellAmount
+      quoteOrderRoutingArray.forEach((quoteOrder: ZZOrder) => {
+        const quoteSellAmount = ethers.BigNumber.from(quoteOrder.order.sellAmount)
+        const quoteBuyAmount = ethers.BigNumber.from(quoteOrder.order.buyAmount)
+
+        newBuyAmount = newBuyAmount.mul(quoteSellAmount).div(quoteBuyAmount)
+      })
 
       if (newBuyAmount.eq(0)) {
         setBuyInput("")
@@ -229,8 +297,8 @@ function SwapProvider({ children }: Props) {
       }
 
       return [newBuyAmount, newSellAmount]
-    }
-  }, [buyInput, sellInput, quoteOrder])
+    }    
+  }, [buyInput, sellInput, swapPrice])
 
   useEffect(() => {
     const getGasFees = async () => {
@@ -246,8 +314,8 @@ function SwapProvider({ children }: Props) {
         console.warn("getGasFees: missing exchangeAddress")
         return
       }
-      if (!quoteOrder) {
-        console.warn("getGasFees: missing quoteOrder")
+      if (quoteOrderRoutingArray.length === 0) {
+        console.warn("getGasFees: missing quoteOrderRoutingArray")
         return
       }
       if (!buyTokenInfo) {
@@ -262,7 +330,6 @@ function SwapProvider({ children }: Props) {
       let estimatedGasUsed = ethers.constants.Zero
       try {
         const feeData = await ethersProvider.getFeeData()
-        console.log(feeData)
         if (!feeData.lastBaseFeePerGas || !feeData.gasPrice) {
           console.warn("getGasFees: missing lastBaseFeePerGas")
           return
@@ -289,7 +356,8 @@ function SwapProvider({ children }: Props) {
             return
           }
 
-          estimatedGasUsed = await exchangeContract.estimateGas.fillOrder(
+          const quoteOrder = quoteOrderRoutingArray[0]
+          estimatedGasUsed = await exchangeContract.estimateGas.fillOrderExactInput(
             [
               quoteOrder.order.user,
               quoteOrder.order.sellToken,
@@ -302,11 +370,11 @@ function SwapProvider({ children }: Props) {
             "1",
             false
           )
+          estimatedGasUsed = estimatedGasUsed.mul(quoteOrderRoutingArray.length)
         }
 
         const estimatedFeeBigNumber = feeData.lastBaseFeePerGas.mul(0).add(feeData.gasPrice).mul(estimatedGasUsed)
         const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
-        console.log(Number(estimatedFee))
         setEstimatedGasFee(Number(estimatedFee))
       } catch (err: any) {
         // console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
@@ -314,7 +382,7 @@ function SwapProvider({ children }: Props) {
       }
     }
     getGasFees()
-  }, [network, signer, exchangeAddress, quoteOrder])
+  }, [network, signer, exchangeAddress, quoteOrderRoutingArray])
 
   useEffect(() => {
     if (isFrozen) return
@@ -325,7 +393,6 @@ function SwapProvider({ children }: Props) {
   }, [network, buyTokenInfo, sellTokenInfo, isFrozen])
 
   async function getOrderBook() {
-
     console.log("Getting orderbook....")
     if (!network) {
       console.warn("getOrderBook: Missing network")
@@ -348,31 +415,74 @@ function SwapProvider({ children }: Props) {
       return
     }
 
-    const requestSellTokenAddress = sellTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : sellTokenInfo.address
-    const requestBuyTokenAddress = buyTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : buyTokenInfo.address
-
-    let orders: { orders: ZZOrder[] }
-    try {
-      const minExpires = (Date.now() / 1000 + 11).toFixed(0)
-      const response = await fetch(
-        `${network.backendUrl}/v1/orders?buyToken=${requestSellTokenAddress}&sellToken=${requestBuyTokenAddress}&minExpires=${minExpires}`
-      )
-      if (response.status !== 200) {
-        console.error("Failed to fetch order book.")
-        setTokensChanged(false)
-        return
+    const modifiedBuyTokenAddress = buyTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : buyTokenInfo.address
+    const modifiedSellTokenAddress = sellTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : sellTokenInfo.address
+    let newRoute: RouteMarket[][] = []
+    markets.forEach((market: string) => {
+      const [baseAddress, quoteAddress] = market.split('-')
+      if (baseAddress === modifiedBuyTokenAddress && quoteAddress === modifiedSellTokenAddress) {
+        newRoute = [[{ buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }]]
       }
+    })
+    if (newRoute.length === 0) {
+      const possibleRouts = [
+        "0x82af49447d8a07e3bd95bd0d56f35241523fbab1", // weth
+        "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8" // usdc
+      ]
+      possibleRouts.forEach(routeTokenAddress => {
+        if (!modifiedSellTokenAddress || !modifiedBuyTokenAddress) return
 
-      orders = await response.json()
+        const firstTradeMarket = `${modifiedSellTokenAddress}-${routeTokenAddress}`
+        const secondTradeMarket = `${routeTokenAddress}-${modifiedBuyTokenAddress}`
+        if (markets.includes(firstTradeMarket) && markets.includes(secondTradeMarket)) {
+          newRoute.push([
+            { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: routeTokenAddress }, 
+            { buyTokenAddress: routeTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }
+          ])
+        }
+      })
+    }
+
+    if (newRoute.length === 0) {
+      console.warn("no possible route found")
+      setPossibleSwapRoute([])
+      return
+    } else {
+      setPossibleSwapRoute(newRoute)
+    }
+
+    const minExpires = (Date.now() / 1000 + 11).toFixed(0)
+    const minTimeStamp: number = Date.now() / 1000 + 10
+    let orders: { orders: ZZOrder[] }
+    const newOrderBook: { [key: string]: ZZOrder[] } = {}
+    try {
+      const promise0 = newRoute.map(async (routes: RouteMarket[]) => {
+        const promise1 = routes.map(async (market: RouteMarket) => {
+          const requestSellTokenAddress = market.sellTokenAddress
+          const requestBuyTokenAddress = market.buyTokenAddress
+          const response = await fetch(
+            `${network.backendUrl}/v1/orders?buyToken=${requestBuyTokenAddress}&sellToken=${requestSellTokenAddress}&minExpires=${minExpires}`
+          )
+          if (response.status !== 200) {
+            console.error("Failed to fetch order book.")
+            setTokensChanged(false)
+            return
+          }
+
+          orders = await response.json()
+          const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
+          const key = `${requestBuyTokenAddress}-${requestSellTokenAddress}`
+          newOrderBook[key] = goodOrders
+        })
+        await Promise.all(promise1)
+      })
+      await Promise.all(promise0)      
     } catch (err: any) {
       console.error(`Error fetching token price: ${err}`)
       setTokensChanged(false)
       return
     }
-
-    const minTimeStamp: number = Date.now() / 1000 + 10
-    const goodOrders = orders.orders.filter((o: ZZOrder) => minTimeStamp < Number(o.order.expirationTimeSeconds))
-    setOrderBook(goodOrders)
+    setOrderBook(newOrderBook)
     setTokensChanged(false)
   }
 
@@ -385,25 +495,8 @@ function SwapProvider({ children }: Props) {
       if (newTokenAddress === buyTokenInfo.address) {
         switchTokens()
       } else {
-        // Check if new sell token has a market with the current buyToken
-        let newTokenHasMarketWithBuyToken = false
-        for (let i = 0; i < markets.length; i++) {
-          const [tokenA, tokenB] = markets[i].split("-")
-          const isTokenA = newTokenAddress === tokenA && buyTokenInfo.address === tokenB
-          const isTokenB = buyTokenInfo.address === tokenA && newTokenAddress === tokenB
-          if (isTokenA || isTokenB) {
-            newTokenHasMarketWithBuyToken = true
-          }
-        }
-        if (newTokenHasMarketWithBuyToken) {
-          setSellToken(newTokenAddress)
-          setSellInput(sellInput)
-        } else {
-          setTokensChanged(true)
-          setSellInput("")
-          setSellToken(newTokenAddress)
-          setBuyToken(null)
-        }
+        setSellToken(newTokenAddress)
+        setSellInput(sellInput)
       }
     } else {
       setTokensChanged(true)
@@ -423,27 +516,8 @@ function SwapProvider({ children }: Props) {
         console.log("They're the same, so switching them.")
         switchTokens()
       } else {
-        // Check if new sell token has a market with the current sellToken
-        let newTokenHasMarketWithSellToken = false
-        for (let i = 0; i < markets.length; i++) {
-          const [tokenA, tokenB] = markets[i].split("-")
-          const isTokenA = newTokenAddress === tokenA && sellTokenInfo.address === tokenB
-          const isTokenB = sellTokenInfo.address === tokenA && newTokenAddress === tokenB
-          if (isTokenA || isTokenB) {
-            newTokenHasMarketWithSellToken = true
-          }
-        }
-        console.log("Has market with current sell token:", newTokenHasMarketWithSellToken)
-
-        if (newTokenHasMarketWithSellToken) {
-          setBuyToken(newTokenAddress)
-          setBuyInput(buyInput)
-        } else {
-          setTokensChanged(true)
-          setBuyInput("")
-          setBuyToken(newTokenAddress)
-          setSellToken(null)
-        }
+        setBuyToken(newTokenAddress)
+        setBuyInput(buyInput)
       }
     } else {
       setTokensChanged(true)
@@ -481,7 +555,7 @@ function SwapProvider({ children }: Props) {
   return (
     <SwapContext.Provider
       value={{
-        quoteOrder,
+        quoteOrderRoutingArray,
         swapPrice,
         estimatedGasFee,
         sellAmount,
@@ -507,6 +581,8 @@ function SwapProvider({ children }: Props) {
         selectBuyToken,
 
         tokensChanged,
+
+        swapRoute,
       }}
     >
       {children}

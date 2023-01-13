@@ -3,20 +3,6 @@ import { ethers } from "ethers"
 export function balanceCommas(amount: number, decimals: number) {
   const formattedNumber = amount.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
   return formattedNumber
-  let [integerString, decimalString] = formattedNumber.split(".")
-
-  // console.log(integerString, decimalString)
-  // if (decimalString === undefined) {
-  //   return integerString + "." + "0".repeat(decimals)
-  // }
-
-  // only remove trailing zeros:
-  // while (decimalString && decimalString.at(-1) === "0") {
-  //   decimalString = decimalString.substring(0, decimalString.length - 1)
-  // }
-  // decimalString = decimalString !== "" ? decimalString : "0"
-
-  return integerString + "." + decimalString
 }
 
 const getDecimalsNeeded = (amount: number | string) => {
@@ -39,7 +25,7 @@ const getDecimalsNeeded = (amount: number | string) => {
 }
 
 export function prettyBalance(balance: number | string, decimals: number = getDecimalsNeeded(balance)) {
-  if (balance === 0) {
+  if (balance === 0 || Number(balance) === 0) {
     return "0.0"
   }
   return balanceCommas(Number(balance), decimals)
@@ -56,7 +42,7 @@ export function hideAddress(address: string, digits = 4) {
   return address.slice(0, 2 + digits) + "•••" + address.slice(-digits)
 }
 
-export function truncateDecimals(numberString: string, decimals: number, padDecimals: boolean = false) {
+export function truncateDecimals(numberString: string, decimals: number = getDecimalsNeeded(numberString), padDecimals: boolean = false) {
   let splitAtDecimal = numberString.replace(",", ".").split(".")
   if (splitAtDecimal.length == 1) {
     if (padDecimals) {
@@ -71,6 +57,9 @@ export function truncateDecimals(numberString: string, decimals: number, padDeci
     if (decimalPart.length > decimals) {
       decimalPart = decimalPart.slice(0, decimals)
     }
+
+    if (decimalPart.length === 0) return splitAtDecimal[0]
+
     if (padDecimals) {
       return splitAtDecimal[0] + "." + decimalPart + "0".repeat(decimals - decimalPart.length)
     } else {
@@ -118,7 +107,7 @@ export function parseError(error: any) {
       case "order canceled":
         return "Tried to fill a bad quote, please try again."
       case "amount exceeds available size":
-        return "Tried to fill a bad quote, please try again."        
+        return "Tried to fill a bad quote, please try again."
       case "ERC20: insufficient allowance":
         return "Insufficient allowance."
       case "ERC20: transfer amount exceeds balance":

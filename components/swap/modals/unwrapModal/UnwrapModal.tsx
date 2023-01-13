@@ -14,8 +14,8 @@ interface Props {
 }
 
 export default function UnwrapModal({ close }: Props) {
-  const { balances, markets, buyTokenInfo, sellTokenInfo, tokenPricesUSD, getTokens, getTokenInfo, setBuyToken } = useContext(ExchangeContext)
-  const { transactionStatus, transactionError, sellAmount, buyAmount, quoteOrder } = useContext(SwapContext)
+  const { buyTokenInfo, sellTokenInfo } = useContext(ExchangeContext)
+  const { transactionStatus, transactionError, sellAmount, buyAmount } = useContext(SwapContext)
 
   const errorMessage = transactionError ? parseError(transactionError) : undefined
 
@@ -42,14 +42,26 @@ export default function UnwrapModal({ close }: Props) {
           <div className={styles.sell_token}>
             {prettyBalance(utils.formatUnits(sellAmount, sellTokenInfo.decimals))}{" "}
             <div className={styles.token_symbol}>
-              <Image src={`/tokenIcons/${sellTokenInfo.symbol.toLocaleLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
+              <Image 
+                src={`/tokenIcons/${sellTokenInfo.symbol.toLocaleLowerCase()}.svg`} 
+                alt={sellTokenInfo.symbol}
+                width="100%" 
+                height="100%" 
+                layout="intrinsic"
+              />
             </div>
           </div>
           <div className={styles.arrow}>{rightArrow}</div>
           <div className={styles.buy_token}>
             {prettyBalance(utils.formatUnits(buyAmount, buyTokenInfo.decimals))}
             <div className={styles.token_symbol}>
-              <Image src={`/tokenIcons/${buyTokenInfo.symbol.toLocaleLowerCase()}.svg`} width="100%" height="100%" layout="intrinsic" />
+              <Image
+                src={`/tokenIcons/${buyTokenInfo.symbol.toLocaleLowerCase()}.svg`}
+                alt={buyTokenInfo.symbol}
+                width="100%"
+                height="100%"
+                layout="intrinsic"
+              />
             </div>
           </div>
         </div>

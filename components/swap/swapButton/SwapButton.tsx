@@ -41,9 +41,9 @@ export default function SwapButton({
   openUnwrapModal,
   closeModal,
 }: Props) {
-  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, makerFee, takerFee, updateAllowances, updateBalances } = useContext(ExchangeContext)
+  const { balances, sellTokenInfo, buyTokenInfo, exchangeAddress, updateAllowances, updateBalances } = useContext(ExchangeContext)
   const { network, signer, userAddress, connect } = useContext(WalletContext)
-  const { sellAmount, buyAmount, quoteOrder, userInputSide, setTransactionStatus, setTransactionError, setIsFrozen } = useContext(SwapContext)
+  const { sellAmount, buyAmount, quoteOrderRoutingArray, userInputSide, setTransactionStatus, setTransactionError, setIsFrozen } = useContext(SwapContext)
 
   const [buttonMode, setButtonMode] = useState<ButtonMode>(ButtonMode.Disabled)
 
@@ -76,25 +76,62 @@ export default function SwapButton({
     return null
   }, [network, signer])
 
-  async function sendFillOrder(sellAmount: BigNumber | null, buyAmount: BigNumber | null, order: ZZOrder, isNativeTokenSwap: boolean, sendETH: boolean) {
-    console.log(`Executing sendFillOrder for sellAmount: ${sellAmount}, buyAmount: ${buyAmount}, isNativeTokenSwap: ${isNativeTokenSwap}, sendETH: ${sendETH}, order: `, order)
+  async function sendFillOrder(sellAmount: BigNumber | null, buyAmount: BigNumber | null, isNativeTokenSwap: boolean, sendETH: boolean) {
+    console.log(`Executing sendFillOrder for sellAmount: ${sellAmount}, buyAmount: ${buyAmount}, isNativeTokenSwap: ${isNativeTokenSwap}, sendETH: ${sendETH}`)
     if (!exchangeContract) {
       console.warn("sendFillOrder: missing exchangeContract")
       return
     }
-    if (!quoteOrder) {
+    if (quoteOrderRoutingArray.length === 0) {
       console.warn("sendFillOrder: missing quoteOrder")
+      return
+    }
+    console.log("Orders: ", quoteOrderRoutingArray)
+    if (!sellAmount && !buyAmount) {
+      console.warn("sendFillOrder: missing sellAmount and buyAmount")
       return
     }
 
     setTransactionStatus("awaitingWallet")
     openSwapModal()
     let tx: any
-    if (sellAmount) {
-      if (isNativeTokenSwap) {
-        if (sendETH) {
-          console.log("execute swap - exactInput - ETH -> ERC20")
-          tx = await exchangeContract.fillOrderExactInputETH([
+    if (quoteOrderRoutingArray.length === 1) {
+      const quoteOrder: ZZOrder = quoteOrderRoutingArray[0]
+      if (sellAmount) {
+        if (isNativeTokenSwap) {
+          if (sendETH) {
+            console.log("execute swap - exactInput - ETH -> ERC20")
+            tx = await exchangeContract.fillOrderExactInputETH([
+                quoteOrder.order.user,
+                quoteOrder.order.sellToken,
+                quoteOrder.order.buyToken,
+                quoteOrder.order.sellAmount,
+                quoteOrder.order.buyAmount,
+                quoteOrder.order.expirationTimeSeconds,
+              ],
+              quoteOrder.signature,
+              sellAmount.toString(),
+              false,
+              { value: sellAmount.toString() }
+            )
+          } else {
+            console.log("execute swap - exactInput - ERC20 -> ETH")
+            tx = await exchangeContract.fillOrderExactInputETH([
+                quoteOrder.order.user,
+                quoteOrder.order.sellToken,
+                quoteOrder.order.buyToken,
+                quoteOrder.order.sellAmount,
+                quoteOrder.order.buyAmount,
+                quoteOrder.order.expirationTimeSeconds,
+              ],
+              quoteOrder.signature,
+              sellAmount.toString(),
+              false
+            ) 
+          } 
+        } else {
+          console.log("execute swap - exactInput - ERC20 -> ERC20")
+          tx = await exchangeContract.fillOrderExactInput([
               quoteOrder.order.user,
               quoteOrder.order.sellToken,
               quoteOrder.order.buyToken,
@@ -103,91 +140,107 @@ export default function SwapButton({
               quoteOrder.order.expirationTimeSeconds,
             ],
             quoteOrder.signature,
+            sellAmount.toString(),
+            false
+          )
+        }
+      } else if (buyAmount) {
+        if (isNativeTokenSwap) {
+          if (sendETH) {
+            console.log("execute swap - exactOutput - ETH -> ERC20")
+            sellAmount = (buyAmount.mul(10000).div(10000-5)).mul(quoteOrder.order.buyAmount).div(quoteOrder.order.sellAmount)
+            tx = await exchangeContract.fillOrderExactOutputETH([
+                quoteOrder.order.user,
+                quoteOrder.order.sellToken,
+                quoteOrder.order.buyToken,
+                quoteOrder.order.sellAmount,
+                quoteOrder.order.buyAmount,
+                quoteOrder.order.expirationTimeSeconds,
+              ],
+              quoteOrder.signature,
+              buyAmount.toString(),
+              false
+              ,
+              { value: sellAmount.toString() }
+            )
+          } else {
+            console.log("execute swap - exactOutput - ERC20 -> ETH")
+            tx = await exchangeContract.fillOrderExactOutputETH([
+                quoteOrder.order.user,
+                quoteOrder.order.sellToken,
+                quoteOrder.order.buyToken,
+                quoteOrder.order.sellAmount,
+                quoteOrder.order.buyAmount,
+                quoteOrder.order.expirationTimeSeconds,
+              ],
+              quoteOrder.signature,
+              buyAmount.toString(),
+              false
+            )
+          }        
+        } else {
+          console.log("execute swap - exactOutput - ERC20 -> ERC20")
+          tx = await exchangeContract.fillOrderExactOutput([
+              quoteOrder.order.user,
+              quoteOrder.order.sellToken,
+              quoteOrder.order.buyToken,
+              quoteOrder.order.sellAmount,
+              quoteOrder.order.buyAmount,
+              quoteOrder.order.expirationTimeSeconds,
+            ],
+            quoteOrder.signature,
+            buyAmount.toString(),
+            false
+          )
+        }
+      }
+    } else {
+      // quoteOrderRoutingArray.length > 1
+      if (!sellAmount) {
+        console.warn("sendFillOrder: missing sellAmount for route call")
+        return
+      }
+
+      const quoteOrderCalldataArray = quoteOrderRoutingArray.map((quoteOrder: ZZOrder) => {
+        return [
+          quoteOrder.order.user,
+          quoteOrder.order.sellToken,
+          quoteOrder.order.buyToken,
+          quoteOrder.order.sellAmount,
+          quoteOrder.order.buyAmount,
+          quoteOrder.order.expirationTimeSeconds
+        ]
+      })
+      const signatureCalldataArray = quoteOrderRoutingArray.map((quoteOrder: ZZOrder) => quoteOrder.signature )
+
+      if (isNativeTokenSwap) {
+        if (sendETH) {
+          console.log("execute swap - route - ETH -> ERC20")
+          tx = await exchangeContract.fillOrderRouteETH(
+            Object.values(quoteOrderCalldataArray),
+            Object.values(signatureCalldataArray),
             sellAmount.toString(),
             false,
             { value: sellAmount.toString() }
           )
         } else {
-          console.log("execute swap - exactInput - ERC20 -> ETH")
-          tx = await exchangeContract.fillOrderExactInputETH([
-              quoteOrder.order.user,
-              quoteOrder.order.sellToken,
-              quoteOrder.order.buyToken,
-              quoteOrder.order.sellAmount,
-              quoteOrder.order.buyAmount,
-              quoteOrder.order.expirationTimeSeconds,
-            ],
-            quoteOrder.signature,
+          console.log("execute swap - route - ERC20 -> ETH")
+          tx = await exchangeContract.fillOrderRouteETH(
+            Object.values(quoteOrderCalldataArray),
+            Object.values(signatureCalldataArray),
             sellAmount.toString(),
             false
-          ) 
-        } 
+          )
+        }
       } else {
-        console.log("execute swap - exactInput - ERC20 -> ERC20")
-        tx = await exchangeContract.fillOrderExactInput([
-            quoteOrder.order.user,
-            quoteOrder.order.sellToken,
-            quoteOrder.order.buyToken,
-            quoteOrder.order.sellAmount,
-            quoteOrder.order.buyAmount,
-            quoteOrder.order.expirationTimeSeconds,
-          ],
-          quoteOrder.signature,
+        console.log("execute swap - route - ERC20 -> ERC20")
+        tx = await exchangeContract.fillOrderRoute(
+          Object.values(quoteOrderCalldataArray),
+          Object.values(signatureCalldataArray),
           sellAmount.toString(),
           false
         )
       }
-    } else if (buyAmount) {
-      if (isNativeTokenSwap) {
-        if (sendETH) {
-          console.log("execute swap - exactOutput - ETH -> ERC20")
-          sellAmount = (buyAmount.mul(10000).div(10000-5)).mul(quoteOrder.order.buyAmount).div(quoteOrder.order.sellAmount)
-          tx = await exchangeContract.fillOrderExactOutputETH([
-              quoteOrder.order.user,
-              quoteOrder.order.sellToken,
-              quoteOrder.order.buyToken,
-              quoteOrder.order.sellAmount,
-              quoteOrder.order.buyAmount,
-              quoteOrder.order.expirationTimeSeconds,
-            ],
-            quoteOrder.signature,
-            buyAmount.toString(),
-            false
-            ,
-            { value: sellAmount.toString() }
-          )
-        } else {
-          console.log("execute swap - exactOutput - ERC20 -> ETH")
-          tx = await exchangeContract.fillOrderExactOutputETH([
-              quoteOrder.order.user,
-              quoteOrder.order.sellToken,
-              quoteOrder.order.buyToken,
-              quoteOrder.order.sellAmount,
-              quoteOrder.order.buyAmount,
-              quoteOrder.order.expirationTimeSeconds,
-            ],
-            quoteOrder.signature,
-            buyAmount.toString(),
-            false
-          )
-        }        
-      } else {
-        console.log("execute swap - exactOutput - ERC20 -> ERC20")
-        tx = await exchangeContract.fillOrderExactOutput([
-            quoteOrder.order.user,
-            quoteOrder.order.sellToken,
-            quoteOrder.order.buyToken,
-            quoteOrder.order.sellAmount,
-            quoteOrder.order.buyAmount,
-            quoteOrder.order.expirationTimeSeconds,
-          ],
-          quoteOrder.signature,
-          buyAmount.toString(),
-          false
-        )
-      }
-    } else {
-      throw new Error("sendFillOrder: no sell or buy amount")
     }
 
     setTransactionStatus("processing")
@@ -223,7 +276,7 @@ export default function SwapButton({
   async function sendSwap() {
     if (buttonMode !== ButtonMode.Swap) return
     console.log("starting sendSwap")
-    if (!quoteOrder) {
+    if (quoteOrderRoutingArray.length === 0) {
       console.warn("sendSwap: missing quoteOrder")
       return
     }
@@ -231,7 +284,13 @@ export default function SwapButton({
     try {
       setIsFrozen(true)
 
-      const remainingTime = Number(quoteOrder.order.expirationTimeSeconds) - Date.now() / 1000
+      let minCountdown: number = Number.MAX_SAFE_INTEGER
+      quoteOrderRoutingArray.forEach((quoteOrder: ZZOrder) => {
+        if (Number(quoteOrder.order.expirationTimeSeconds) < minCountdown) {
+          minCountdown = Number(quoteOrder.order.expirationTimeSeconds)
+        }
+      })
+      const remainingTime = minCountdown - Date.now() / 1000
       if (remainingTime < 0) {
         console.warn("sendSwap: quote is expired")
         throw new Error("sendSwap: Quote is expired.")
@@ -257,30 +316,38 @@ export default function SwapButton({
         console.warn("sendSwap: sell amount exceeds balances")
         throw new Error("sendSwap: sell amount exceeds balances")
       }
+      console.log("quoteOrderRoutingArray", quoteOrderRoutingArray)
+      const firstQuoteOrder: ZZOrder | undefined = quoteOrderRoutingArray[0]
+      const lastQuoteOrder: ZZOrder | undefined = quoteOrderRoutingArray.at(-1)
 
-      if (sellAmount.gt(quoteOrder.order.buyAmount)) {
+      if (!firstQuoteOrder || !lastQuoteOrder) {
+        console.warn("sendSwap: missing quoteOrder")
+        return
+      }
+
+      if (sellAmount.gt(firstQuoteOrder.order.buyAmount)) {
         console.warn("sendSwap: sell amount exceeds quote buy amount")
         throw new Error("sendSwap: sell amount exceeds quote buy amount")
       }
 
       let isNativeTokenSwap = false
       if (buyTokenInfo.address === ethers.constants.AddressZero) {
-        if (quoteOrder.order.sellToken !== wethContract?.address) {
-          console.warn("sendSwap: native swap with no matching weth order")
-          throw new Error("sendSwap: native swap with no matching weth order")
+        if (lastQuoteOrder.order.sellToken !== wethContract?.address) {
+          console.warn("sendSwap: native buy  with no matching weth order")
+          throw new Error("sendSwap: native buy with no matching weth order")
         }
         isNativeTokenSwap = true
       } else if (sellTokenInfo.address === ethers.constants.AddressZero) {
-        if (quoteOrder.order.buyToken !== wethContract?.address) {
-          console.warn("sendSwap: native swap with no matching weth order")
-          throw new Error("sendSwap: native swap with no matching weth order")
+        if (firstQuoteOrder.order.buyToken !== wethContract?.address) {
+          console.warn("sendSwap: native sell with no matching weth order")
+          throw new Error("sendSwap: native sell with no matching weth order")
         }
         isNativeTokenSwap = true
       }
 
       const sendETH = isNativeTokenSwap && sellTokenInfo.address === ethers.constants.AddressZero
       
-      if (userInputSide === "sell") {
+      if (userInputSide === "sell" || quoteOrderRoutingArray.length > 1) {
         let sellAmountForSwap: ethers.BigNumber
         const delta = sellAmount.mul("100000").div(sellBalanceParsed).toNumber()
         if (delta > 99990) {
@@ -291,9 +358,9 @@ export default function SwapButton({
           sellAmountForSwap = sellAmount
         }
 
-        await sendFillOrder(sellAmountForSwap, null, quoteOrder, isNativeTokenSwap, sendETH)
+        await sendFillOrder(sellAmountForSwap, null, isNativeTokenSwap, sendETH)
       } else {
-        await sendFillOrder(null, buyAmount, quoteOrder, isNativeTokenSwap, sendETH)
+        await sendFillOrder(null, buyAmount, isNativeTokenSwap, sendETH)
       }
 
       updateBalances([buyTokenInfo.address, sellTokenInfo.address])

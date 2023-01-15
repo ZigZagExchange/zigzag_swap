@@ -409,14 +409,14 @@ function SwapProvider({ children }: Props) {
 
     if (
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
-      (buyTokenInfo.address === network?.wethContractAddress || sellTokenInfo.address === network?.wethContractAddress)
+      (buyTokenInfo.address === network.wethContractAddress || sellTokenInfo.address === network.wethContractAddress)
     ) {
       console.warn("getOrderBook: dont fetch for wrap/unwrap")
       return
     }
 
-    const modifiedBuyTokenAddress = buyTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : buyTokenInfo.address
-    const modifiedSellTokenAddress = sellTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : sellTokenInfo.address
+    const modifiedBuyTokenAddress: string = buyTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : buyTokenInfo.address
+    const modifiedSellTokenAddress: string = sellTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : sellTokenInfo.address
     let newRoute: RouteMarket[][] = []
     markets.forEach((market: string) => {      
       const tradeMarket = `${modifiedSellTokenAddress}-${modifiedBuyTokenAddress}`
@@ -424,11 +424,6 @@ function SwapProvider({ children }: Props) {
         newRoute.push([
           { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }
         ])
-      }
-
-      const [baseAddress, quoteAddress] = market.split('-')
-      if (baseAddress === modifiedBuyTokenAddress && quoteAddress === modifiedSellTokenAddress) {
-        newRoute = [[{ buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }]]
       }
     })
     if (newRoute.length === 0) {

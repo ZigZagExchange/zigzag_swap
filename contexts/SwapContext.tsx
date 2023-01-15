@@ -390,7 +390,7 @@ function SwapProvider({ children }: Props) {
 
     const refreshOrderBookInterval = setInterval(getOrderBook, 4 * 1000)
     return () => clearInterval(refreshOrderBookInterval)
-  }, [network, buyTokenInfo, sellTokenInfo, isFrozen])
+  }, [network, markets, buyTokenInfo, sellTokenInfo, isFrozen])
 
   async function getOrderBook() {
     console.log("Getting orderbook....")

@@ -418,7 +418,14 @@ function SwapProvider({ children }: Props) {
     const modifiedBuyTokenAddress = buyTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : buyTokenInfo.address
     const modifiedSellTokenAddress = sellTokenInfo.address === ethers.constants.AddressZero ? network?.wethContractAddress : sellTokenInfo.address
     let newRoute: RouteMarket[][] = []
-    markets.forEach((market: string) => {
+    markets.forEach((market: string) => {      
+      const tradeMarket = `${modifiedSellTokenAddress}-${modifiedBuyTokenAddress}`
+      if (markets.includes(tradeMarket)) {
+        newRoute.push([
+          { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }
+        ])
+      }
+
       const [baseAddress, quoteAddress] = market.split('-')
       if (baseAddress === modifiedBuyTokenAddress && quoteAddress === modifiedSellTokenAddress) {
         newRoute = [[{ buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }]]
@@ -444,7 +451,7 @@ function SwapProvider({ children }: Props) {
     }
 
     if (newRoute.length === 0) {
-      console.warn("no possible route found")
+      console.warn("getOrderBook: no possible route found")
       setPossibleSwapRoute([])
       return
     } else {

@@ -102,16 +102,17 @@ function Swap() {
       const buyAmountFormated = Number(ethers.utils.formatUnits(buyAmount, buyTokenInfo.decimals))
       if (buyAmountFormated === 0) return
 
+      const buyTokenValue = buyAmountFormated * buyTokenUsdPrice
       let percent
       if (sellTokenUsdPrice !== undefined) {
         if (!sellTokenInfo) return
         const sellAmountFormated = Number(ethers.utils.formatUnits(sellAmount, sellTokenInfo.decimals))
         if (sellAmountFormated === 0) {
-          return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice)}`}</div>
+          return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyTokenValue)}`}</div>
         }
-        percent = `(${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice - sellAmountFormated * sellTokenUsdPrice)}%)`
+        percent = `(${prettyBalanceUSD((sellAmountFormated * sellTokenUsdPrice - buyTokenValue) * 100 / buyTokenValue)}%)`
       }
-      return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyAmountFormated * buyTokenUsdPrice)} ${percent}`}</div>
+      return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyTokenValue)} ${percent}`}</div>
     }
     return
   }, [sellTokenInfo, buyTokenInfo, sellAmount, buyAmount, sellTokenUsdPrice, buyTokenUsdPrice])

@@ -200,13 +200,13 @@ function ExchangeProvider({ children }: Props) {
     try {
       const response = await fetch(`${network.backendUrl}/v1/info`)
       if (response.status !== 200) {
-        console.error("Failed to fetch market info.")
+        console.error("fetchMarketsInfo: Failed to fetch market info.")
         return
       }
 
       result = await response.json()
     } catch (err: any) {
-      console.error(`Error fetching market info: ${err}`)
+      console.error(`fetchMarketsInfo: Error fetching market info: ${err}`)
       return
     }
 

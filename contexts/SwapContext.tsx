@@ -421,15 +421,16 @@ function SwapProvider({ children }: Props) {
       console.warn("getOrderBook: missing sell/buy token address")
       return
     }
+
     let newRoute: RouteMarket[][] = []
-    markets.forEach((market: string) => {      
-      const tradeMarket = `${modifiedSellTokenAddress}-${modifiedBuyTokenAddress}`
-      if (markets.includes(tradeMarket)) {
-        newRoute.push([
-          { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }
-        ])
-      }
-    })
+    // check direct route
+    const tradeMarket = `${modifiedSellTokenAddress}-${modifiedBuyTokenAddress}`
+    if (markets.includes(tradeMarket)) {
+      newRoute.push([
+        { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }
+      ])
+    }
+    // check route via weth or usdc
     if (newRoute.length === 0) {
       const possibleRouts = [
         "0x82af49447d8a07e3bd95bd0d56f35241523fbab1", // weth

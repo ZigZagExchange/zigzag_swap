@@ -95,12 +95,12 @@ function TransactionSettings() {
     }
     newRoute = `${buyTokenInfo?.symbol} >`
 
-    swapRoute.forEach(route => {
-      const routeBuyTokenInfo = getTokenInfo(route.buyTokenAddress)
+    for (let i = 1; i < swapRoute.length; i++) {
+      const routeBuyTokenInfo = getTokenInfo(swapRoute[i].buyTokenAddress)
       if (routeBuyTokenInfo) {
         newRoute += ` ${routeBuyTokenInfo.symbol} >`
       }
-    })
+    }
     newRoute += ` ${sellTokenInfo?.symbol}`
     setRoute(newRoute)
   }, [swapRoute])

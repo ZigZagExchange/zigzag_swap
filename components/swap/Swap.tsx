@@ -110,7 +110,8 @@ function Swap() {
         if (sellAmountFormated === 0) {
           return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyTokenValue)}`}</div>
         }
-        percent = `(${prettyBalanceUSD((sellAmountFormated * sellTokenUsdPrice - buyTokenValue) * 100 / buyTokenValue)}%)`
+        const sellTokenValue = sellAmountFormated * sellTokenUsdPrice
+        percent = `(${prettyBalanceUSD((buyTokenValue - sellTokenValue) * 100 / sellTokenValue)}%)`
       }
       return <div className={styles.estimated_value}>{`~$${prettyBalanceUSD(buyTokenValue)} ${percent}`}</div>
     }

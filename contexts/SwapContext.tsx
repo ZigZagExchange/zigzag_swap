@@ -415,8 +415,12 @@ function SwapProvider({ children }: Props) {
       return
     }
 
-    const modifiedBuyTokenAddress: string = buyTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : buyTokenInfo.address
-    const modifiedSellTokenAddress: string = sellTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : sellTokenInfo.address
+    const modifiedBuyTokenAddress = buyTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : buyTokenInfo.address
+    const modifiedSellTokenAddress = sellTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : sellTokenInfo.address
+    if (!modifiedBuyTokenAddress || ! modifiedSellTokenAddress) {
+      console.warn("getOrderBook: missing sell/buy token address")
+      return
+    }
     let newRoute: RouteMarket[][] = []
     markets.forEach((market: string) => {      
       const tradeMarket = `${modifiedSellTokenAddress}-${modifiedBuyTokenAddress}`

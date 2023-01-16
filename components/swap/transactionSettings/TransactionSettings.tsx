@@ -7,7 +7,7 @@ import { WalletContext } from "../../../contexts/WalletContext"
 import useTranslation from "next-translate/useTranslation"
 import DownArrow from "../../DownArrow"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
-import { constants } from "ethers"
+import { constants, ethers } from "ethers"
 
 function TransactionSettings() {
   const { tokenPricesUSD, buyTokenInfo, sellTokenInfo, getTokenInfo } = useContext(ExchangeContext)
@@ -32,6 +32,7 @@ function TransactionSettings() {
   const priceSell = swapPrice !== undefined ? `${prettyBalance(swapPrice)}` : undefined
   const priceBuyUsd = buyTokenInfo ? tokenPricesUSD[buyTokenInfo.address] : undefined
   const priceSellUsd = sellTokenInfo ? tokenPricesUSD[sellTokenInfo.address] : undefined
+  const priceGas = tokenPricesUSD[ethers.constants.AddressZero]
 
   const nativeCurrencyUsd = tokenPricesUSD[constants.AddressZero] ? tokenPricesUSD[constants.AddressZero] : 0
   const nativeCurrencySymbol = network?.nativeCurrency?.symbol ? network.nativeCurrency.symbol : "ETH"
@@ -168,7 +169,7 @@ function TransactionSettings() {
           <div className={styles.detail}>
             <div>{t("gas_fee")}</div>
             <div ref={gasFeeDetailRef}>
-              {estimatedGasFee} {nativeCurrencySymbol}
+              {`${estimatedGasFee} ${nativeCurrencySymbol}${priceGas && estimatedGasFee ? " ~$" + prettyBalanceUSD(priceGas * estimatedGasFee) : ""}`}
             </div>
           </div>
           <div className={styles.detail}>

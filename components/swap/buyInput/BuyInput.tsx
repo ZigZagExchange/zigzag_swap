@@ -32,7 +32,7 @@ export default function BuyInput({ openBuyTokenSelectModal }: Props) {
         placeholder={"0"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols
-          const is_not_valid_key = ["+", "-", "e"].includes(e.key)
+          const is_not_valid_key = ["+", "-", "e", "=", "?", "/"].includes(e.key)
           if (is_not_valid_key) {
             e.preventDefault()
           }

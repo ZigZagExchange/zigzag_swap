@@ -8,8 +8,6 @@ import { SwapContext } from "../../../contexts/SwapContext"
 import { ExchangeContext } from "../../../contexts/ExchangeContext"
 import { truncateDecimals } from "../../../utils/utils"
 
-import { WalletContext } from "../../../contexts/WalletContext"
-
 interface Props {
   openSellTokenSelectModal: () => void
 }
@@ -17,7 +15,6 @@ interface Props {
 export default function SellInput({ openSellTokenSelectModal }: Props) {
   const { balances, sellTokenInfo } = useContext(ExchangeContext)
   const { sellInput, setSellInput, tokensChanged } = useContext(SwapContext)
-  const { userAddress } = useContext(WalletContext)
 
   function safeSetSellAmount(newAmount: string) {
     newAmount = newAmount.replace(",", ".")
@@ -50,7 +47,7 @@ export default function SellInput({ openSellTokenSelectModal }: Props) {
         placeholder={"0"}
         onKeyDown={e => {
           // Prevent negative numbers and + symbols
-          const is_not_valid_key = ["+", "-", "e"].includes(e.key)
+          const is_not_valid_key = ["+", "-", "e", "=", "?", "/"].includes(e.key)
           if (is_not_valid_key) {
             e.preventDefault()
           }

@@ -106,7 +106,7 @@ function SwapProvider({ children }: Props) {
   const [quoteOrderRoutingArray, setQuoteOrderRoutingArray] = useState<ZZOrder[]>([])
   const [swapPrice, setSwapPrice] = useState<number>(0)
   const [estimatedGasFee, setEstimatedGasFee] = useState<number>(0.0001)
-  const [orderBook, setOrderBook] = useState<{[key: string]: ZZOrder[]}>({})
+  const [orderBook, setOrderBook] = useState<{ [key: string]: ZZOrder[] }>({})
   const [userInputSide, setUserInputSide] = useState<"buy" | "sell">("sell")
   const [sellInput, setSellInput] = useState<string>("")
   const [buyInput, setBuyInput] = useState<string>("")
@@ -155,14 +155,14 @@ function SwapProvider({ children }: Props) {
       console.warn("buyTokenInfo is null")
       setQuoteOrderRoutingArray(newQuoteOrderArray)
       setSwapPrice(newSwapPrice)
-      setPossibleSwapRoute([])
+      setSwapRoute([])
       return
     }
     if (!sellTokenInfo) {
       console.warn("sellTokenInfo is null")
       setQuoteOrderRoutingArray(newQuoteOrderArray)
       setSwapPrice(newSwapPrice)
-      setPossibleSwapRoute([])
+      setSwapRoute([])
       return
     }
 
@@ -179,7 +179,7 @@ function SwapProvider({ children }: Props) {
         signature: "0x0",
       }]
       setQuoteOrderRoutingArray(fakeWrapOrder)
-      setPossibleSwapRoute([[{buyTokenAddress: ethers.constants.AddressZero, sellTokenAddress: network?.wethContractAddress}]])
+      setSwapRoute([{ buyTokenAddress: ethers.constants.AddressZero, sellTokenAddress: network?.wethContractAddress }])
       setSwapPrice(1)
       return
     }
@@ -197,11 +197,11 @@ function SwapProvider({ children }: Props) {
         signature: "0x0",
       }]
       setQuoteOrderRoutingArray(fakeUnwrapOrder)
-      setPossibleSwapRoute([[{ buyTokenAddress: network?.wethContractAddress, sellTokenAddress: ethers.constants.AddressZero}]])
+      setSwapRoute([{ buyTokenAddress: network?.wethContractAddress, sellTokenAddress: ethers.constants.AddressZero }])
       setSwapPrice(1)
       return
     }
-    
+
     let bestSwapRoute: RouteMarket[] = []
     const userBuyInputParsed = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
     const minTimeStamp: number = Date.now() / 1000 + 5
@@ -214,7 +214,7 @@ function SwapProvider({ children }: Props) {
         let marketQuoteOrder: ZZOrder | undefined
         const key = `${market.buyTokenAddress}-${market.sellTokenAddress}`
         const currentOrderBook = orderBook[key]
-        if(!currentOrderBook) return
+        if (!currentOrderBook) return
 
         for (let i = 0; i < currentOrderBook.length; i++) {
           const { order } = currentOrderBook[i]
@@ -223,7 +223,7 @@ function SwapProvider({ children }: Props) {
           const quoteSellAmount = ethers.BigNumber.from(order.sellAmount)
           const quoteBuyAmount = ethers.BigNumber.from(order.buyAmount)
           if (userInputSide === "buy" && quoteSellAmount.lt(stepBuyAmount)) return
-          
+
           const quoteSellTokenInfo = getTokenInfo(order.sellToken)
           const quoteBuyTokenInfo = getTokenInfo(order.buyToken)
           if (!quoteSellTokenInfo || !quoteBuyTokenInfo) return
@@ -251,13 +251,13 @@ function SwapProvider({ children }: Props) {
     setSwapRoute(bestSwapRoute)
     setQuoteOrderRoutingArray(newQuoteOrderArray)
     setSwapPrice(newSwapPrice)
-  }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee])
+  }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee, possibleSwapRoute])
 
   const [buyAmount, sellAmount] = useMemo((): [ethers.BigNumber, ethers.BigNumber] => {
     let newBuyAmount: ethers.BigNumber = ethers.constants.Zero
     let newSellAmount: ethers.BigNumber = ethers.constants.Zero
     if (!sellTokenInfo || !buyTokenInfo || quoteOrderRoutingArray.length === 0) return [newBuyAmount, newSellAmount]
-    
+
 
     if (userInputSide === "buy") {
       newBuyAmount = getBigNumberFromInput(buyInput, buyTokenInfo.decimals)
@@ -297,64 +297,34 @@ function SwapProvider({ children }: Props) {
       }
 
       return [newBuyAmount, newSellAmount]
-    }    
+    }
   }, [buyInput, sellInput, swapPrice])
 
   useEffect(() => {
     const getGasFees = async () => {
-      if (!network) {
-        console.warn("getGasFees: Missing network")
-        return
-      }
-      if (!ethersProvider) {
-        console.warn("getGasFees: missing ethersProvider")
-        return
-      }
-      if (!exchangeAddress) {
-        console.warn("getGasFees: missing exchangeAddress")
-        return
-      }
-      if (quoteOrderRoutingArray.length === 0) {
-        console.warn("getGasFees: missing quoteOrderRoutingArray")
-        return
-      }
-      if (!buyTokenInfo) {
-        console.warn("getGasFees: missing buyTokenInfo")
-        return
-      }
-      if (!sellTokenInfo) {
-        console.warn("getGasFees: missing sellTokenInfo")
-        return
-      }
-
-      let estimatedGasUsed = ethers.constants.Zero
       try {
-        const feeData = await ethersProvider.getFeeData()
-        if (!feeData.lastBaseFeePerGas || !feeData.gasPrice) {
-          console.warn("getGasFees: missing lastBaseFeePerGas")
-          return
-        }
+        if (!network) throw new Error("getGasFees: Missing network")
+        if (!ethersProvider) throw new Error("getGasFees: missing ethersProvider")
+        if (!exchangeAddress) throw new Error("getGasFees: missing exchangeAddress")
+        if (quoteOrderRoutingArray.length === 0) throw new Error("getGasFees: missing quoteOrderRoutingArray")
+        if (!buyTokenInfo) throw new Error("getGasFees: missing buyTokenInfo")
+        if (!sellTokenInfo) throw new Error("getGasFees: missing sellTokenInfo")
 
+        const feeData = await ethersProvider.getFeeData()
+        if (!feeData.lastBaseFeePerGas || !feeData.gasPrice) throw new Error("getGasFees: missing lastBaseFeePerGas")
+
+        let estimatedGasUsed: ethers.BigNumber
         if (buyTokenInfo.address === network?.wethContractAddress && sellTokenInfo.address === ethers.constants.AddressZero) {
           // deposit
-          if (!wethContract) {
-            console.warn("getGasFees: missing wethContract")
-            return
-          }
+          if (!wethContract) throw new Error("getGasFees: missing wethContract")
           estimatedGasUsed = await wethContract.estimateGas.deposit({ value: "1" })
         } else if (buyTokenInfo.address === ethers.constants.AddressZero && sellTokenInfo.address === network?.wethContractAddress) {
           // withdraw
-          if (!wethContract) {
-            console.warn("getGasFees: missing wethContract")
-            return
-          }
+          if (!wethContract) throw new Error("getGasFees: missing wethContract")
           estimatedGasUsed = await wethContract.estimateGas.withdraw("1")
         } else {
           // swap
-          if (!exchangeContract) {
-            console.warn("getGasFees: missing exchangeContract")
-            return
-          }
+          if (!exchangeContract) throw new Error("getGasFees: missing exchangeContract")
 
           const quoteOrder = quoteOrderRoutingArray[0]
           estimatedGasUsed = await exchangeContract.estimateGas.fillOrderExactInput(
@@ -377,8 +347,9 @@ function SwapProvider({ children }: Props) {
         const estimatedFee = ethers.utils.formatUnits(estimatedFeeBigNumber, network.nativeCurrency.decimals)
         setEstimatedGasFee(Number(estimatedFee))
       } catch (err: any) {
-        // console.log(`getGasFees: Failed to estimate gas: ${err.message}`)
-        // setEstimatedGasFee(0.0001) // Some estimate
+        console.warn("Failed to estimate gasFee:", err.message)
+        // Some estimate
+        setEstimatedGasFee(0.0001 * quoteOrderRoutingArray.length)
       }
     }
     getGasFees()
@@ -411,13 +382,14 @@ function SwapProvider({ children }: Props) {
       (buyTokenInfo.address === ethers.constants.AddressZero || sellTokenInfo.address === ethers.constants.AddressZero) &&
       (buyTokenInfo.address === network.wethContractAddress || sellTokenInfo.address === network.wethContractAddress)
     ) {
+      setTokensChanged(false)
       console.warn("getOrderBook: dont fetch for wrap/unwrap")
       return
     }
 
     const modifiedBuyTokenAddress = buyTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : buyTokenInfo.address
     const modifiedSellTokenAddress = sellTokenInfo.address === ethers.constants.AddressZero ? network.wethContractAddress : sellTokenInfo.address
-    if (!modifiedBuyTokenAddress || ! modifiedSellTokenAddress) {
+    if (!modifiedBuyTokenAddress || !modifiedSellTokenAddress) {
       console.warn("getOrderBook: missing sell/buy token address")
       return
     }
@@ -443,7 +415,7 @@ function SwapProvider({ children }: Props) {
         const secondTradeMarket = `${routeTokenAddress}-${modifiedBuyTokenAddress}`
         if (markets.includes(firstTradeMarket) && markets.includes(secondTradeMarket)) {
           newRoute.push([
-            { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: routeTokenAddress }, 
+            { buyTokenAddress: modifiedSellTokenAddress, sellTokenAddress: routeTokenAddress },
             { buyTokenAddress: routeTokenAddress, sellTokenAddress: modifiedBuyTokenAddress }
           ])
         }
@@ -483,7 +455,7 @@ function SwapProvider({ children }: Props) {
         })
         await Promise.all(promise1)
       })
-      await Promise.all(promise0)      
+      await Promise.all(promise0)
     } catch (err: any) {
       console.error(`Error fetching token price: ${err}`)
       setTokensChanged(false)

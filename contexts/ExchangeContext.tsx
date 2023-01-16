@@ -282,7 +282,6 @@ function ExchangeProvider({ children }: Props) {
 
     tokenInfos.forEach(async (token: ZZTokenInfo) => {
       updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address)
-      console.log(`DEBUG price for ${token.symbol} : ${token.address} is `, updatedTokenPricesUSD[token.address])
     })
 
     setTokenPricesUSD(updatedTokenPricesUSD)

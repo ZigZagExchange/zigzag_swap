@@ -9,7 +9,7 @@ import SwapButton from "./swapButton/SwapButton"
 
 import { ExchangeContext, ZZTokenInfo } from "../../contexts/ExchangeContext"
 import { WalletContext } from "../../contexts/WalletContext"
-import { SwapContext } from "../../contexts/SwapContext"
+import { SwapContext, ZZOrder } from "../../contexts/SwapContext"
 import { prettyBalance, prettyBalanceUSD } from "../../utils/utils"
 import { constants, ethers } from "ethers"
 import Separator from "./separator/Separator"
@@ -35,7 +35,7 @@ function Swap() {
   console.log("SWAP RENDER")
   const { network, userAddress } = useContext(WalletContext)
   const { allowances, balances, buyTokenInfo, sellTokenInfo, tokenPricesUSD } = useContext(ExchangeContext)
-  const { sellAmount, buyAmount, swapPrice, selectSellToken, selectBuyToken } = useContext(SwapContext)
+  const { sellAmount, buyAmount, swapPrice, quoteOrderRoutingArray, selectSellToken, selectBuyToken } = useContext(SwapContext)
 
   const [modal, setModal] = useState<ModalMode>(null)
 
@@ -52,6 +52,12 @@ function Swap() {
     if (!userAddress) return SellValidationState.OK
     if (!sellTokenInfo) return SellValidationState.InternalError
     if (!swapPrice) return SellValidationState.MissingLiquidity
+
+
+    const firstQuoteOrder: ZZOrder | undefined = quoteOrderRoutingArray[0]
+    if (!firstQuoteOrder || sellAmount.gt(firstQuoteOrder.order.buyAmount)) {
+      return SellValidationState.MissingLiquidity
+    }
 
     const sellTokenBalance = balances[sellTokenInfo.address]
     const balance = sellTokenBalance ? sellTokenBalance.value : ethers.constants.Zero

@@ -415,6 +415,8 @@ export default function SwapButton({
 
       updateAllowances([sellTokenInfo.address])
       setTimeout(updateAllowances, 3000, [sellTokenInfo.address])
+      setTimeout(updateAllowances, 6000, [sellTokenInfo.address])
+      setTimeout(updateAllowances, 9000, [sellTokenInfo.address])
       setTimeout(() => {
         closeModal()
         setTransactionStatus(null)

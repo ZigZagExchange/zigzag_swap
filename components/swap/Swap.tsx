@@ -53,7 +53,6 @@ function Swap() {
     if (!sellTokenInfo) return SellValidationState.InternalError
     if (!swapPrice) return SellValidationState.MissingLiquidity
 
-
     const firstQuoteOrder: ZZOrder | undefined = quoteOrderRoutingArray[0]
     if (!firstQuoteOrder || sellAmount.gt(firstQuoteOrder.order.buyAmount)) {
       return SellValidationState.MissingLiquidity

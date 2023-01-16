@@ -259,29 +259,22 @@ function ExchangeProvider({ children }: Props) {
       console.warn("updateTokenPricesUSD: Missing usdcPriceSource")
       return
     }
-    const getPriceUSD = async (tokenAddress: string): Promise<number> => {
+    const getPriceUSD = async (tokenAddress: string, decimals: number): Promise<number> => {
       if (tokenAddress === network.usdcToken) return 1
       try {
         const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdcToken, true)
-        if (tokenAddress === "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f") {
-          return Number(ethers.utils.formatUnits(weightedRateParsed, 16))
-        } else if (tokenAddress === "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9") {
-          return Number(ethers.utils.formatUnits(weightedRateParsed, 18))
-        } else {
-          return Number(ethers.utils.formatUnits(weightedRateParsed, 6))
-        }
+        return Number(ethers.utils.formatUnits(weightedRateParsed, 24 - decimals))
       } catch (err: any) {
         console.error(`Error fetching token price: ${err}`)
         return 0
       }
     }
-    // reuse old token price infos in case the API is not reachable for short periods
     const updatedTokenPricesUSD = tokenPricesUSD
     // allwas get native currency
-    if (network.wethContractAddress) updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress)
+    if (network.wethContractAddress) updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress, 18)
 
     tokenInfos.forEach(async (token: ZZTokenInfo) => {
-      updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address)
+      updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address, token.decimals)
     })
 
     setTokenPricesUSD(updatedTokenPricesUSD)

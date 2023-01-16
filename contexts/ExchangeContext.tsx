@@ -259,12 +259,17 @@ function ExchangeProvider({ children }: Props) {
       console.warn("updateTokenPricesUSD: Missing usdcPriceSource")
       return
     }
-    const getPriceUSD = async (tokenAddress: string) => {
+    const getPriceUSD = async (tokenAddress: string): Promise<number> => {
       if (tokenAddress === network.usdcToken) return 1
       try {
         const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdcToken, true)
-        const weightedRate = ethers.utils.formatUnits(weightedRateParsed, 6)
-        return Number(weightedRate)
+        if (tokenAddress === "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f") {
+          return Number(ethers.utils.formatUnits(weightedRateParsed, 16))
+        } else if (tokenAddress === "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9") {
+          return Number(ethers.utils.formatUnits(weightedRateParsed, 18))
+        } else {
+          return Number(ethers.utils.formatUnits(weightedRateParsed, 6))
+        }
       } catch (err: any) {
         console.error(`Error fetching token price: ${err}`)
         return 0
@@ -277,6 +282,7 @@ function ExchangeProvider({ children }: Props) {
 
     tokenInfos.forEach(async (token: ZZTokenInfo) => {
       updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address)
+      console.log(`DEBUG price for ${token.symbol} : ${token.address} is `, updatedTokenPricesUSD[token.address])
     })
 
     setTokenPricesUSD(updatedTokenPricesUSD)

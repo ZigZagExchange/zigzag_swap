@@ -4,7 +4,6 @@ import { ethers } from "ethers"
 import erc20Abi from "../data/abis/erc20.json"
 
 import { WalletContext } from "./WalletContext"
-import { Map } from "typescript"
 
 const _defaultBuyToken = (): ZZTokenInfo => {
   return {
@@ -63,13 +62,6 @@ export type ZZTokenInfo = {
   decimals: number
   name: string
 }
-
-// export type TokenBalanceObject = {
-//   [key: string]: {
-//     value: ethers.BigNumber
-//     valueReadable: number
-//   }
-// }
 
 export type TokenBalanceObject = Record<string, { value: ethers.BigNumber; valueReadable: number } | undefined>
 export type TokenAllowanceObject = Record<string, ethers.BigNumber | undefined>
@@ -260,7 +252,7 @@ function ExchangeProvider({ children }: Props) {
       return
     }
     const getPriceUSD = async (tokenAddress: string, decimals: number): Promise<number> => {
-      if (tokenAddress === network.usdcToken) return 1
+      if (!network.usdcToken || tokenAddress.toLowerCase() === network.usdcToken.toLowerCase()) return 1
       try {
         const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdcToken, true)
         return Number(ethers.utils.formatUnits(weightedRateParsed, 24 - decimals))

@@ -4,7 +4,6 @@ import { ethers } from "ethers"
 import erc20Abi from "../data/abis/erc20.json"
 
 import { WalletContext } from "./WalletContext"
-import { Map } from "typescript"
 
 const _defaultBuyToken = (): ZZTokenInfo => {
   return {
@@ -63,13 +62,6 @@ export type ZZTokenInfo = {
   decimals: number
   name: string
 }
-
-// export type TokenBalanceObject = {
-//   [key: string]: {
-//     value: ethers.BigNumber
-//     valueReadable: number
-//   }
-// }
 
 export type TokenBalanceObject = Record<string, { value: ethers.BigNumber; valueReadable: number } | undefined>
 export type TokenAllowanceObject = Record<string, ethers.BigNumber | undefined>
@@ -260,10 +252,13 @@ function ExchangeProvider({ children }: Props) {
       return
     }
     const getPriceUSD = async (tokenAddress: string, decimals: number): Promise<number> => {
-      if (tokenAddress === network.usdcToken) return 1
+      if (!network.usdcToken || tokenAddress.toLowerCase() === network.usdcToken.toLowerCase()) return 1
       try {
         const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdcToken, true)
-        return Number(ethers.utils.formatUnits(weightedRateParsed, 24 - decimals))
+        const numerator = ethers.BigNumber.from(10).pow(decimals)
+        const denominator = ethers.BigNumber.from(10).pow(6)
+        const price = ethers.BigNumber.from(weightedRateParsed).mul(numerator).div(denominator)
+        return Number(ethers.utils.formatUnits(price, decimals))
       } catch (err: any) {
         console.error(`Error fetching token price: ${err}`)
         return 0
@@ -273,9 +268,10 @@ function ExchangeProvider({ children }: Props) {
     // allwas get native currency
     if (network.wethContractAddress) updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress, 18)
 
-    tokenInfos.forEach(async (token: ZZTokenInfo) => {
+    const promise = tokenInfos.map(async (token: ZZTokenInfo) => {
       updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address, token.decimals)
     })
+    await Promise.all(promise)
 
     setTokenPricesUSD(updatedTokenPricesUSD)
   }

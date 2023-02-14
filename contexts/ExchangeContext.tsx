@@ -268,10 +268,9 @@ function ExchangeProvider({ children }: Props) {
     // allwas get native currency
     if (network.wethContractAddress) updatedTokenPricesUSD[ethers.constants.AddressZero] = await getPriceUSD(network.wethContractAddress, 18)
 
-    const promise = tokenInfos.map(async (token: ZZTokenInfo) => {
+    tokenInfos.forEach(async (token: ZZTokenInfo) => {
       updatedTokenPricesUSD[token.address] = await getPriceUSD(token.address, token.decimals)
     })
-    await Promise.all(promise)
 
     setTokenPricesUSD(updatedTokenPricesUSD)
   }

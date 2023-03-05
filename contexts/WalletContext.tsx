@@ -151,8 +151,16 @@ function WalletProvider({ children }: Props) {
       if (result) {
         setUserName(result)
       }
+
+      // reset user name if nothing found
+      setUserName(null)
     }
-    if (!userAddress) return
+
+    if (!userAddress) {
+      setUserName(null)
+      return
+    }
+
     fetchName(userAddress)
   }, [userAddress])
 

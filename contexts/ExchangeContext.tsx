@@ -7,10 +7,10 @@ import { WalletContext } from "./WalletContext"
 
 const _defaultBuyToken = (): ZZTokenInfo => {
   return {
-    address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
-    symbol: "USDC",
+    address: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+    symbol: "USDT",
     decimals: 6,
-    name: "USD Coin",
+    name: "Tether USD",
   }
 }
 
@@ -252,9 +252,9 @@ function ExchangeProvider({ children }: Props) {
       return
     }
     const getPriceUSD = async (tokenAddress: string, decimals: number): Promise<number> => {
-      if (!network.usdcToken || tokenAddress.toLowerCase() === network.usdcToken.toLowerCase()) return 1
+      if (!network.usdToken || tokenAddress.toLowerCase() === network.usdToken.toLowerCase()) return 1
       try {
-        const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdcToken, true)
+        const weightedRateParsed = await usdcPriceSource.getRate(tokenAddress, network.usdToken, true)
         return Number(ethers.utils.formatUnits(weightedRateParsed, 24 - decimals))
       } catch (err: any) {
         console.error(`Error fetching token price: ${err}`)

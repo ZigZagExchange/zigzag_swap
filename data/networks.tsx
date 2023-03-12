@@ -60,7 +60,7 @@ export type NetworkType = {
   provider: ethers.providers.JsonRpcProvider
   wethContractAddress?: string
   offChainOracle?: string
-  usdcToken?: string
+  usdToken?: string
 }
 
 export const NETWORK = {
@@ -88,7 +88,7 @@ export const NETWORKS: NetworkObject = {
     provider: new ethers.providers.JsonRpcProvider("https://arb1.arbitrum.io/rpc"),
     wethContractAddress: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
     offChainOracle: "0x735247fb0a604c0adC6cab38ACE16D0DbA31295F",
-    usdcToken: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
+    usdToken: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" // usdt
   }
 }
 

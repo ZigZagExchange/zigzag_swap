@@ -7,10 +7,10 @@ import { WalletContext } from "./WalletContext"
 
 const _defaultBuyToken = (): ZZTokenInfo => {
   return {
-    address: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-    symbol: "USDT",
+    address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+    symbol: "USDC",
     decimals: 6,
-    name: "Tether USD",
+    name: "USD Coin",
   }
 }
 

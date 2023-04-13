@@ -13,12 +13,12 @@
       },
       {
         "internalType": "address",
-        "name": "fee_address",
+        "name": "weth_address",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "weth_address",
+        "name": "trusted_forwarder",
         "type": "address"
       }
     ],
@@ -101,18 +101,6 @@
         "internalType": "uint256",
         "name": "takerSellAmount",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "makerVolumeFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "takerVolumeFee",
-        "type": "uint256"
       }
     ],
     "name": "Swap",
@@ -180,6 +168,128 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "sellToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "buyToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "sellAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "buyAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expirationTimeSeconds",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct LibOrder.Order[]",
+        "name": "makerOrder",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "makerSignature",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "takerAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "fillOrderBook",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "sellToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "buyToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "sellAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "buyAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expirationTimeSeconds",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct LibOrder.Order[]",
+        "name": "makerOrder",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "makerSignature",
+        "type": "bytes[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "takerAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "fillOrderBookETH",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -698,6 +808,76 @@
         "internalType": "struct LibOrder.Order",
         "name": "order",
         "type": "tuple"
+      }
+    ],
+    "name": "getOrderHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "orderHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "forwarder",
+        "type": "address"
+      }
+    ],
+    "name": "isTrustedForwarder",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "sellToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "buyToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "sellAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "buyAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expirationTimeSeconds",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct LibOrder.Order",
+        "name": "order",
+        "type": "tuple"
       },
       {
         "internalType": "bytes",
@@ -714,6 +894,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "trusted_forwarder",
+        "type": "address"
+      }
+    ],
+    "name": "updateTrustedForwarder",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

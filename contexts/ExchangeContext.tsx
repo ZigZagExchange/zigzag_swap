@@ -49,8 +49,6 @@ type ZZInfoMsg = {
   verifiedTokens: ZZTokenInfo[]
   exchange: {
     exchangeAddress: string
-    makerVolumeFee: number
-    takerVolumeFee: number
     domain: EIP712DomainInfo
     types: EIP712TypeInfo
   }
@@ -73,8 +71,6 @@ export type ExchangeContextType = {
   exchangeAddress: string
   balances: TokenBalanceObject
   allowances: TokenAllowanceObject
-  makerFee: number
-  takerFee: number
   domainInfo: EIP712DomainInfo | null
   typeInfo: EIP712TypeInfo | null
   tokenInfos: ZZTokenInfo[]
@@ -97,8 +93,6 @@ export const ExchangeContext = createContext<ExchangeContextType>({
   exchangeAddress: "",
   balances: {},
   allowances: {},
-  makerFee: 0,
-  takerFee: 0,
   domainInfo: null,
   typeInfo: null,
   tokenInfos: [],
@@ -118,8 +112,6 @@ export const ExchangeContext = createContext<ExchangeContextType>({
 function ExchangeProvider({ children }: Props) {
   const [markets, setMarkets] = useState<string[]>([])
   const [tokenInfos, setTokenInfos] = useState<ZZTokenInfo[]>([])
-  const [makerFee, setMakerFee] = useState<number>(0)
-  const [takerFee, setTakerFee] = useState<number>(0)
   const [sellTokenInfo, setSellTokenInfo] = useState<ZZTokenInfo | null>(_defaultSellToken())
   const [buyTokenInfo, setBuyTokenInfo] = useState<ZZTokenInfo | null>(_defaultBuyToken())
   const [exchangeAddress, setExchangeAddress] = useState<string>("")
@@ -236,8 +228,6 @@ function ExchangeProvider({ children }: Props) {
     parsedTokenInfos.push(network.nativeCurrency)
     setTokenInfos(parsedTokenInfos)
     setExchangeAddress(result.exchange.exchangeAddress)
-    setMakerFee(result.exchange.makerVolumeFee)
-    setTakerFee(result.exchange.takerVolumeFee)
     setDomainInfo(result.exchange.domain)
     setTypeInfo(result.exchange.types)
   }
@@ -402,8 +392,6 @@ function ExchangeProvider({ children }: Props) {
         exchangeAddress: exchangeAddress,
         balances: balances,
         allowances: allowances,
-        makerFee: makerFee,
-        takerFee: takerFee,
         domainInfo: domainInfo,
         typeInfo: typeInfo,
         tokenInfos: tokenInfos,

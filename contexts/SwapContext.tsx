@@ -100,7 +100,7 @@ export const SwapContext = createContext<SwapContextType>({
 
 function SwapProvider({ children }: Props) {
   const { network, signer, ethersProvider } = useContext(WalletContext)
-  const { makerFee, takerFee, buyTokenInfo, sellTokenInfo, exchangeAddress, markets, setBuyToken, setSellToken, getTokenInfo, getTokens } =
+  const { buyTokenInfo, sellTokenInfo, exchangeAddress, markets, setBuyToken, setSellToken, getTokenInfo, getTokens } =
     useContext(ExchangeContext)
 
   const [quoteOrderRoutingArray, setQuoteOrderRoutingArray] = useState<ZZOrder[]>([])
@@ -229,7 +229,7 @@ function SwapProvider({ children }: Props) {
           if (!quoteSellTokenInfo || !quoteBuyTokenInfo) return
           const quoteSellAmountFormated = Number(ethers.utils.formatUnits(quoteSellAmount, quoteSellTokenInfo.decimals))
           const quoteBuyAmountFormated = Number(ethers.utils.formatUnits(quoteBuyAmount, quoteBuyTokenInfo.decimals))
-          const thisPrice = (quoteSellAmountFormated * (1 - takerFee)) / (quoteBuyAmountFormated * (1 - makerFee))
+          const thisPrice = quoteSellAmountFormated / quoteBuyAmountFormated
           if (thisPrice > marketSwapPrice) {
             marketSwapPrice = thisPrice
             marketQuoteOrder = currentOrderBook[i]
@@ -251,7 +251,7 @@ function SwapProvider({ children }: Props) {
     setSwapRoute(bestSwapRoute)
     setQuoteOrderRoutingArray(newQuoteOrderArray)
     setSwapPrice(newSwapPrice)
-  }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, makerFee, takerFee, possibleSwapRoute])
+  }, [network, buyInput, sellInput, orderBook, buyTokenInfo, sellTokenInfo, possibleSwapRoute])
 
   const [buyAmount, sellAmount] = useMemo((): [ethers.BigNumber, ethers.BigNumber] => {
     let newBuyAmount: ethers.BigNumber = ethers.constants.Zero

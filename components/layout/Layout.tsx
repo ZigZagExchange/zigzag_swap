@@ -59,9 +59,9 @@ function Layout(props: Props) {
       <Link href="https://arbitrum.zigzag.exchange/">
         <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/trade" ? styles.active_nav_link : ""}`}>Orderbook</a>
       </Link>
-      <Link href="/">
-        <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/swap" ? styles.active_nav_link : ""}`}>Swap</a>
-      </Link>
+      {/* <Link href="/">
+          <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/swap" ? styles.active_nav_link : ""}`}>Swap</a>
+        </Link> */}
 
       {/* Link */}
       {/* <HeaderSocials /> */}
@@ -89,7 +89,14 @@ function Layout(props: Props) {
           <ConnectWallet />
         </div>
       </header>
-
+      {/* <div className={styles.mobile_nav}>
+        <Link href="https://arbitrum.zigzag.exchange/">
+          <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/trade" ? styles.active_nav_link : ""}`}>Orderbook</a>
+        </Link>
+        <Link href="/">
+          <a className={`${styles.nav_link} ${styles.named_nav_link} ${router.route === "/swap" ? styles.active_nav_link : ""}`}>Swap</a>
+        </Link>
+      </div> */}
       <main className={styles.content}>{props.children}</main>
       <footer className={styles.footer}>
         <FooterSocials />
